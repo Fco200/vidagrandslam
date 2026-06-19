@@ -66,7 +66,7 @@
 
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; font-weight: bold; margin-bottom: 5px; }
-        .form-group input, .form-group select {
+        .form-group input, .form-group select, .form-group textarea {
             width: 100%;
             padding: 10px;
             border: 1px solid #ccc;
@@ -134,6 +134,30 @@
         .stat-box.highlight .val { color: var(--primary-color); }
         .btn-danger { background-color: #ba1a1a; }
         .btn-danger:hover { background-color: #931414; }
+
+        /* Estilos del Modal */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 200; 
+            left: 0; top: 0; 
+            width: 100%; height: 100%; 
+            background-color: rgba(0,0,0,0.5); 
+            align-items: center; 
+            justify-content: center;
+        }
+        .modal-content { 
+            background: white; 
+            padding: 25px; 
+            border-radius: 8px; 
+            max-width: 450px; 
+            width: 90%; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+        }
+        .modal-actions { display: flex; gap: 10px; margin-top: 15px; }
+        .btn-secondary { background-color: #6c757d; }
+        .btn-secondary:hover { background-color: #5a6268; }
+        .link-helper { color: #0056b3; text-decoration: underline; cursor: pointer; font-size: 13px; display: inline-block; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -143,7 +167,7 @@
     <header>
         <h1>Panel del Anotador - Torneo VIDA GRAND SLAM</h1>
         <p>"El deporte hermoso que nos une" • Control General Nube</p>
-        <a href="hoja_de_anotacion.html" style="color: var(--secondary-color); font-weight: bold; text-decoration: none; margin-top: 10px; display: inline-block;">Ir a Hoja de Anotación Digital</a>
+        <p><a href="admin.html" style="color: var(--secondary-color); font-weight: bold; text-decoration: none; margin-top: 10px; display: inline-block;">Volver al Inicio</a></p>
     </header>
 
     <div id="successMessage" class="toast-success"></div>
@@ -170,17 +194,19 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="selectPlayer">2. Selecciona la Jugadora (O agrega una abajo)</label>
+                <label for="selectPlayer">2. Selecciona la Jugadora</label>
                 <select id="selectPlayer" onchange="cargarDatosJugadoraSeleccionada()" disabled>
                     <option value="">-- Primero elige un equipo --</option>
                 </select>
+                <span class="link-helper" id="btnOpenModalAlta" onclick="abrirModalAltaDirecta()" style="display: none;">¿La jugadora no aparece? Haz clic aquí para dar de alta</span>
             </div>
         </div>
 
         <form id="statForm" onsubmit="registrarOActualizarJugadora(event)">
-            <div class="form-group" style="background: #fdfdfd; padding: 15px; border: 1px dashed #ccc; border-radius: 6px;">
-                <label for="playerName">Nombre de la Nueva Jugadora (Si no aparece en la lista superior)</label>
-                <input type="text" id="playerName" placeholder="Ej. Yasel #10">
+            <input type="hidden" id="playerActionId">
+            <div class="form-group">
+                <label for="playerNameDisplay">Jugadora Seleccionada</label>
+                <input type="text" id="playerNameDisplay" readonly placeholder="Ninguna jugadora seleccionada" style="background-color: #e9ecef;">
             </div>
 
             <div class="grid-inputs">
@@ -224,18 +250,50 @@
 
 </div>
 
+<div id="altaPlayerModal" class="modal">
+    <div class="modal-content">
+        <h3 id="modalTeamTitle" style="margin-top:0; color: var(--primary-color);">Dar de Alta Jugadoras</h3>
+        
+        <div style="display: flex; gap: 5px; margin-bottom: 15px;">
+            <button type="button" onclick="cambiarTipoAlta('individual')" id="tabInd" style="font-size:12px; padding:6px;">Individual</button>
+            <button type="button" onclick="cambiarTipoAlta('lote')" id="tabLote" style="font-size:12px; padding:6px; background-color:#666;">Por Lote (Masivo)</button>
+        </div>
+
+        <div id="boxAltaIndividual">
+            <div class="form-group">
+                <label for="newPlayerName">Nombre de la Jugadora / Número</label>
+                <input type="text" id="newPlayerName" placeholder="Ej. Yasel #10">
+            </div>
+            <button type="button" onclick="guardarAltaIndividual()">Registrar Jugadora</button>
+        </div>
+
+        <div id="boxAltaLote" style="display: none;">
+            <div class="form-group">
+                <label for="bulkPlayerNames">Pegar lista de jugadoras (Una por línea o separadas por comas)</label>
+                <textarea id="bulkPlayerNames" rows="8" placeholder="Ej.&#10;Yasel #10&#10;Maria #5&#10;Sofía #22"></textarea>
+            </div>
+            <button type="button" onclick="guardarAltaLote()">Registrar Lista Completa</button>
+        </div>
+
+        <div class="modal-actions">
+            <button type="button" onclick="cerrarModalAlta()" class="btn-secondary" style="width: 100%;">Cerrar Ventana</button>
+        </div>
+    </div>
+</div>
+
 <script>
     const firebaseURL = 'https://vidagrandslam-default-rtdb.firebaseio.com/torneo.json';
     let masterDatabase = { equipos: [], jugadoras: [] };
 
     const selectTeam = document.getElementById('selectTeam');
     const selectPlayer = document.getElementById('selectPlayer');
-    const playerNameInput = document.getElementById('playerName');
+    const playerNameDisplay = document.getElementById('playerNameDisplay');
+    const playerActionId = document.getElementById('playerActionId');
     const btnSubmitStats = document.getElementById('btnSubmitStats');
+    const btnOpenModalAlta = document.getElementById('btnOpenModalAlta');
     const successMessage = document.getElementById('successMessage');
     const playersContainer = document.getElementById('playersContainer');
 
-    // Cargar datos iniciales desde Firebase
     function descargarDatosNube() {
         fetch(firebaseURL)
         .then(res => res.json())
@@ -273,18 +331,22 @@
 
     function actualizarFiltrosJugadoras() {
         const equipoSeleccionado = selectTeam.value;
-        selectPlayer.innerHTML = '<option value="">-- Elige una Jugadora o Registra Abajo --</option>';
-        playerNameInput.value = '';
+        selectPlayer.innerHTML = '<option value="">-- Selecciona una Jugadora --</option>';
+        playerNameDisplay.value = '';
+        playerActionId.value = '';
+        document.getElementById('statForm').reset();
 
         if (!equipoSeleccionado) {
             selectPlayer.disabled = true;
             btnSubmitStats.disabled = true;
+            btnOpenModalAlta.style.display = 'none';
             renderPlayers();
             return;
         }
 
         selectPlayer.disabled = false;
-        btnSubmitStats.disabled = false;
+        btnSubmitStats.disabled = true;
+        btnOpenModalAlta.style.display = 'inline-block';
 
         const filtradas = masterDatabase.jugadoras.filter(j => j.team === equipoSeleccionado);
         filtradas.forEach(j => {
@@ -301,28 +363,101 @@
         const idJugadora = selectPlayer.value;
         if (!idJugadora) {
             document.getElementById('statForm').reset();
+            playerNameDisplay.value = '';
+            playerActionId.value = '';
+            btnSubmitStats.disabled = true;
             return;
         }
 
+        btnSubmitStats.disabled = false;
         const jugadora = masterDatabase.jugadoras.find(j => j.id == idJugadora);
         if (jugadora) {
-            playerNameInput.value = jugadora.name;
-            document.getElementById('statAB').value = jugadora.ab;
-            document.getElementById('statH').value = jugadora.h;
-            document.getElementById('statR').value = jugadora.r;
-            document.getElementById('statBB').value = jugadora.bb;
-            document.getElementById('statSO').value = jugadora.so;
-            document.getElementById('statSF').value = jugadora.sf;
+            playerActionId.value = jugadora.id;
+            playerNameDisplay.value = jugadora.name;
+            document.getElementById('statAB').value = jugadora.ab || 0;
+            document.getElementById('statH').value = jugadora.h || 0;
+            document.getElementById('statR').value = jugadora.r || 0;
+            document.getElementById('statBB').value = jugadora.bb || 0;
+            document.getElementById('statSO').value = jugadora.so || 0;
+            document.getElementById('statSF').value = jugadora.sf || 0;
         }
+    }
+
+    function abrirModalAltaDirecta() {
+        const equipo = selectTeam.value;
+        document.getElementById('modalTeamTitle').textContent = `Alta de Jugadoras - ${equipo}`;
+        document.getElementById('altaPlayerModal').style.display = 'flex';
+        cambiarTipoAlta('individual');
+    }
+
+    function cerrarModalAlta() {
+        document.getElementById('altaPlayerModal').style.display = 'none';
+        document.getElementById('newPlayerName').value = '';
+        document.getElementById('bulkPlayerNames').value = '';
+    }
+
+    function cambiarTipoAlta(tipo) {
+        if(tipo === 'individual') {
+            document.getElementById('boxAltaIndividual').style.display = 'block';
+            document.getElementById('boxAltaLote').style.display = 'none';
+            document.getElementById('tabInd').style.backgroundColor = 'var(--primary-color)';
+            document.getElementById('tabLote').style.backgroundColor = '#666';
+        } else {
+            document.getElementById('boxAltaIndividual').style.display = 'none';
+            document.getElementById('boxAltaLote').style.display = 'block';
+            document.getElementById('tabInd').style.backgroundColor = '#666';
+            document.getElementById('tabLote').style.backgroundColor = 'var(--primary-color)';
+        }
+    }
+
+    function guardarAltaIndividual() {
+        const equipo = selectTeam.value;
+        const nombre = document.getElementById('newPlayerName').value.trim();
+
+        if(!nombre) { alert("Ingresa un nombre válido."); return; }
+
+        const nueva = {
+            id: Date.now(),
+            team: equipo,
+            name: nombre, ab:0, h:0, r:0, bb:0, so:0, sf:0, avg:".000", obp:".000"
+        };
+
+        masterDatabase.jugadoras.push(nueva);
+        cerrarModalAlta();
+        guardarEnNube(`Jugadora "${nombre}" dada de alta exitosamente.`);
+    }
+
+    function guardarAltaLote() {
+        const equipo = selectTeam.value;
+        const rawText = document.getElementById('bulkPlayerNames').value.trim();
+
+        if(!rawText) { alert("Pega una lista de nombres válida."); return; }
+
+        // Dividir por saltos de línea o por comas
+        let nombres = rawText.split(/[\n,]+/);
+        let contador = 0;
+
+        nombres.forEach(n => {
+            let limpio = n.trim();
+            if(limpio !== "") {
+                masterDatabase.jugadoras.push({
+                    id: Date.now() + contador, // Evitar colisión de IDs idénticos
+                    team: equipo,
+                    name: limpio, ab:0, h:0, r:0, bb:0, so:0, sf:0, avg:".000", obp:".000"
+                });
+                contador++;
+            }
+        });
+
+        cerrarModalAlta();
+        guardarEnNube(`Se cargaron ${contador} jugadoras en lote para el equipo.`);
     }
 
     function registrarOActualizarJugadora(e) {
         e.preventDefault();
-        const equipo = selectTeam.value;
-        const selectId = selectPlayer.value;
-        let nombre = playerNameInput.value.trim();
+        const selectId = playerActionId.value;
 
-        if (!equipo) return;
+        if (!selectId) return;
 
         const ab = parseInt(document.getElementById('statAB').value) || 0;
         const h = parseInt(document.getElementById('statH').value) || 0;
@@ -335,32 +470,22 @@
         let avg = ab > 0 ? (h / ab).toFixed(3) : ".000";
         let obp = pa > 0 ? ((h + bb) / pa).toFixed(3) : ".000";
 
-        if (selectId) {
-            const idx = masterDatabase.jugadoras.findIndex(j => j.id == selectId);
-            if (idx > -1) {
-                if(nombre !== "") masterDatabase.jugadoras[idx].name = nombre;
-                masterDatabase.jugadoras[idx].ab = ab;
-                masterDatabase.jugadoras[idx].h = h;
-                masterDatabase.jugadoras[idx].r = r;
-                masterDatabase.jugadoras[idx].bb = bb;
-                masterDatabase.jugadoras[idx].so = so;
-                masterDatabase.jugadoras[idx].sf = sf;
-                masterDatabase.jugadoras[idx].avg = avg;
-                masterDatabase.jugadoras[idx].obp = obp;
-                guardarEnNube(`Estadísticas de "${masterDatabase.jugadoras[idx].name}" actualizadas en la nube.`);
-            }
-        } else {
-            if (!nombre) { alert("Escribe un nombre de jugadora."); return; }
-            const nuevaJugadora = {
-                id: Date.now(),
-                team: equipo,
-                name: nombre, ab, h, r, bb, so, sf, avg, obp
-            };
-            masterDatabase.jugadoras.push(nuevaJugadora);
-            guardarEnNube(`Nueva jugadora "${nombre}" guardada en la red.`);
+        const idx = masterDatabase.jugadoras.findIndex(j => j.id == selectId);
+        if (idx > -1) {
+            masterDatabase.jugadoras[idx].ab = ab;
+            masterDatabase.jugadoras[idx].h = h;
+            masterDatabase.jugadoras[idx].r = r;
+            masterDatabase.jugadoras[idx].bb = bb;
+            masterDatabase.jugadoras[idx].so = so;
+            masterDatabase.jugadoras[idx].sf = sf;
+            masterDatabase.jugadoras[idx].avg = avg;
+            masterDatabase.jugadoras[idx].obp = obp;
+            guardarEnNube(`Estadísticas de "${masterDatabase.jugadoras[idx].name}" sincronizadas.`);
         }
 
         document.getElementById('statForm').reset();
+        playerNameDisplay.value = '';
+        playerActionId.value = '';
     }
 
     function guardarEnNube(msgExito) {
@@ -431,7 +556,6 @@
         }
     }
 
-    // Carga inicial al encender la página
     descargarDatosNube();
 </script>
 </body>
