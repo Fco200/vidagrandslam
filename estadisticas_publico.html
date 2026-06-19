@@ -10,12 +10,13 @@
             --secondary-color: #d4af37;
             --dark-color: #2b2b2b;
             --light-color: #f4f6f4;
+            --lime-neon: #7fff00;
         }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--light-color);
-            color: var(--dark-color);
+            background-color: #0a0a0a; /* Oscuro para combinar con la landing principal */
+            color: #ffffff;
             margin: 0;
             padding: 20px;
         }
@@ -28,6 +29,7 @@
             border-radius: 8px;
             margin-bottom: 25px;
             border-bottom: 5px solid var(--secondary-color);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
 
         header h1 { margin: 0; font-size: 26px; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -36,38 +38,114 @@
         .container { max-width: 950px; margin: 0 auto; }
 
         .card {
-            background: white;
+            background: #141414; /* Gris carbón premium */
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
             margin-bottom: 20px;
+            border: 1px solid #222;
         }
 
-        .card h2 { margin-top: 0; color: var(--primary-color); border-bottom: 2px solid var(--light-color); padding-bottom: 10px; }
+        .card h2 { margin-top: 0; color: #ffffff; border-bottom: 2px solid #222; padding-bottom: 10px; text-transform: uppercase; font-size: 18px; letter-spacing: 0.5px;}
+
+        /* Contenedor de Filtros de Equipo Animados */
+        .team-filters-box {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #222;
+        }
+
+        .filter-btn {
+            background-color: #222;
+            color: #fff;
+            border: 1px solid #333;
+            padding: 8px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+            transition: all 0.25s ease;
+            text-transform: uppercase;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--lime-neon);
+            color: var(--lime-neon);
+            box-shadow: 0 0 8px rgba(127, 255, 0, 0.2);
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(180deg, var(--lime-neon) 0%, #4db800 100%);
+            color: #000;
+            border-color: transparent;
+            box-shadow: 0 0 12px var(--lime-neon);
+        }
+
+        /* Buscador */
+        #publicSearchInput {
+            width: 100%; 
+            padding: 12px; 
+            background-color: #0d0d0d;
+            border: 2px solid #333; 
+            border-radius: 6px; 
+            font-size: 15px; 
+            box-sizing: border-box;
+            color: white;
+            transition: border-color 0.3s;
+        }
+
+        #publicSearchInput:focus {
+            border-color: var(--lime-neon);
+            outline: none;
+            box-shadow: 0 0 10px rgba(127, 255, 0, 0.2);
+        }
 
         .public-list { display: flex; flex-direction: column; gap: 12px; }
+
+        /* Animación de entrada para las filas */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
         .public-row {
             display: flex;
             flex-direction: column;
-            background: white;
-            border: 1px solid #e0e0e0;
+            background: #1c1c1c;
+            border: 1px solid #252525;
             border-radius: 6px;
             padding: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            animation: fadeInUp 0.4s ease forwards; /* Animación aplicada */
+            transition: transform 0.2s ease, border-color 0.2s ease;
         }
 
-        .public-row.top-three { border-left: 6px solid var(--secondary-color); background: #fffdf5; }
+        .public-row:hover {
+            transform: scale(1.01);
+            border-color: rgba(127, 255, 0, 0.3);
+        }
+
+        .public-row.top-three { border-left: 6px solid var(--secondary-color); background: #1e1b10; }
 
         @media(min-width: 768px) {
             .public-row { flex-direction: row; justify-content: space-between; align-items: center; }
         }
 
         .meta-box { display: flex; align-items: center; gap: 15px; flex: 2; }
+        
         .ranking-badge {
             width: 32px;
             height: 32px;
-            background: #555;
+            background: #444;
             color: white;
             border-radius: 50%;
             display: flex;
@@ -77,24 +155,29 @@
         }
         .top-three .ranking-badge { background: var(--secondary-color); color: black; font-size: 16px; }
 
-        .player-name-text { font-size: 18px; font-weight: bold; color: var(--primary-color); }
-        .team-tag { font-size: 13px; color: #666; font-weight: 500; }
+        .player-name-text { font-size: 18px; font-weight: bold; color: #ffffff; }
+        .top-three .player-name-text { color: var(--secondary-color); }
+        .team-tag { font-size: 13px; color: #aaa; font-weight: 500; margin-top: 2px; }
 
         .stats-display {
             display: flex;
             flex-wrap: wrap;
             gap: 12px;
-            background: var(--light-color);
+            background: #101010;
             padding: 8px 16px;
             border-radius: 4px;
             flex: 3;
             justify-content: space-between;
+            margin-top: 10px;
+            border: 1px solid #222;
         }
 
+        @media(min-width: 768px) { .stats-display { margin-top: 0; } }
+
         .stat-item { text-align: center; min-width: 38px; }
-        .stat-item .lbl { font-size: 9px; color: #666; display: block; font-weight: bold; }
+        .stat-item .lbl { font-size: 9px; color: #888; display: block; font-weight: bold; }
         .stat-item .val { font-size: 14px; font-weight: bold; }
-        .highlight-stat { color: var(--primary-color); font-size: 15px; }
+        .highlight-stat { color: var(--lime-neon); font-size: 15px; }
     </style>
 </head>
 <body>
@@ -106,10 +189,17 @@
     </header>
 
     <div class="card">
-        <h2>Clasificación de Jugadoras (Metodología Ballscore)</h2>
-        <div style="margin-bottom: 20px;">
-            <input type="text" id="publicSearchInput" placeholder="🔍 Buscar por nombre de jugadora o equipo..." style="width: 100%; padding: 12px; border: 2px solid var(--primary-color); border-radius: 6px; font-size: 15px; box-sizing: border-box;">
+        <h2>Filtrar por Escuadra</h2>
+        <div id="teamFiltersContainer" class="team-filters-box">
+            <button class="filter-btn active" onclick="filtrarPorEquipo('')">Todos los Equipos</button>
         </div>
+
+        <h2>Buscador de Jugadoras</h2>
+        <div style="margin-bottom: 20px;">
+            <input type="text" id="publicSearchInput" placeholder="Anote el nombre de la jugadora que busca...">
+        </div>
+
+        <h2>Clasificación General (Metodología Ballscore)</h2>
         <div id="publicContainer" class="public-list">
             <p style="text-align:center; color:#777; font-style:italic;">Descargando bateadoras desde el diamante de la nube...</p>
         </div>
@@ -118,72 +208,135 @@
 
 <script>
     const firebaseMasterURL = 'https://vidagrandslam-default-rtdb.firebaseio.com/torneo.json';
+    let localCacheDatabase = null;
+    let equipoSeleccionado = '';
 
     function cargarEstadisticasPublicas() {
         const container = document.getElementById('publicContainer');
         const searchTerm = document.getElementById('publicSearchInput') ? document.getElementById('publicSearchInput').value.toLowerCase() : '';
 
+        // Si ya tenemos datos cacheados localmente de la llamada fetch, los usamos para no saturar internet con cada tecla
+        if (localCacheDatabase) {
+            procesarYRenderizar(localCacheDatabase, container, searchTerm);
+            return;
+        }
+
         fetch(firebaseMasterURL)
         .then(res => res.json())
         .then(database => {
-            if (!database || !database.jugadoras || database.jugadoras.length === 0) {
+            if (!database || !database.jugadoras) {
                 container.innerHTML = '<p style="text-align:center; color:#777; font-style:italic; padding:20px;">Esperando actualización de estadísticas oficiales por el anotador...</p>';
                 return;
             }
-
-            // 1. Ordenar de mayor a menor según el promedio de bateo (AVG)
-            let ordenadas = [...database.jugadoras];
-            ordenadas.sort((a, b) => parseFloat(b.avg) - parseFloat(a.avg) || parseFloat(b.obp) - parseFloat(a.obp));
-
-            // 2. Filtrar según la barra de búsqueda
-            let filtradas = ordenadas.filter(p => 
-                p.name.toLowerCase().includes(searchTerm) || 
-                p.team.toLowerCase().includes(searchTerm)
-            );
-
-            if (filtradas.length === 0) {
-                container.innerHTML = '<p style="text-align:center; color:#777; padding:20px;">No se encontraron jugadoras o equipos con ese nombre.</p>';
-                return;
-            }
-
-            container.innerHTML = '';
-            filtradas.forEach((p) => {
-                const posicionReal = ordenadas.findIndex(orig => orig.id === p.id) + 1;
-                const row = document.createElement('div');
-                row.className = `public-row ${posicionReal <= 3 ? 'top-three' : ''}`;
-
-                row.innerHTML = `
-                    <div class="meta-box">
-                        <div class="ranking-badge">${posicionReal}</div>
-                        <div>
-                            <div class="player-name-text">${p.name}</div>
-                            <div class="team-tag">⚾ ${p.team}</div>
-                        </div>
-                    </div>
-                    <div class="stats-display">
-                        <div class="stat-item"><span class="lbl">AB</span><span class="val">${p.ab}</span></div>
-                        <div class="stat-item"><span class="lbl">H</span><span class="val">${p.h}</span></div>
-                        <div class="stat-item"><span class="lbl">R</span><span class="val">${p.r}</span></div>
-                        <div class="stat-item"><span class="lbl">BB</span><span class="val">${p.bb}</span></div>
-                        <div class="stat-item"><span class="lbl">SO</span><span class="val">${p.so}</span></div>
-                        <div class="stat-item"><span class="lbl">SF</span><span class="val">${p.sf}</span></div>
-                        <div class="stat-item"><span class="lbl">AVG</span><span class="val highlight-stat">${p.avg}</span></div>
-                        <div class="stat-item"><span class="lbl">OBP</span><span class="val highlight-stat">${p.obp}</span></div>
-                    </div>
-                `;
-                container.appendChild(row);
-            });
+            localCacheDatabase = database;
+            generarBotonesFiltroEquipos(database.equipos);
+            procesarYRenderizar(database, container, searchTerm);
         })
         .catch(err => {
             container.innerHTML = '<p style="text-align:center; color:red; padding:20px;">Error al conectar con la base de datos de internet.</p>';
         });
     }
 
-    // Escuchar el input de búsqueda del usuario
-    document.getElementById('publicSearchInput').addEventListener('input', cargarEstadisticasPublicas);
+    // Generar botones de filtro dinámicamente con base en los dados de alta
+    function generarBotonesFiltroEquipos(equipos) {
+        const filterBox = document.getElementById('teamFiltersContainer');
+        if (!equipos || filterBox.children.length > 1) return; // Evitar duplicar botones si ya existen
 
-    // Auto-actualizar desde internet cada 45 segundos
-    setInterval(cargarEstadisticasPublicas, 45000);
+        equipos.forEach(eq => {
+            const btn = document.createElement('button');
+            btn.className = 'filter-btn';
+            btn.textContent = eq;
+            btn.setAttribute('data-team', eq);
+            btn.onclick = function() { filtrarPorEquipo(eq); };
+            filterBox.appendChild(btn);
+        });
+    }
+
+    function filtrarPorEquipo(team) {
+        equipoSeleccionado = team;
+        
+        // Manejo de clase activa visual
+        const botones = document.querySelectorAll('.filter-btn');
+        botones.forEach(btn => {
+            if(btn.getAttribute('data-team') === team || (team === '' && btn.textContent.includes('Todos'))) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
+        // Forzar renderizado inmediato con el filtro de equipo activo
+        const container = document.getElementById('publicContainer');
+        const searchTerm = document.getElementById('publicSearchInput').value.toLowerCase();
+        if (localCacheDatabase) {
+            procesarYRenderizar(localCacheDatabase, container, searchTerm);
+        }
+    }
+
+    function procesarYRenderizar(database, container, searchTerm) {
+        // 1. Ordenar de mayor a menor según el promedio de bateo (AVG) de Ballscore
+        let ordenadas = [...database.jugadoras];
+        ordenadas.sort((a, b) => parseFloat(b.avg) - parseFloat(a.avg) || parseFloat(b.obp) - parseFloat(a.obp));
+
+        // 2. FILTRAR POR EQUIPO Y BUSCADOR simultáneamente
+        let filtradas = ordenadas.filter(p => {
+            const coincideBusqueda = p.name.toLowerCase().includes(searchTerm);
+            const coincideEquipo = (equipoSeleccionado === '') || (p.team === equipoSeleccionado);
+            return coincideBusqueda && coincideEquipo;
+        });
+
+        if (filtradas.length === 0) {
+            container.innerHTML = '<p style="text-align:center; color:#777; padding:20px;">No se encontraron jugadoras con los filtros seleccionados.</p>';
+            return;
+        }
+
+        container.innerHTML = '';
+        filtradas.forEach((p, index) => {
+            const posicionReal = ordenadas.findIndex(orig => orig.id === p.id) + 1;
+            const row = document.createElement('div');
+            row.className = `public-row ${posicionReal <= 3 ? 'top-three' : ''}`;
+            
+            // Retardo de animación en cascada para que se vea más profesional
+            row.style.animationDelay = `${index * 0.04}s`;
+
+            row.innerHTML = `
+                <div class="meta-box">
+                    <div class="ranking-badge">${posicionReal}</div>
+                    <div>
+                        <div class="player-name-text">${p.name}</div>
+                        <div class="team-tag">⚾ ${p.team}</div>
+                    </div>
+                </div>
+                <div class="stats-display">
+                    <div class="stat-item"><span class="lbl">AB</span><span class="val">${p.ab}</span></div>
+                    <div class="stat-item"><span class="lbl">H</span><span class="val">${p.h}</span></div>
+                    <div class="stat-item"><span class="lbl">R</span><span class="val">${p.r}</span></div>
+                    <div class="stat-item"><span class="lbl">BB</span><span class="val">${p.bb}</span></div>
+                    <div class="stat-item"><span class="lbl">SO</span><span class="val">${p.so}</span></div>
+                    <div class="stat-item"><span class="lbl">SF</span><span class="val">${p.sf}</span></div>
+                    <div class="stat-item"><span class="lbl">AVG</span><span class="val highlight-stat">${p.avg}</span></div>
+                    <div class="stat-item"><span class="lbl">OBP</span><span class="val highlight-stat">${p.obp}</span></div>
+                </div>
+            `;
+            container.appendChild(row);
+        });
+    }
+
+    // Escuchar el input de búsqueda del usuario
+    document.getElementById('publicSearchInput').addEventListener('input', () => {
+        if(localCacheDatabase) {
+            const container = document.getElementById('publicContainer');
+            procesarYRenderizar(localCacheDatabase, container, document.getElementById('publicSearchInput').value.toLowerCase());
+        }
+    });
+
+    // Forzar recarga completa desde Firebase cada 45 segundos por si el anotador sube partidos nuevos
+    setInterval(() => {
+        localCacheDatabase = null; 
+        cargarEstadisticasPublicas();
+    }, 45000);
+    
+    // Carga inicial al encender la pantalla
     cargarEstadisticasPublicas();
 </script>
 </body>
