@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Programación de Partidos - Admin</title>
+    <style>
+        :root {
+            --bg-dark: #0a0a0a;
+            --card-bg: #141414;
+            --primary-neon: #7fff00;
+            --accent-green: #4db800;
+            --text-light: #ffffff;
+            --text-muted: #aaaaaa;
+            --danger: #ba1a1a;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container { max-width: 800px; margin: 0 auto; }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid var(--primary-neon);
+            padding-bottom: 10px;
+        }
+
+        h1 { color: #fff; text-transform: uppercase; letter-spacing: 1px; margin: 0; font-size: 24px; }
+        header p { color: var(--primary-neon); margin: 5px 0 0 0; font-size: 14px; font-weight: bold; }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid #222;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        h2 { font-size: 18px; text-transform: uppercase; color: #fff; margin-top: 0; border-bottom: 1px solid #222; padding-bottom: 10px; }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group { display: flex; flex-direction: column; }
+        .form-group.full-width { grid-column: span 1; }
+        @media (min-width: 600px) { .form-group.full-width { grid-column: span 2; } }
+
+        label { font-size: 12px; text-transform: uppercase; color: var(--text-muted); font-weight: bold; margin-bottom: 6px; }
+        input, select {
+            background-color: #0d0d0d;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        input:focus, select:focus { border-color: var(--primary-neon); outline: none; }
+
+        button {
+            background: linear-gradient(180deg, var(--primary-neon) 0%, var(--accent-green) 100%);
+            color: #000;
+            border: none;
+            padding: 12px;
+            font-weight: bold;
+            font-size: 14px;
+            text-transform: uppercase;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+        button:hover { transform: scale(1.01); box-shadow: 0 0 10px var(--primary-neon); }
+
+        /* Lista de partidos agendados */
+        .match-item {
+            background: #1c1c1c;
+            border-left: 4px solid var(--primary-neon);
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .match-details { font-size: 14px; }
+        .match-teams { font-weight: bold; font-size: 16px; margin-bottom: 4px; color: #fff; }
+        .match-info { color: var(--text-muted); font-size: 13px; }
+        .match-info span { color: var(--primary-neon); }
+
+        .btn-delete {
+            background: var(--danger);
+            color: white;
+            padding: 6px 12px;
+            font-size: 12px;
+            width: auto;
+            margin: 0;
+        }
+        .btn-delete:hover { background: #931414; box-shadow: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Programador de Rol de Juegos</h1>
+        <p>VIDA GRAND SLAM — Panel de Administración</p>
+    </header>
+
+    <div class="card">
+        <h2>Programar Nuevo Encuentro</h2>
+        <form id="gameForm">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="teamHome">Equipo Local (CASA)</label>
+                    <input type="text" id="teamHome" placeholder="Ej. Novatas" required>
+                </div>
+                <div class="form-group">
+                    <label for="teamAway">Equipo Visitante</label>
+                    <input type="text" id="textAway" placeholder="Ej. Amazonas" required>
+                </div>
+                <div class="form-group">
+                    <label for="gameDate">Fecha (Viernes)</label>
+                    <input type="date" id="gameDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="gameTime">Hora del Juego</label>
+                    <input type="time" id="gameTime" required>
+                </div>
+                <div class="form-group full-width">
+                    <label for="gameField">Campo / Sede</label>
+                    <input type="text" id="gameField" placeholder="Ej. Campo Principal" required>
+                </div>
+            </div>
+            <button type="submit">Publicar Juego</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2>Juegos Programados en la Base de Datos</h2>
+        <div id="adminGamesContainer">
+            <p style="color: var(--text-muted); font-style: italic; text-align: center;">Cargando calendario...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const firebasePartidosURL = 'https://vidagrandslam-default-rtdb.firebaseio.com/partidos.json';
+    const gameForm = document.getElementById('gameForm');
+    const adminGamesContainer = document.getElementById('adminGamesContainer');
+    
+    let juegosDatabase = [];
+
+    // Descargar juegos existentes
+    function cargarJuegos() {
+        fetch(firebasePartidosURL)
+        .then(res => res.json())
+        .then(data => {
+            // Firebase guarda arreglos o llaves, convertimos a arreglo limpio
+            juegosDatabase = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
+            
+            // Ordenar los juegos por fecha y hora cronológicamente
+            juegosDatabase.sort((a,b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
+            
+            renderAdminGames();
+        })
+        .catch(() => {
+            adminGamesContainer.innerHTML = '<p style="color: red;">Error al conectar con Firebase.</p>';
+        });
+    }
+
+    // Registrar nuevo juego
+    gameForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const nuevoJuego = {
+            home: document.getElementById('teamHome').value.trim(),
+            away: document.getElementById('textAway').value.trim(),
+            date: document.getElementById('gameDate').value,
+            time: document.getElementById('gameTime').value,
+            field: document.getElementById('gameField').value.trim()
+        };
+
+        fetch(firebasePartidosURL, {
+            method: 'POST', // Genera una llave única automática en Firebase
+            body: JSON.stringify(nuevoJuego)
+        })
+        .then(() => {
+            gameForm.reset();
+            cargarJuegos();
+        });
+    });
+
+    // Dibujar los juegos en el panel administrador
+    function renderAdminGames() {
+        if (juegosDatabase.length === 0) {
+            adminGamesContainer.innerHTML = '<p style="color: #666; font-style: italic; text-align: center;">No hay juegos agendados.</p>';
+            return;
+        }
+
+        adminGamesContainer.innerHTML = '';
+        juegosDatabase.forEach(juego => {
+            // Dar formato legible a la fecha (AAAA-MM-DD a DD/MM/AAAA)
+            const [year, month, day] = juego.date.split('-');
+            const fechaFormateada = `${day}/${month}/${year}`;
+
+            const div = document.createElement('div');
+            div.className = 'match-item';
+            div.innerHTML = `
+                <div class="match-details">
+                    <div class="match-teams">${juego.home} <span style="color:var(--primary-neon)">VS</span> ${juego.away}</div>
+                    <div class="match-info">🗓️ <span>${fechaFormateada}</span> | ⏰ <span>${juego.time} Hrs</span> | 📍 <span>${juego.field}</span></div>
+                </div>
+                <button onclick="eliminarJuego('${juego.id}')" class="btn-danger btn-delete">Eliminar</button>
+            `;
+            adminGamesContainer.appendChild(div);
+        });
+    }
+
+    // Eliminar juego de la nube
+    function eliminarJuego(id) {
+        if(confirm("¿Seguro que deseas cancelar o eliminar este partido programado?")) {
+            fetch(`https://vidagrandslam-default-rtdb.firebaseio.com/partidos/${id}.json`, {
+                method: 'DELETE'
+            })
+            .then(() => {
+                cargarJuegos();
+            });
+        }
+    }
+
+    // Inicializar
+    cargarJuegos();
+</script>
+</body>
+</html>

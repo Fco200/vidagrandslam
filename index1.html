@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control de Estadísticas - VIDA GRAND SLAM</title>
+    <style>
+        :root {
+            --primary-color: #1a472a; 
+            --secondary-color: #d4af37; 
+            --dark-color: #2b2b2b;
+            --light-color: #f4f6f4;
+            --success-color: #155724;
+            --success-bg: #d4edda;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-bottom: 4px solid var(--secondary-color);
+        }
+
+        header h1 { margin: 0; font-size: 24px; text-transform: uppercase; }
+        header p { margin: 5px 0 0 0; font-style: italic; }
+
+        .container { max-width: 1000px; margin: 0 auto; }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .card h2 {
+            margin-top: 0;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--light-color);
+            padding-bottom: 10px;
+        }
+
+        .toast-success {
+            background-color: var(--success-bg);
+            color: var(--success-color);
+            padding: 12px;
+            border-left: 5px solid #28a745;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            display: none;
+        }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .grid-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .grid-inputs label { font-size: 12px; text-transform: uppercase; color: #555; }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.3s;
+        }
+        button:hover { background-color: #24633b; }
+        button:disabled { background-color: #cccccc; cursor: not-allowed; }
+
+        .player-list { margin-top: 15px; }
+        .player-row {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-left: 5px solid var(--secondary-color);
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        @media(min-width: 768px) {
+            .player-row { flex-direction: row; justify-content: space-between; align-items: center; }
+        }
+
+        .player-info { flex: 2; }
+        .player-info .name { font-size: 18px; font-weight: bold; color: var(--primary-color); }
+        .player-info .meta { font-size: 12px; color: #777; }
+
+        .player-stats {
+            flex: 3;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            background: var(--light-color);
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .stat-box { text-align: center; min-width: 45px; }
+        .stat-box .label { font-size: 10px; color: #666; display: block; text-transform: uppercase; }
+        .stat-box .val { font-size: 16px; font-weight: bold; }
+        .stat-box.highlight .val { color: var(--primary-color); }
+        .btn-danger { background-color: #ba1a1a; }
+        .btn-danger:hover { background-color: #931414; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <header>
+        <h1>Panel del Anotador - Torneo VIDA GRAND SLAM</h1>
+        <p>"El deporte hermoso que nos une" • Control General Nube</p>
+        <a href="hoja_de_anotacion.html" style="color: var(--secondary-color); font-weight: bold; text-decoration: none; margin-top: 10px; display: inline-block;">Ir a Hoja de Anotación Digital</a>
+    </header>
+
+    <div id="successMessage" class="toast-success"></div>
+
+    <div class="card">
+        <h2>Paso 1: Registro de Equipos de la Liga</h2>
+        <form id="teamForm" onsubmit="registrarEquipo(event)">
+            <div class="form-group">
+                <label for="newTeamName">Nombre del Nuevo Equipo</label>
+                <input type="text" id="newTeamName" placeholder="Ej. Novatas Team, Las Grand Slam..." required>
+            </div>
+            <button type="submit">Registrar Equipo</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2>Paso 2: Captura de Estadísticas por Jugadora (Ballscore)</h2>
+        
+        <div class="grid-inputs" style="grid-template-columns: 1fr 1fr;">
+            <div class="form-group">
+                <label for="selectTeam">1. Selecciona el Equipo</label>
+                <select id="selectTeam" onchange="actualizarFiltrosJugadoras()">
+                    <option value="">-- Cargando Equipos desde la Nube... --</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="selectPlayer">2. Selecciona la Jugadora (O agrega una abajo)</label>
+                <select id="selectPlayer" onchange="cargarDatosJugadoraSeleccionada()" disabled>
+                    <option value="">-- Primero elige un equipo --</option>
+                </select>
+            </div>
+        </div>
+
+        <form id="statForm" onsubmit="registrarOActualizarJugadora(event)">
+            <div class="form-group" style="background: #fdfdfd; padding: 15px; border: 1px dashed #ccc; border-radius: 6px;">
+                <label for="playerName">Nombre de la Nueva Jugadora (Si no aparece en la lista superior)</label>
+                <input type="text" id="playerName" placeholder="Ej. Yasel #10">
+            </div>
+
+            <div class="grid-inputs">
+                <div>
+                    <label for="statAB">Turnos (AB)</label>
+                    <input type="number" id="statAB" value="0" min="0" required>
+                </div>
+                <div>
+                    <label for="statH">Hits (H)</label>
+                    <input type="number" id="statH" value="0" min="0" required>
+                </div>
+                <div>
+                    <label for="statR">Carreras (R)</label>
+                    <input type="number" id="statR" value="0" min="0" required>
+                </div>
+                <div>
+                    <label for="statBB">Bases x Bola (BB)</label>
+                    <input type="number" id="statBB" value="0" min="0" required>
+                </div>
+                <div>
+                    <label for="statSO">Ponches (SO)</label>
+                    <input type="number" id="statSO" value="0" min="0" required>
+                </div>
+                <div>
+                    <label for="statSF">Sacrificio Fly (SF)</label>
+                    <input type="number" id="statSF" value="0" min="0" required>
+                </div>
+            </div>
+
+            <button type="submit" id="btnSubmitStats" disabled>Guardar / Actualizar Estadísticas en Internet</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2>Panel de Control Local (Vista General)</h2>
+        <div id="playersContainer" class="player-list"></div>
+        <div style="margin-top: 25px; display: flex; justify-content: space-between;">
+            <button onclick="limpiarMemoriaStats()" class="btn-danger" style="width: auto; font-size: 12px; padding: 6px 12px;">Reiniciar Base de Datos</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const firebaseURL = 'https://vidagrandslam-default-rtdb.firebaseio.com/torneo.json';
+    let masterDatabase = { equipos: [], jugadoras: [] };
+
+    const selectTeam = document.getElementById('selectTeam');
+    const selectPlayer = document.getElementById('selectPlayer');
+    const playerNameInput = document.getElementById('playerName');
+    const btnSubmitStats = document.getElementById('btnSubmitStats');
+    const successMessage = document.getElementById('successMessage');
+    const playersContainer = document.getElementById('playersContainer');
+
+    // Cargar datos iniciales desde Firebase
+    function descargarDatosNube() {
+        fetch(firebaseURL)
+        .then(res => res.json())
+        .then(data => {
+            if (data) {
+                masterDatabase = data;
+                if(!masterDatabase.equipos) masterDatabase.equipos = [];
+                if(!masterDatabase.jugadoras) masterDatabase.jugadoras = [];
+            }
+            desplegarSelectoresEquipos();
+            renderPlayers();
+        });
+    }
+
+    function mostrarExito(mensaje) {
+        successMessage.textContent = `✅ ¡Éxito! ${mensaje}`;
+        successMessage.style.display = 'block';
+        setTimeout(() => { successMessage.style.display = 'none'; }, 4000);
+    }
+
+    function registrarEquipo(e) {
+        e.preventDefault();
+        const input = document.getElementById('newTeamName');
+        const nombre = input.value.trim();
+
+        if(masterDatabase.equipos.some(eq => eq.toLowerCase() === nombre.toLowerCase())) {
+            alert("Este equipo ya está en el sistema.");
+            return;
+        }
+
+        masterDatabase.equipos.push(nombre);
+        guardarEnNube(`El equipo "${nombre}" ha sido registrado e integrado a internet.`);
+        input.value = '';
+    }
+
+    function actualizarFiltrosJugadoras() {
+        const equipoSeleccionado = selectTeam.value;
+        selectPlayer.innerHTML = '<option value="">-- Elige una Jugadora o Registra Abajo --</option>';
+        playerNameInput.value = '';
+
+        if (!equipoSeleccionado) {
+            selectPlayer.disabled = true;
+            btnSubmitStats.disabled = true;
+            renderPlayers();
+            return;
+        }
+
+        selectPlayer.disabled = false;
+        btnSubmitStats.disabled = false;
+
+        const filtradas = masterDatabase.jugadoras.filter(j => j.team === equipoSeleccionado);
+        filtradas.forEach(j => {
+            const opt = document.createElement('option');
+            opt.value = j.id;
+            opt.textContent = j.name;
+            selectPlayer.appendChild(opt);
+        });
+
+        renderPlayers();
+    }
+
+    function cargarDatosJugadoraSeleccionada() {
+        const idJugadora = selectPlayer.value;
+        if (!idJugadora) {
+            document.getElementById('statForm').reset();
+            return;
+        }
+
+        const jugadora = masterDatabase.jugadoras.find(j => j.id == idJugadora);
+        if (jugadora) {
+            playerNameInput.value = jugadora.name;
+            document.getElementById('statAB').value = jugadora.ab;
+            document.getElementById('statH').value = jugadora.h;
+            document.getElementById('statR').value = jugadora.r;
+            document.getElementById('statBB').value = jugadora.bb;
+            document.getElementById('statSO').value = jugadora.so;
+            document.getElementById('statSF').value = jugadora.sf;
+        }
+    }
+
+    function registrarOActualizarJugadora(e) {
+        e.preventDefault();
+        const equipo = selectTeam.value;
+        const selectId = selectPlayer.value;
+        let nombre = playerNameInput.value.trim();
+
+        if (!equipo) return;
+
+        const ab = parseInt(document.getElementById('statAB').value) || 0;
+        const h = parseInt(document.getElementById('statH').value) || 0;
+        const r = parseInt(document.getElementById('statR').value) || 0;
+        const bb = parseInt(document.getElementById('statBB').value) || 0;
+        const so = parseInt(document.getElementById('statSO').value) || 0;
+        const sf = parseInt(document.getElementById('statSF').value) || 0;
+
+        const pa = ab + bb + sf;
+        let avg = ab > 0 ? (h / ab).toFixed(3) : ".000";
+        let obp = pa > 0 ? ((h + bb) / pa).toFixed(3) : ".000";
+
+        if (selectId) {
+            const idx = masterDatabase.jugadoras.findIndex(j => j.id == selectId);
+            if (idx > -1) {
+                if(nombre !== "") masterDatabase.jugadoras[idx].name = nombre;
+                masterDatabase.jugadoras[idx].ab = ab;
+                masterDatabase.jugadoras[idx].h = h;
+                masterDatabase.jugadoras[idx].r = r;
+                masterDatabase.jugadoras[idx].bb = bb;
+                masterDatabase.jugadoras[idx].so = so;
+                masterDatabase.jugadoras[idx].sf = sf;
+                masterDatabase.jugadoras[idx].avg = avg;
+                masterDatabase.jugadoras[idx].obp = obp;
+                guardarEnNube(`Estadísticas de "${masterDatabase.jugadoras[idx].name}" actualizadas en la nube.`);
+            }
+        } else {
+            if (!nombre) { alert("Escribe un nombre de jugadora."); return; }
+            const nuevaJugadora = {
+                id: Date.now(),
+                team: equipo,
+                name: nombre, ab, h, r, bb, so, sf, avg, obp
+            };
+            masterDatabase.jugadoras.push(nuevaJugadora);
+            guardarEnNube(`Nueva jugadora "${nombre}" guardada en la red.`);
+        }
+
+        document.getElementById('statForm').reset();
+    }
+
+    function guardarEnNube(msgExito) {
+        fetch(firebaseURL, {
+            method: 'PUT',
+            body: JSON.stringify(masterDatabase)
+        })
+        .then(() => {
+            mostrarExito(msgExito);
+            desplegarSelectoresEquipos();
+            actualizarFiltrosJugadoras();
+        });
+    }
+
+    function desplegarSelectoresEquipos() {
+        const seleccionadoPrevio = selectTeam.value;
+        selectTeam.innerHTML = '<option value="">-- Elige un Equipo --</option>';
+        masterDatabase.equipos.forEach(eq => {
+            const opt = document.createElement('option');
+            opt.value = eq;
+            opt.textContent = eq;
+            selectTeam.appendChild(opt);
+        });
+        selectTeam.value = seleccionadoPrevio;
+    }
+
+    function renderPlayers() {
+        const equipoFiltrado = selectTeam.value;
+        if (!equipoFiltrado) {
+            playersContainer.innerHTML = '<p style="color: #777; font-style: italic;">Selecciona un equipo arriba para auditar su roster.</p>';
+            return;
+        }
+
+        const jugadorasEquipo = masterDatabase.jugadoras.filter(j => j.team === equipoFiltrado);
+        if(jugadorasEquipo.length === 0) {
+            playersContainer.innerHTML = '<p style="color: #777; font-style: italic;">Aún no hay jugadoras registradas en este equipo.</p>';
+            return;
+        }
+
+        playersContainer.innerHTML = '';
+        jugadorasEquipo.forEach(player => {
+            const row = document.createElement('div');
+            row.className = 'player-row';
+            row.innerHTML = `
+                <div class="player-info">
+                    <div class="name">${player.name}</div>
+                    <div class="meta">Equipo: ${player.team}</div>
+                </div>
+                <div class="player-stats">
+                    <div class="stat-box"><span class="label">AB</span><span class="val">${player.ab}</span></div>
+                    <div class="stat-box"><span class="label">H</span><span class="val">${player.h}</span></div>
+                    <div class="stat-box"><span class="label">R</span><span class="val">${player.r}</span></div>
+                    <div class="stat-box"><span class="label">BB</span><span class="val">${player.bb}</span></div>
+                    <div class="stat-box"><span class="label">SO</span><span class="val">${player.so}</span></div>
+                    <div class="stat-box"><span class="label">SF</span><span class="val">${player.sf}</span></div>
+                    <div class="stat-box highlight"><span class="label">AVG</span><span class="val">${player.avg}</span></div>
+                    <div class="stat-box highlight"><span class="label">OBP</span><span class="val">${player.obp}</span></div>
+                </div>
+            `;
+            playersContainer.appendChild(row);
+        });
+    }
+
+    function limpiarMemoriaStats() {
+        if(confirm("🚨 ¿Seguro que deseas purgar la base de datos de la nube? Esto borrará todo para el público.")) {
+            masterDatabase = { equipos: [], jugadoras: [] };
+            guardarEnNube("Base de datos en la nube limpiada desde ceros.");
+        }
+    }
+
+    // Carga inicial al encender la página
+    descargarDatosNube();
+</script>
+</body>
+</html>

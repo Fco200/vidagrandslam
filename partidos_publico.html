@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rol de Juegos Oficial - VIDA GRAND SLAM</title>
+    <style>
+        :root {
+            --bg-dark: #0a0a0a;
+            --card-bg: #141414;
+            --primary-neon: #7fff00;
+            --accent-green: #4db800;
+            --text-light: #ffffff;
+            --text-muted: #aaaaaa;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            margin: 0;
+            padding: 15px;
+        }
+
+        .container { max-width: 650px; margin: 0 auto; }
+
+        header {
+            text-align: center;
+            margin-top: 15px;
+            margin-bottom: 30px;
+        }
+
+        .logo-placeholder {
+            max-width: 120px;
+            width: 100%;
+            height: auto;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(127, 255, 0, 0.3);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: linear-gradient(180deg, #ffffff 50%, var(--primary-neon) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        header p { margin: 5px 0 0 0; color: var(--text-muted); font-size: 14px; }
+
+        /* Tarjeta de cada Juego */
+        .game-card {
+            background-color: var(--card-bg);
+            border: 1px solid #1f1f1f;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-card::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, var(--primary-neon), var(--accent-green));
+        }
+
+        /* Estructura del Versus */
+        .vs-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .team-side { width: 42%; font-weight: bold; font-size: 16px; color: #fff; text-transform: uppercase; }
+        .vs-circle {
+            background-color: #000;
+            border: 1px solid var(--primary-neon);
+            color: var(--primary-neon);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 900;
+            box-shadow: 0 0 8px rgba(127, 255, 0, 0.3);
+        }
+
+        /* Detalles Inferiores */
+        .game-meta {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            border-top: 1px solid #222;
+            padding-top: 12px;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .meta-item { color: var(--text-muted); }
+        .meta-item strong { display: block; color: var(--primary-neon); font-size: 14px; margin-bottom: 2px; }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 30px;
+            color: var(--primary-neon);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .back-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <img src="IMAGEN LOGO VIDA GRAN SLAM.jfif" alt="Logo Liga" class="logo-placeholder">
+        <h1>Rol de Juegos Oficial</h1>
+        <p>Próximos Partidos — Programación de los Viernes</p>
+    </header>
+
+    <div id="publicGamesContainer">
+        <p style="color: var(--text-muted); text-align: center; font-style: italic;">Consultando rol de juegos en directo...</p>
+    </div>
+
+    <a href="index.html" class="back-link">⬅️ Volver al Menú Principal</a>
+</div>
+
+<script>
+    const firebasePartidosURL = 'https://vidagrandslam-default-rtdb.firebaseio.com/partidos.json';
+    const publicGamesContainer = document.getElementById('publicGamesContainer');
+
+    function cargarRolPublico() {
+        fetch(firebasePartidosURL)
+        .then(res => res.json())
+        .then(data => {
+            const listaJuegos = data ? Object.keys(data).map(key => data[key]) : [];
+            
+            // Ordenar de forma idéntica por fecha y hora
+            listaJuegos.sort((a,b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
+
+            renderPublicGames(listaJuegos);
+        })
+        .catch(() => {
+            publicGamesContainer.innerHTML = '<p style="color: red; text-align: center;">Error temporal al conectar con la cartelera.</p>';
+        });
+    }
+
+    function renderPublicGames(juegos) {
+        if (juegos.length === 0) {
+            publicGamesContainer.innerHTML = '<p style="color: #777; text-align: center; font-style: italic; padding: 20px;">No hay juegos agendados para esta semana por el momento.</p>';
+            return;
+        }
+
+        publicGamesContainer.innerHTML = '';
+        juegos.forEach(juego => {
+            const [year, month, day] = juego.date.split('-');
+            const fechaFormateada = `${day}/${month}/${year}`;
+
+            const card = document.createElement('div');
+            card.className = 'game-card';
+            card.innerHTML = `
+                <div class="vs-container">
+                    <div class="team-side">${juego.home}</div>
+                    <div class="vs-circle">VS</div>
+                    <div class="team-side">${juego.away}</div>
+                </div>
+                <div class="game-meta">
+                    <div class="meta-item"><strong>🗓️ Fecha</strong>${fechaFormateada}</div>
+                    <div class="meta-item"><strong>⏰ Hora</strong>${juego.time} Hrs</div>
+                    <div class="meta-item"><strong>📍 Sede</strong>${juego.field}</div>
+                </div>
+            `;
+            publicGamesContainer.appendChild(card);
+        });
+    }
+
+    // Ejecutar al abrir
+    cargarRolPublico();
+</script>
+</body>
+</html>

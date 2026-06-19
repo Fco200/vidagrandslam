@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scorecard Avanzado Ballscore - VIDA GRAND SLAM</title>
+    <style>
+        :root {
+            --primary-color: #1a472a;
+            --secondary-color: #d4af37;
+            --dark-color: #2b2b2b;
+            --light-color: #f4f6f4;
+            --error-color: #ba1a1a;
+            --local-color: #1e3a8a;
+            --visitante-color: #b91c1c;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            margin: 0;
+            padding: 15px;
+        }
+
+        header {
+            text-align: center;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-bottom: 4px solid var(--secondary-color);
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .card h2 { margin-top: 0; color: var(--primary-color); font-size: 18px; border-bottom: 2px solid var(--light-color); padding-bottom: 8px; }
+
+        .row { display: flex; flex-direction: column; gap: 15px; margin-bottom: 15px; }
+        @media(min-width: 768px) { .row { flex-direction: row; } .col { flex: 1; } }
+
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
+        select, input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+
+        .linescore-grid {
+            display: grid;
+            grid-template-columns: 120px repeat(7, 1fr) 50px;
+            gap: 5px;
+            text-align: center;
+            font-weight: bold;
+            background: #222;
+            color: #fff;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        .linescore-header { color: var(--secondary-color); font-size: 11px; text-transform: uppercase; }
+        .linescore-team { text-align: left; padding-left: 5px; }
+
+        .tabs-container { display: flex; gap: 5px; margin-bottom: 15px; }
+        .tab-btn {
+            flex: 1; padding: 12px; font-weight: bold; font-size: 16px; border: none; border-radius: 4px; cursor: pointer; text-transform: uppercase; color: white; background: #666;
+        }
+        .tab-btn.local-active { background-color: var(--local-color); }
+        .tab-btn.visitante-active { background-color: var(--visitante-color); }
+
+        .player-box {
+            background: #fff; border: 1px solid #ddd; border-left: 5px solid #666; border-radius: 4px; padding: 12px; margin-bottom: 10px;
+        }
+        .local-box { border-left-color: var(--local-color); }
+        .visitante-box { border-left-color: var(--visitante-color); }
+
+        .player-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; background: #f9f9f9; padding: 6px; border-radius: 4px; }
+        .innings-row { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 5px; }
+
+        .ballscore-diamond-wrapper {
+            min-width: 85px; width: 85px; height: 85px; position: relative; background: #fff; border: 1px solid #aaa; border-radius: 4px; box-sizing: border-box; cursor: pointer;
+        }
+        .inning-tag { position: absolute; top: 2px; left: 4px; font-size: 8px; color: #999; font-weight: bold; }
+        
+        .base-line { position: absolute; background: #ddd; z-index: 1; }
+        .line-1b { width: 2px; height: 26px; top: 42px; left: 56px; transform: rotate(-45deg); }
+        .line-2b { width: 26px; height: 2px; top: 28px; left: 30px; transform: rotate(-45deg); }
+        .line-3b { width: 2px; height: 26px; top: 16px; left: 26px; transform: rotate(-45deg); }
+        .line-hp { width: 26px; height: 2px; top: 56px; left: 42px; transform: rotate(-45deg); }
+        
+        .base-line.active { background: #1a472a !important; box-shadow: 0 0 2px #1a472a; }
+
+        .run-center-circle {
+            position: absolute; width: 18px; height: 18px; top: 33px; left: 33px; border-radius: 50%; border: 1px solid #ccc; background: #fff; z-index: 3;
+        }
+        .run-center-circle.scored { background: var(--secondary-color) !important; border-color: var(--secondary-color); }
+
+        .out-tag-display { position: absolute; bottom: 2px; left: 4px; font-size: 10px; font-weight: bold; color: var(--error-color); }
+        .play-text-display { position: absolute; bottom: 2px; right: 4px; font-size: 9px; font-weight: bold; color: #333; text-transform: uppercase; }
+
+        .modal {
+            display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center;
+        }
+        .modal-content { background: white; padding: 20px; border-radius: 8px; max-width: 440px; width: 90%; max-height: 90vh; overflow-y: auto; }
+        .modal-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 15px; }
+
+        .base-selector-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
+        .base-btn { padding: 8px; font-size: 11px; background: #eee; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; color: black; font-weight: bold;}
+        .base-btn.selected { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+
+        button { background-color: var(--primary-color); color: white; border: none; padding: 10px; font-weight: bold; border-radius: 4px; cursor: pointer; text-transform: uppercase; }
+        .btn-secondary { background-color: #6c757d; }
+        .alert-box { background: #fff3cd; border: 1px solid #ffeeba; padding: 10px; border-radius: 4px; font-size: 12px; margin-top: 10px; display: none; color: #856404; }
+    </style>
+</head>
+<body>
+
+<div style="max-width: 1000px; margin: 0 auto;">
+    <header>
+        <h1>Scorecard Conectado Ballscore</h1>
+        <p>Sincronización Automática en la Nube — VIDA GRAND SLAM</p>
+    </header>
+
+    <div class="card">
+        <h2>Pizarra de Carreras en Tiempo Real</h2>
+        <div class="row">
+            <div class="col"><label>Equipo Local</label><select id="selectLocalTeam" onchange="cargarLineupsDinamicos()"><option value="">Cargando Equipos...</option></select></div>
+            <div class="col"><label>Equipo Visitante</label><select id="selectVisitanteTeam" onchange="cargarLineupsDinamicos()"><option value="">Cargando Equipos...</option></select></div>
+        </div>
+
+        <div class="linescore-grid">
+            <div class="linescore-header" style="text-align: left;">Equipo</div>
+            <div class="linescore-header">1</div><div class="linescore-header">2</div><div class="linescore-header">3</div>
+            <div class="linescore-header">4</div><div class="linescore-header">5</div><div class="linescore-header">6</div>
+            <div class="linescore-header">7</div><div class="linescore-header" style="color:var(--secondary-color)">C</div>
+            
+            <div id="pizarraVisName" class="linescore-team">VISITANTE</div>
+            <div id="v1">0</div><div id="v2">0</div><div id="v3">0</div><div id="v4">0</div><div id="v5">0</div><div id="v6">0</div><div id="v7">0</div>
+            <div id="totalVisRuns" style="color:var(--secondary-color)">0</div>
+
+            <div id="pizarraLocName" class="linescore-team">LOCAL</div>
+            <div id="l1">0</div><div id="l2">0</div><div id="l3">0</div><div id="l4">0</div><div id="l5">0</div><div id="l6">0</div><div id="l7">0</div>
+            <div id="totalLocRuns" style="color:var(--secondary-color)">0</div>
+        </div>
+    </div>
+
+    <div class="tabs-container">
+        <button id="tabLocal" class="tab-btn local-active" onclick="cambiarFocoEquipo('local')">Local</button>
+        <button id="tabVisitante" class="tab-btn" onclick="cambiarFocoEquipo('visitante')">Visitante</button>
+    </div>
+
+    <div class="card">
+        <h2 id="lineupTitle">Line-Up Oficial del Partido</h2>
+        <div id="lineupScoreboard"></div>
+    </div>
+
+    <button onclick="guardarCambiosYCompilar()" style="background: var(--secondary-color); color: black; font-size: 16px; margin-bottom: 40px; width:100%; height: 50px;">Finalizar Partido y Enviar Estadísticas a la Nube</button>
+</div>
+
+<div id="ballscoreModal" class="modal">
+    <div class="modal-content">
+        <h3 id="modalTitle" style="margin-top:0; color: var(--primary-color);">Anotación de Evento</h3>
+        
+        <label>Ruta Visual del Corredor (Alcanzado):</label>
+        <div class="base-selector-grid">
+            <button id="btnB1" class="base-btn" onclick="toggleBaseBoton('b1')">1ra Base</button>
+            <button id="btnB2" class="base-btn" onclick="toggleBaseBoton('b2')">2da Base</button>
+            <button id="btnB3" class="base-btn" onclick="toggleBaseBoton('b3')">3ra Base</button>
+            <button id="btnB4" class="base-btn" onclick="toggleBaseBoton('b4')">Home (Carrera)</button>
+        </div>
+
+        <div style="margin-top: 15px;">
+            <label for="selectPlayType">Suceso en el Turno:</label>
+            <select id="selectPlayType" onchange="evaluarTipoJugada(this.value)">
+                <option value="H">Hit (H)</option>
+                <option value="BB">Base por Bolas (BB)</option>
+                <option value="SF">Sacrificio Fly (SF)</option>
+                <option value="SO">Ponche (SO)</option>
+                <option value="OUT">Out de Campo / Ruta Regular</option>
+                <option value="DP">Doble Play (DP)</option>
+            </select>
+        </div>
+
+        <div id="rutaOutBox" style="margin-top:12px; display:none;">
+            <label for="inputRuta">Ruta de la jugada / Asistencias (Ej: 63, 43, 543):</label>
+            <input type="text" id="inputRuta" placeholder="Introduce la combinación de números">
+        </div>
+
+        <div id="dpAlert" class="alert-box">
+            <strong>Doble Play:</strong> Registra el out de la otra corredora afectada en su rombo correspondiente limpiando su base.
+        </div>
+
+        <div style="margin-top:15px;">
+            <label for="selectOutNum">Conteo de Outs en la Entrada:</label>
+            <select id="selectOutNum">
+                <option value="">Ninguno (Se embasó o anotó)</option>
+                <option value="1">1er Out</option>
+                <option value="2">2do Out</option>
+                <option value="3">3er Out</option>
+            </select>
+        </div>
+
+        <div class="modal-actions">
+            <button onclick="aplicarJugadaModal()">Guardar en Scorecard</button>
+            <button onclick="cerrarModal()" class="btn-secondary">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const firebaseURL = 'https://vidagrandslam-default-rtdb.firebaseio.com/torneo.json';
+    let dbMaster = { equipos: [], jugadoras: [] };
+    let equipoEnFoco = 'local';
+    
+    let juegoData = {
+        local: { equipoName: '', lineup: [] },
+        visitante: { equipoName: '', lineup: [] }
+    };
+
+    let celdaActiva = { equipo: '', playerIdx: 0, inning: 1 };
+    let basesTemporales = { b1: false, b2: false, b3: false, b4: false };
+
+    function descargarDatosNube() {
+        fetch(firebaseURL)
+        .then(res => res.json())
+        .then(data => {
+            if (data) {
+                dbMaster = data;
+                if(!dbMaster.equipos) dbMaster.equipos = [];
+                if(!dbMaster.jugadoras) dbMaster.jugadoras = [];
+            }
+            inicializarSelectores();
+        });
+    }
+
+    function inicializarSelectores() {
+        const selLocal = document.getElementById('selectLocalTeam');
+        const selVis = document.getElementById('selectVisitanteTeam');
+        selLocal.innerHTML = '<option value="">-- Seleccionar Local --</option>';
+        selVis.innerHTML = '<option value="">-- Seleccionar Visitante --</option>';
+
+        dbMaster.equipos.forEach(eq => {
+            selLocal.add(new Option(eq, eq));
+            selVis.add(new Option(eq, eq));
+        });
+    }
+
+    function cargarLineupsDinamicos() {
+        juegoData.local.equipoName = document.getElementById('selectLocalTeam').value;
+        juegoData.visitante.equipoName = document.getElementById('selectVisitanteTeam').value;
+
+        document.getElementById('pizarraLocName').textContent = juegoData.local.equipoName || "LOCAL";
+        document.getElementById('pizarraVisName').textContent = juegoData.visitante.equipoName || "VISITANTE";
+
+        ['local', 'visitante'].forEach(side => {
+            const eqName = juegoData[side].equipoName;
+            const jugadorasFiltradas = dbMaster.jugadoras.filter(j => j.team === eqName);
+            
+            juegoData[side].lineup = [];
+            for(let i = 0; i < 12; i++) {
+                let pReal = jugadorasFiltradas[i] || { name: `Refuerzo #${i+1}`, id: `ref-${side}-${i}` };
+                juegoData[side].lineup.push({
+                    id: pReal.id, name: pReal.name, pos: i < 10 ? `Posición ${i+1}` : 'BD',
+                    entradas: {}
+                });
+            }
+        });
+        renderScorecard();
+        calcularPizarraCarreras();
+    }
+
+    function cambiarFocoEquipo(side) {
+        equipoEnFoco = side;
+        document.getElementById('tabLocal').className = `tab-btn ${side === 'local' ? 'local-active' : ''}`;
+        document.getElementById('tabVisitante').className = `tab-btn ${side === 'visitante' ? 'visitante-active' : ''}`;
+        renderScorecard();
+    }
+
+    function renderScorecard() {
+        const container = document.getElementById('lineupScoreboard');
+        const sideData = juegoData[equipoEnFoco];
+        container.innerHTML = '';
+
+        if (!sideData.equipoName) {
+            container.innerHTML = '<p style="font-style:italic; color:#777; text-align:center;">Selecciona los equipos arriba para desplegar los rombos de anotación.</p>';
+            return;
+        }
+
+        sideData.lineup.forEach((player, idx) => {
+            const pBox = document.createElement('div');
+            pBox.className = `player-box ${equipoEnFoco === 'local' ? 'local-box' : 'visitante-box'}`;
+
+            let cellsHtml = '';
+            for(let i = 1; i <= 7; i++) {
+                let c = player.entradas[i] || { play: '', outNum: '', ruta: '', b1: false, b2: false, b3: false, b4: false };
+                
+                let act1 = c.b1 ? 'active' : '';
+                let act2 = c.b2 ? 'active' : '';
+                let act3 = c.b3 ? 'active' : '';
+                let act4 = c.b4 ? 'active' : '';
+                let scoredClass = c.b4 ? 'scored' : '';
+                
+                let outDisplay = '';
+                if(c.outNum) outDisplay = `<span style="border: 1px solid red; background: #fff; border-radius:50%; width:14px; height:14px; display:inline-block; text-align:center; line-height:14px;">${c.outNum}</span>`;
+                
+                let textToShow = (c.play === 'OUT' || c.play === 'DP') ? c.ruta : c.play;
+
+                cellsHtml += `
+                    <div class="ballscore-diamond-wrapper" onclick="abrirModal('${equipoEnFoco}', ${idx}, ${i})">
+                        <span class="inning-tag">E${i}</span>
+                        <div class="base-line line-1b ${act1}"></div>
+                        <div class="base-line line-2b ${act2}"></div>
+                        <div class="base-line line-3b ${act3}"></div>
+                        <div class="base-line line-hp ${act4}"></div>
+                        <div class="run-center-circle ${scoredClass}"></div>
+                        <div class="out-tag-display">${outDisplay}</div>
+                        <div class="play-text-display">${textToShow}</div>
+                    </div>
+                `;
+            }
+
+            pBox.innerHTML = `
+                <div class="player-header"><strong>${idx + 1}. ${player.name}</strong> <span>(${player.pos})</span></div>
+                <div class="innings-row">${cellsHtml}</div>
+            `;
+            container.appendChild(pBox);
+        });
+    }
+
+    function abrirModal(equipo, playerIdx, inning) {
+        celdaActiva = { equipo, playerIdx, inning };
+        const player = juegoData[equipo].lineup[playerIdx];
+        let prev = player.entradas[inning] || { play: 'H', outNum: '', ruta: '', b1:false, b2:false, b3:false, b4:false };
+
+        document.getElementById('selectPlayType').value = prev.play || 'H';
+        document.getElementById('inputRuta').value = prev.ruta || '';
+        document.getElementById('selectOutNum').value = prev.outNum || '';
+
+        basesTemporales = { b1: prev.b1, b2: prev.b2, b3: prev.b3, b4: prev.b4 };
+        actualizarEstilosBotonesBase();
+
+        evaluarTipoJugada(document.getElementById('selectPlayType').value);
+        document.getElementById('ballscoreModal').style.display = 'flex';
+    }
+
+    function toggleBaseBoton(base) {
+        basesTemporales[base] = !basesTemporales[base];
+        actualizarEstilosBotonesBase();
+    }
+
+    function actualizarEstilosBotonesBase() {
+        ['b1','b2','b3','b4'].forEach(b => {
+            const btn = document.getElementById(`btn${b.toUpperCase()}`);
+            if(basesTemporales[b]) btn.classList.add('selected');
+            else btn.classList.remove('selected');
+        });
+    }
+
+    function evaluarTipoJugada(val) {
+        document.getElementById('rutaOutBox').style.display = (val === 'OUT' || val === 'DP') ? 'block' : 'none';
+        document.getElementById('dpAlert').style.display = (val === 'DP') ? 'block' : 'none';
+        
+        if(val === 'SO' || val === 'OUT') {
+            basesTemporales = { b1: false, b2: false, b3: false, b4: false };
+            actualizarEstilosBotonesBase();
+        }
+    }
+
+    function cerrarModal() { document.getElementById('ballscoreModal').style.display = 'none'; }
+
+    function aplicarJugadaModal() {
+        const { equipo, playerIdx, inning } = celdaActiva;
+        const play = document.getElementById('selectPlayType').value;
+        let ruta = document.getElementById('inputRuta').value.trim();
+        const outNum = document.getElementById('selectOutNum').value;
+
+        if (play === 'DP' && !ruta) ruta = 'DP';
+
+        juegoData[equipo].lineup[playerIdx].entradas[inning] = {
+            play, ruta, outNum,
+            b1: basesTemporales.b1, b2: basesTemporales.b2, b3: basesTemporales.b3, b4: basesTemporales.b4
+        };
+
+        cerrarModal();
+        renderScorecard();
+        calcularPizarraCarreras();
+    }
+
+    function calcularPizarraCarreras() {
+        ['local', 'visitante'].forEach(side => {
+            let totalRuns = 0;
+            const prefix = side === 'local' ? 'l' : 'v';
+            
+            for(let i = 1; i <= 7; i++) {
+                let runsInInning = 0;
+                juegoData[side].lineup.forEach(p => {
+                    if(p.entradas[i] && p.entradas[i].b4) runsInInning++;
+                });
+                document.getElementById(`${prefix}${i}`).textContent = runsInInning;
+                totalRuns += runsInInning;
+            }
+            document.getElementById(side === 'local' ? 'totalLocRuns' : 'totalVisRuns').textContent = totalRuns;
+        });
+    }
+
+    function guardarCambiosYCompilar() {
+        if (!juegoData.local.equipoName || !juegoData.visitante.equipoName) {
+            alert("Por favor selecciona ambos equipos antes de cerrar el juego.");
+            return;
+        }
+
+        // Descargar la base maestra justo antes de sumar para evitar sobreescritura accidental
+        fetch(firebaseURL)
+        .then(res => res.json())
+        .then(data => {
+            if(data) dbMaster = data;
+
+            ['local', 'visitante'].forEach(side => {
+                juegoData[side].lineup.forEach(pScore => {
+                    let ab = 0, h = 0, r = 0, bb = 0, so = 0, sf = 0;
+
+                    Object.values(pScore.entradas).forEach(ent => {
+                        if (ent.play === 'H') { h++; ab++; }
+                        if (ent.play === 'BB') bb++;
+                        if (ent.play === 'SF') sf++;
+                        if (ent.play === 'SO') { so++; ab++; }
+                        if (ent.play === 'OUT' || ent.play === 'DP') ab++;
+                        if (ent.b4) r++;
+                    });
+
+                    let masterIdx = dbMaster.jugadoras.findIndex(jm => jm.id === pScore.id);
+                    if (masterIdx > -1) {
+                        dbMaster.jugadoras[masterIdx].ab = (dbMaster.jugadoras[masterIdx].ab || 0) + ab;
+                        dbMaster.jugadoras[masterIdx].h = (dbMaster.jugadoras[masterIdx].h || 0) + h;
+                        dbMaster.jugadoras[masterIdx].r = (dbMaster.jugadoras[masterIdx].r || 0) + r;
+                        dbMaster.jugadoras[masterIdx].bb = (dbMaster.jugadoras[masterIdx].bb || 0) + bb;
+                        dbMaster.jugadoras[masterIdx].so = (dbMaster.jugadoras[masterIdx].so || 0) + so;
+                        dbMaster.jugadoras[masterIdx].sf = (dbMaster.jugadoras[masterIdx].sf || 0) + sf;
+
+                        let pa = dbMaster.jugadoras[masterIdx].ab + dbMaster.jugadoras[masterIdx].bb + dbMaster.jugadoras[masterIdx].sf;
+                        dbMaster.jugadoras[masterIdx].avg = dbMaster.jugadoras[masterIdx].ab > 0 ? (dbMaster.jugadoras[masterIdx].h / dbMaster.jugadoras[masterIdx].ab).toFixed(3) : ".000";
+                        dbMaster.jugadoras[masterIdx].obp = pa > 0 ? ((dbMaster.jugadoras[masterIdx].h + dbMaster.jugadoras[masterIdx].bb) / pa).toFixed(3) : ".000";
+                    }
+                });
+            });
+
+            // Empujar actualización completa a Firebase
+            fetch(firebaseURL, {
+                method: 'PUT',
+                body: JSON.stringify(dbMaster)
+            })
+            .then(() => {
+                alert("¡Partido Cerrado! Las estadísticas ya viajaron a la nube y están listas para ser vistas por el público.");
+            });
+        });
+    }
+
+    descargarDatosNube();
+</script>
+</body>
+</html>

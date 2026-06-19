@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel del Anotador - VIDA GRAND SLAM</title>
+    <style>
+        :root {
+            --primary-color: #1a472a;
+            --secondary-color: #d4af37;
+            --dark-color: #2b2b2b;
+            --light-color: #f4f6f4;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            padding: 15px;
+            margin: 0;
+        }
+
+        header {
+            text-align: center;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-bottom: 4px solid var(--secondary-color);
+        }
+
+        .container { max-width: 950px; margin: 0 auto; }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+
+        .card h2 { margin-top: 0; color: var(--primary-color); font-size: 18px; border-bottom: 2px solid var(--light-color); padding-bottom: 8px; }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 12px; text-transform: uppercase; color: #555; }
+        input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 9px 15px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        button:hover { background-color: #24633b; }
+        .btn-danger { background-color: #ba1a1a; }
+        .btn-danger:hover { background-color: #931414; }
+
+        .team-row {
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 8px;
+        }
+
+        @media(min-width: 768px) {
+            .team-row { flex-direction: row; align-items: center; justify-content: space-between; }
+        }
+
+        .team-identity { display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 16px; min-width: 180px; }
+        .rank { background: var(--primary-color); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+
+        .team-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            background: var(--light-color);
+            padding: 6px 12px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+
+        @media(min-width: 768px) { .team-stats { margin: 0; } }
+
+        .stat-item { text-align: center; min-width: 40px; }
+        .stat-item .lbl { font-size: 9px; color: #666; display: block; font-weight: bold; }
+        .stat-item .val { font-size: 14px; font-weight: bold; }
+        .highlight { color: var(--primary-color); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Panel del Anotador - Control de Datos</h1>
+        <p>Torneo VIDA GRAND SLAM • Los datos se envían automáticamente a la pantalla pública</p>
+    </header>
+
+    <div class="card">
+        <h2>Registrar / Actualizar Estadísticas de Equipo</h2>
+        <form id="teamForm">
+            <div class="form-grid">
+                <div style="grid-column: span 2;">
+                    <label for="teamName">Nombre del Equipo</label>
+                    <input type="text" id="teamName" placeholder="Ej. Novatas" required>
+                </div>
+                <div>
+                    <label for="gamesWon">Ganados (G)</label>
+                    <input type="number" id="gamesWon" min="0" value="0" required>
+                </div>
+                <div>
+                    <label for="gamesLost">Perdidos (P)</label>
+                    <input type="number" id="gamesLost" min="0" value="0" required>
+                </div>
+                <div>
+                    <label for="runsScored">Anotadas (CA)</label>
+                    <input type="number" id="runsScored" min="0" value="0" required>
+                </div>
+                <div>
+                    <label for="runsAgainst">Recibidas (CR)</label>
+                    <input type="number" id="runsAgainst" min="0" value="0" required>
+                </div>
+                <div>
+                    <button type="submit">Guardar en Internet</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2>Vista Previa de Clasificación (Ordenada automáticamente)</h2>
+        <div id="standingsContainer">
+            <p style="color: #777; font-style: italic; text-align: center;">Cargando standings desde la nube de Firebase...</p>
+        </div>
+        
+        <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+            <a href="posiciones_publico.html" target="_blank" style="color: var(--primary-color); font-weight: bold; text-decoration: none;">👁️ Ver Pantalla del Público</a>
+            <button onclick="reiniciarTabla()" class="btn-danger" style="width: auto; font-size: 12px;">Reiniciar Todo el Torneo</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const firebasePosicionesURL = 'https://vidagrandslam-default-rtdb.firebaseio.com/posiciones.json';
+    const teamForm = document.getElementById('teamForm');
+    const standingsContainer = document.getElementById('standingsContainer');
+
+    let standingsDatabase = [];
+
+    // Descargar datos en tiempo real al abrir la página
+    function descargarPosicionesNube() {
+        fetch(firebasePosicionesURL)
+        .then(res => res.json())
+        .then(data => {
+            standingsDatabase = data || [];
+            renderStandings();
+        })
+        .catch(err => {
+            standingsContainer.innerHTML = '<p style="color: red; text-align: center;">Error al conectar con la base de datos de Firebase.</p>';
+        });
+    }
+
+    teamForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const name = document.getElementById('teamName').value.trim();
+        const w = parseInt(document.getElementById('gamesWon').value) || 0;
+        const l = parseInt(document.getElementById('gamesLost').value) || 0;
+        const ca = parseInt(document.getElementById('runsScored').value) || 0;
+        const cr = parseInt(document.getElementById('runsAgainst').value) || 0;
+
+        const existingIndex = standingsDatabase.findIndex(t => t.name.toLowerCase() === name.toLowerCase());
+
+        // Si el equipo ya existe lo actualiza, si no, añade una nueva fila
+        if (existingIndex > -1) {
+            standingsDatabase[existingIndex] = { name, w, l, ca, cr };
+        } else {
+            standingsDatabase.push({ name, w, l, ca, cr });
+        }
+
+        guardarYCalcular();
+        teamForm.reset();
+    });
+
+    function guardarYCalcular() {
+        // Ejecutar cálculos matemáticos de softbol automáticamente antes de ordenar
+        standingsDatabase.forEach(team => {
+            const total = team.w + team.l;
+            team.pct = total > 0 ? (team.w / total) : 0;
+            team.dif = team.ca - team.cr; 
+        });
+
+        // Criterio de desempate oficial: PCT -> Diferencia de Carreras -> Juegos Ganados
+        standingsDatabase.sort((a, b) => b.pct - a.pct || b.dif - a.dif || b.w - a.w);
+
+        // Subir los datos actualizados a Firebase
+        fetch(firebasePosicionesURL, {
+            method: 'PUT',
+            body: JSON.stringify(standingsDatabase)
+        })
+        .then(() => {
+            renderStandings();
+        });
+    }
+
+    function renderStandings() {
+        if (standingsDatabase.length === 0) {
+            standingsContainer.innerHTML = '<p style="color: #777; font-style: italic;">No hay equipos registrados en la base de datos.</p>';
+            return;
+        }
+
+        standingsContainer.innerHTML = '';
+        const leaderW = standingsDatabase[0].w;
+        const leaderL = standingsDatabase[0].l;
+
+        standingsDatabase.forEach((team, index) => {
+            const jj = team.w + team.l;
+            let jd = index === 0 ? '-' : ((leaderW - team.w) + (team.l - leaderL)) / 2;
+
+            const row = document.createElement('div');
+            row.className = 'team-row';
+            row.innerHTML = `
+                <div class="team-identity">
+                    <div class="rank">${index + 1}</div>
+                    <div>${team.name}</div>
+                </div>
+                <div class="team-stats">
+                    <div class="stat-item"><span class="lbl">JJ</span><span class="val">${jj}</span></div>
+                    <div class="stat-item"><span class="lbl">G</span><span class="val">${team.w}</span></div>
+                    <div class="stat-item"><span class="lbl">P</span><span class="val">${team.l}</span></div>
+                    <div class="stat-item highlight"><span class="lbl">PCT</span><span class="val">${parseFloat(team.pct).toFixed(3)}</span></div>
+                    <div class="stat-item"><span class="lbl">JD</span><span class="val">${jd}</span></div>
+                    <div class="stat-item"><span class="lbl">CA</span><span class="val">${team.ca}</span></div>
+                    <div class="stat-item"><span class="lbl">CR</span><span class="val">${team.cr}</span></div>
+                    <div class="stat-item highlight"><span class="lbl">DIF</span><span class="val">${team.dif > 0 ? '+' + team.dif : team.dif}</span></div>
+                </div>
+                <div>
+                    <button onclick="cargarEquipoEnFormulario(${index})" style="padding: 4px 8px; font-size: 11px; width:auto; background:#4f46e5; margin-right:5px;">Editar</button>
+                    <button onclick="eliminarEquipo(${index})" class="btn-danger" style="padding: 4px 8px; font-size: 11px; width:auto;">Eliminar</button>
+                </div>
+            `;
+            standingsContainer.appendChild(row);
+        });
+    }
+
+    function cargarEquipoEnFormulario(index) {
+        const team = standingsDatabase[index];
+        document.getElementById('teamName').value = team.name;
+        document.getElementById('gamesWon').value = team.w;
+        document.getElementById('gamesLost').value = team.l;
+        document.getElementById('runsScored').value = team.ca;
+        document.getElementById('runsAgainst').value = team.cr;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function eliminarEquipo(index) {
+        if (confirm(`¿Seguro que deseas eliminar al equipo ${standingsDatabase[index].name}?`)) {
+            standingsDatabase.splice(index, 1);
+            guardarYCalcular();
+        }
+    }
+
+    function reiniciarTabla() {
+        if (confirm("🚨 ¿Borrar todos los standings de la nube? Esto dejará la pantalla del público vacía.")) {
+            standingsDatabase = [];
+            fetch(firebasePosicionesURL, {
+                method: 'DELETE'
+            })
+            .then(() => {
+                renderStandings();
+            });
+        }
+    }
+
+    // Ejecutar carga de datos inicial
+    descargarPosicionesNube();
+</script>
+</body>
+</html>

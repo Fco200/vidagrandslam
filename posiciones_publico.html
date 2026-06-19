@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabla de Posiciones Oficial - VIDA GRAND SLAM</title>
+    <style>
+        :root {
+            --primary-color: #1a472a;
+            --secondary-color: #d4af37;
+            --dark-color: #2b2b2b;
+            --light-color: #f4f6f4;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            padding: 15px;
+            margin: 0;
+        }
+
+        header {
+            text-align: center;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 25px;
+            border-bottom: 5px solid var(--secondary-color);
+        }
+
+        header h1 { margin: 0; font-size: 26px; text-transform: uppercase; letter-spacing: 1px; }
+        header p { margin: 6px 0 0 0; font-style: italic; color: #e2ebd5; }
+
+        .container { max-width: 900px; margin: 0 auto; }
+
+        .standings-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .team-card {
+            display: flex;
+            flex-direction: column;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            transition: transform 0.2s;
+        }
+
+        .team-card.leader {
+            border-left: 6px solid var(--secondary-color);
+            background: #fffdf2;
+        }
+
+        @media(min-width: 768px) {
+            .team-card { flex-direction: row; align-items: center; justify-content: space-between; }
+        }
+
+        .team-info { display: flex; align-items: center; gap: 15px; }
+        .rank-badge {
+            width: 30px;
+            height: 30px;
+            background: #666;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .leader .rank-badge { background: var(--secondary-color); color: black; }
+        .team-name { font-size: 18px; font-weight: bold; color: var(--primary-color); }
+
+        .stats-display {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            background: var(--light-color);
+            padding: 8px 16px;
+            border-radius: 4px;
+            margin-top: 12px;
+        }
+
+        @media(min-width: 768px) { .stats-display { margin-top: 0; } }
+
+        .stat-box { text-align: center; min-width: 42px; }
+        .stat-box .label { font-size: 9px; color: #666; display: block; font-weight: bold; text-transform: uppercase; }
+        .stat-box .value { font-size: 15px; font-weight: bold; }
+        
+        .important-stat { color: #000; font-size: 16px; }
+        .text-diff { color: #2a6b42; }
+        .text-diff.negativo { color: #b52a2a; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Tabla General de Posiciones</h1>
+        <p>Torneo VIDA GRAND SLAM • Resultados Actualizados en Vivo</p>
+    </header>
+
+    <div id="publicStandings" class="standings-container">
+        <div style="text-align:center; padding:30px; color:#777; font-style:italic;">Conectando con la pizarra de la nube...</div>
+    </div>
+</div>
+
+<script>
+    const firebaseStandingsURL = 'https://vidagrandslam-default-rtdb.firebaseio.com/posiciones.json';
+
+    function cargarTablaPublica() {
+        const container = document.getElementById('publicStandings');
+        
+        fetch(firebaseStandingsURL)
+        .then(res => res.json())
+        .then(data => {
+            if (!data || data.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:30px; color:#777; font-style:italic;">Esperando el reporte oficial de datos de la jornada...</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            const leaderW = data[0].w;
+            const leaderL = data[0].l;
+
+            data.forEach((team, index) => {
+                const jj = team.w + team.l;
+                let jd = index === 0 ? '-' : ((leaderW - team.w) + (team.l - leaderL)) / 2;
+                
+                let diffClass = team.dif > 0 ? 'text-diff' : (team.dif < 0 ? 'text-diff negativo' : '');
+                let diffSign = team.dif > 0 ? '+' : '';
+
+                const card = document.createElement('div');
+                card.className = `team-card ${index === 0 ? 'leader' : ''}`;
+
+                card.innerHTML = `
+                    <div class="team-info">
+                        <div class="rank-badge">${index + 1}</div>
+                        <div class="team-name">${team.name}</div>
+                    </div>
+                    <div class="stats-display">
+                        <div class="stat-box"><span class="label">JJ</span><span class="value">${jj}</span></div>
+                        <div class="stat-box"><span class="label">G</span><span class="value">${team.w}</span></div>
+                        <div class="stat-box"><span class="label">P</span><span class="value">${team.l}</span></div>
+                        <div class="stat-box"><span class="label">PCT</span><span class="value important-stat" style="color:var(--primary-color);">${parseFloat(team.pct).toFixed(3)}</span></div>
+                        <div class="stat-box"><span class="label">JD</span><span class="value">${jd}</span></div>
+                        <div class="stat-box"><span class="label">CA</span><span class="value">${team.ca}</span></div>
+                        <div class="stat-box"><span class="label">CR</span><span class="value">${team.cr}</span></div>
+                        <div class="stat-box"><span class="label">DIF</span><span class="value important-stat ${diffClass}">${diffSign}${team.dif}</span></div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        })
+        .catch(err => {
+            container.innerHTML = '<div style="text-align:center; padding:30px; color:red;">Error al descargar actualizaciones del servidor.</div>';
+        });
+    }
+
+    // Auto-actualizar desde internet cada 45 segundos
+    setInterval(cargarTablaPublica, 45000);
+    cargarTablaPublica();
+</script>
+</body>
+</html>

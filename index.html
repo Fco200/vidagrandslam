@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torneo Oficial - VIDA GRAND SLAM</title>
+    <style>
+        :root {
+            --bg-dark: #0a0a0a;          /* Negro profundo de fondo */
+            --card-bg: #141414;          /* Gris carbón para las tarjetas */
+            --primary-neon: #7fff00;     /* Verde lima brillante extraído del logo */
+            --accent-green: #4db800;     /* Verde secundario para degradados */
+            --text-light: #ffffff;
+            --text-muted: #aaaaaa;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Contenedor Principal Centralizado */
+        .main-wrapper {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-grow: 1;
+        }
+
+        /* Sección del Logo y Encabezado */
+        .brand-header {
+            text-align: center;
+            margin-top: 20px;
+            margin-bottom: 40px;
+        }
+
+        .brand-logo {
+            max-width: 280px;
+            width: 100%;
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 0 0 25px rgba(127, 255, 0, 0.25);
+            border: 2px solid rgba(127, 255, 0, 0.4);
+            margin-bottom: 15px;
+            transition: transform 0.3s ease;
+        }
+
+        .brand-logo:hover {
+            transform: scale(1.03);
+            box-shadow: 0 0 35px rgba(127, 255, 0, 0.4);
+        }
+
+        .brand-header h1 {
+            margin: 10px 0 5px 0;
+            font-size: 32px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 900;
+            background: linear-gradient(180deg, #ffffff 40%, var(--primary-neon) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-header p {
+            margin: 0;
+            font-style: italic;
+            color: var(--text-muted);
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+
+        /* Banner Informativo de Jornada */
+        .jornada-badge {
+            background-color: rgba(127, 255, 0, 0.1);
+            border: 1px solid var(--primary-neon);
+            color: var(--primary-neon);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+            text-transform: uppercase;
+            margin-bottom: 40px;
+            letter-spacing: 1px;
+            display: inline-block;
+        }
+
+        /* Cuadrícula de Módulos (Sin Tablas complejas) */
+        .portal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            width: 100%;
+            max-width: 900px;
+            margin-bottom: 50px;
+        }
+
+        /* Tarjetas de Navegación */
+        .portal-card {
+            background-color: var(--card-bg);
+            border: 1px solid #222;
+            border-radius: 12px;
+            padding: 30px 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .portal-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-green), var(--primary-neon));
+            opacity: 0.7;
+        }
+
+        .portal-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(127, 255, 0, 0.4);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+
+        .portal-card h2 {
+            margin: 0 0 10px 0;
+            font-size: 20px;
+            text-transform: uppercase;
+            color: var(--text-light);
+            letter-spacing: 1px;
+        }
+
+        .portal-card p {
+            margin: 0 0 25px 0;
+            color: var(--text-muted);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* Botones de Acción Estilo Neón */
+        .portal-btn {
+            display: block;
+            width: 100%;
+            padding: 12px 0;
+            background: linear-gradient(180deg, var(--primary-neon) 0%, var(--accent-green) 100%);
+            color: #000;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 15px;
+            text-transform: uppercase;
+            border-radius: 6px;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(127, 255, 0, 0.2);
+        }
+
+        .portal-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 15px var(--primary-neon);
+        }
+
+        /* Pie de Página */
+        footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            color: var(--text-muted);
+            border-top: 1px solid #1c111c;
+            background-color: #050505;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        footer span {
+            color: var(--primary-neon);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-wrapper">
+
+    <header class="brand-header">
+        <img src="IMAGEN LOGO VIDA GRAN SLAM.jfif" alt="Logo Vida Grand Slam" class="brand-logo">
+        <h1>Vida Grand Slam</h1>
+        <p>"El deporte hermoso que nos une"</p>
+    </header>
+
+    <div class="jornada-badge">
+        🥎 Temporada Activa - 2026 - 1
+        <br style="line-height: 1.4%;">JORNADAS DE VERDAD </br>
+    </div>
+
+    <main class="portal-grid">
+
+        <div class="portal-card">
+            <div class="card-icon">🏆</div>
+            <h2>Tabla de Posiciones</h2>
+            <p>Consulta cómo va el Standing general de la liga en vivo, el récord de ganados, perdidos y la diferencia de carreras de cada escuadra.</p>
+            <a href="posiciones_publico.html" class="portal-btn">Ver Posiciones</a>
+        </div>
+
+        <div class="portal-card">
+            <div class="card-icon">📊</div>
+            <h2>Líderes de Bateo</h2>
+            <p>Sigue el desempeño al bate de todas las jugadoras del torneo. Revisa promedios de bateo (AVG) y porcentajes de embasarse (OBP) con buscador dinámico.</p>
+            <a href="estadisticas_publico.html" class="portal-btn">Ver Estadísticas</a>
+        </div>
+        <div class="portal-card">
+            <div class="card-icon">🎯</div>
+            <h2>Próximos Partidos</h2>
+            <p>Consulta la programación de los próximos encuentros y no te pierdas ningún juego importante.</p>
+            <a href="partidos_publico.html" class="portal-btn">Ver Programación</a>
+        </div>
+
+    </main>
+
+</div>
+
+<footer>
+     2026 Liga Femenil <span>VIDA GRAND SLAM</span>
+     <p>Desarrollado por el equipo de tecnología de <span>FV DIGITAL</span>. Todos los derechos reservados.</p>
+</footer>
+
+</body>
+</html>
