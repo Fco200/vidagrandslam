@@ -196,6 +196,73 @@
             color: var(--primary-neon);
             font-weight: bold;
         }
+        footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 25px 20px;
+    font-size: 12px;
+    color: var(--text-muted, #aaaaaa);
+    border-top: 1px solid #141414;
+    background-color: #050505;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Sub-contenedor para los textos */
+.footer-content {
+    text-align: center;
+}
+
+footer p {
+    margin: 5px 0 0 0;
+    font-size: 11px;
+}
+
+footer span {
+    color: #7fff00; /* El verde neón/lima de tu logo */
+    font-weight: bold;
+}
+
+/* El Botón de Acceso Administrativo Estilo Premium */
+.btn-admin-access {
+    display: inline-block;
+    padding: 8px 16px;
+    background-color: #101010;
+    color: #7fff00; /* Texto verde neón */
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 1px solid #333;
+    border-radius: 4px;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Animación al pasar el cursor (Hover) */
+.btn-admin-access:hover {
+    background: linear-gradient(180deg, #7fff00 0%, #4db800 100%);
+    color: #000000; /* Cambia a texto negro para que resalte */
+    border-color: transparent;
+    box-shadow: 0 0 15px #7fff00;
+    transform: translateY(-1px);
+}
+
+/* Distribución horizontal en pantallas grandes (Laptops/PC) */
+@media (min-width: 768px) {
+    footer {
+        flex-direction: row;
+        text-align: left;
+        padding: 20px 40px;
+    }
+    .footer-content {
+        text-align: left;
+    }
+}
     </style>
 </head>
 <body>
@@ -210,7 +277,6 @@
 
     <div class="jornada-badge">
         🥎 Temporada Activa - 2026 - 1
-        <br style="line-height: 1.4%;">JORNADAS DE VERDAD </br>
     </div>
 
     <main class="portal-grid">
@@ -240,9 +306,13 @@
 </div>
 
 <footer>
-     2026 Liga Femenil <span>VIDA GRAND SLAM</span>
-     <p>Desarrollado por el equipo de tecnología de <span>FV DIGITAL</span>. Todos los derechos reservados.</p>
+    <div class="footer-content">
+        &copy; 2026 Liga Femenil <span>VIDA GRAND SLAM</span>
+        <p>Desarrollado por el equipo de tecnología de <span>FV DIGITAL</span>. Todos los derechos reservados.</p>
+    </div>
+    <a href="admin.html" class="btn-admin-access">Acceso Administrativo</a>
 </footer>
-<footer><a href="admin.html">Acceso Administrativo</a></footer>
+
+
 </body>
 </html>
