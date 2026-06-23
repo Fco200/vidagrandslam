@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso Administrativo - VIDA GRAND SLAM</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .logo-placeholder {
+            width: 80px;
+            height: 80px;
+            background: #e0e0e0;
+            border: 2px dashed #999;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            color: #666;
+        }
+
+        h2 {
+            color: #1a2a6c;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        p.subtitle {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        select:focus, input:focus {
+            border-color: #b21f1f;
+        }
+
+        .attempts-counter {
+            font-size: 13px;
+            color: #b21f1f;
+            margin-bottom: 15px;
+            font-weight: bold;
+            display: none;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: #1a2a6c;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-submit:hover {
+            background: #b21f1f;
+        }
+
+        /* Mensajes de Alerta */
+        .alert {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+            font-weight: 500;
+        }
+
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <div class="logo-placeholder">LOGO AQUÍ</div>
+        
+        <h2>Módulo Administrativo</h2>
+        <p class="subtitle">Torneo VIDA GRAND SLAM</p>
+
+        <div id="alertError" class="alert alert-error"></div>
+        <div id="alertSuccess" class="alert alert-success"></div>
+
+        <form id="loginForm" onsubmit="validarAcceso(event)">
+            <div class="form-group">
+                <label for="usuario">Selecciona tu Usuario:</label>
+                <select id="usuario" required>
+                    <option value="" disabled selected>-- Seleccionar --</option>
+                    <option value="FCO">FCO</option>
+                    <option value="YASSEL">YASSEL</option>
+                    <option value="JARY">JARY</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Contraseña:</label>
+                <input type="password" id="password" placeholder="Ingresa tu clave" required>
+            </div>
+
+            <div id="attemptsText" class="attempts-counter">
+                Intentos restantes: <span id="attemptsLeft">3</span>
+            </div>
+
+            <button type="submit" class="btn-submit">Ingresar al Sistema</button>
+        </form>
+    </div>
+
+    <script>
+        // CONFIGURACIÓN DE USUARIOS Y CONTRASEÑAS (Fijas y Seguras)
+        const usuariosValidos = {
+            "FCO": "FcoSlam2026*",
+            "YASSEL": "YasselPresidenta26*",
+            "JARY": "JaryAdmin2026*"
+        };
+
+        let intentosMaximos = 3;
+        let intentosRealizados = 0;
+
+        function validarAcceso(event) {
+            event.preventDefault(); // Evita que la página se recargue
+
+            const userSelect = document.getElementById("usuario").value;
+            const passInput = document.getElementById("password").value;
+            const errorDiv = document.getElementById("alertError");
+            const successDiv = document.getElementById("alertSuccess");
+            const attemptsDiv = document.getElementById("attemptsText");
+            const attemptsLeftSpan = document.getElementById("attemptsLeft");
+
+            // Ocultar alertas previas
+            errorDiv.style.display = "none";
+            successDiv.style.display = "none";
+
+            // Validar credenciales
+            if (usuariosValidos[userSelect] && usuariosValidos[userSelect] === passInput) {
+                // ÉXITO
+                successDiv.innerText = `¡Acceso concedido! Bienvenido(a) ${userSelect}. Redirigiendo...`;
+                successDiv.style.display = "block";
+                document.getElementById("loginForm").reset();
+                
+                // Redirige al módulo administrador tras 1.5 segundos
+                setTimeout(() => {
+                    window.location.href = "admi.html";
+                }, 1500);
+
+            } else {
+                // ERROR
+                intentosRealizados++;
+                let restantes = intentosMaximos - intentosRealizados;
+
+                if (restantes <= 0) {
+                    errorDiv.innerText = "Has agotado los 3 intentos. Redirigiendo al inicio...";
+                    errorDiv.style.display = "block";
+                    attemptsDiv.style.display = "none";
+                    
+                    // Bloquear campos
+                    document.getElementById("usuario").disabled = true;
+                    document.getElementById("password").disabled = true;
+                    document.querySelector(".btn-submit").disabled = true;
+
+                    // Redirigir a index.html tras 2 segundos
+                    setTimeout(() => {
+                        window.location.href = "index.html";
+                    }, 2000);
+                } else {
+                    errorDiv.innerText = "Usuario o contraseña incorrectos. Intenta de nuevo.";
+                    errorDiv.style.display = "block";
+                    
+                    // Mostrar contador de intentos
+                    attemptsDiv.style.display = "block";
+                    attemptsLeftSpan.innerText = restantes;
+                    
+                    // Limpiar solo el campo de contraseña para reintentar
+                    document.getElementById("password").value = "";
+                }
+            }
+        }
+    </script>
+</body>
+</html>

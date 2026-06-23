@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Captura de Resultados - Admin</title>
+    <link rel="icon" type="image/jfif" href="IMAGEN LOGO VIDA GRAN SLAM.jfif">
+    <style>
+        :root {
+            --bg-dark: #0a0a0a;
+            --card-bg: #141414;
+            --primary-neon: #7fff00;
+            --accent-green: #4db800;
+            --text-light: #ffffff;
+            --text-muted: #aaaaaa;
+            --danger: #ba1a1a;
+        }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-dark); color: var(--text-light); margin: 0; padding: 20px; }
+        .container { max-width: 700px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 30px; border-bottom: 3px solid var(--primary-neon); padding-bottom: 10px; }
+        h1 { color: #fff; text-transform: uppercase; margin: 0; font-size: 22px; }
+        .card { background-color: var(--card-bg); border: 1px solid #222; border-radius: 8px; padding: 20px; margin-bottom: 25px; }
+        .row { display: grid; grid-template-columns: 1fr 80px 40px 80px 1fr; gap: 10px; align-items: center; margin-bottom: 15px; }
+        select, input { background-color: #0d0d0d; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 5px; font-size: 14px; text-align: center; }
+        select { text-align-last: center; }
+        label { font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: bold; text-align: center; margin-bottom: 5px; }
+        button { background: linear-gradient(180deg, var(--primary-neon) 0%, var(--accent-green) 100%); color: #000; border: none; padding: 12px; font-weight: bold; text-transform: uppercase; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 10px; }
+        button:hover { transform: scale(1.01); box-shadow: 0 0 10px var(--primary-neon); }
+        .match-item { background: #1c1c1c; padding: 12px; border-radius: 4px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+        .btn-delete { background: var(--danger); color: white; padding: 5px 10px; font-size: 11px; width: auto; border: none; border-radius: 4px; cursor: pointer; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>Captura de Resultados Oficiales</h1>
+        <p style="color: var(--primary-neon); margin: 5px 0 0 0; font-size: 13px; font-weight: bold;">VIDA GRAND SLAM — Panel de Administración</p>
+    </header>
+
+    <div class="card">
+        <form id="resultForm">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                <div style="display: flex; flex-direction: column;">
+                    <label>Jornada</label>
+                    <input type="number" id="jornada" min="1" placeholder="Ej. 1" required>
+                </div>
+                <div style="display: flex; flex-direction: column;">
+                    <label>Fecha del Encuentro</label>
+                    <input type="date" id="fecha" required>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; text-align: center; margin-bottom: 5px;">
+                <label>Equipo</label><label>Carreras</label>
+            </div>
+
+            <div class="row">
+                <select id="teamHome" required></select>
+                <input type="number" id="scoreHome" min="0" placeholder="0" required>
+                <div style="text-align: center; font-weight: bold; color: var(--primary-neon)">VS</div>
+                <input type="number" id="scoreAway" min="0" placeholder="0" required>
+                <select id="teamAway" required></select>
+            </div>
+
+            <button type="submit">Subir Resultado a la Nube</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2 style="font-size: 16px; text-transform: uppercase; margin-top: 0; border-bottom: 1px solid #222; padding-bottom: 8px;">Historial de Pizarras Guardadas</h2>
+        <div id="listaResultados"><p style="color: var(--text-muted); text-align: center; font-style: italic;">Cargando historial...</p></div>
+    </div>
+</div>
+
+<script>
+    const firebaseResultadosURL = 'https://vidagrandslam-default-rtdb.firebaseio.com/resultados.json';
+    const listaEquipos = ["Amazonas", "Bravas", "Cachorras", "Diablas", "Espartanas", "Fieras", "Guerreras", "Novatas"]; // [cite: 48]
+
+    function inicializarFormulario() {
+        const homeSel = document.getElementById('teamHome');
+        const awaySel = document.getElementById('teamAway');
+        let options = '<option value="" disabled selected>Selecciona Equipo</option>';
+        listaEquipos.forEach(e => options += `<option value="${e}">${e}</option>`);
+        homeSel.innerHTML = options; awaySel.innerHTML = options;
+        cargarResultados();
+    }
+
+    document.getElementById('resultForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const home = document.getElementById('teamHome').value;
+        const away = document.getElementById('teamAway').value;
+        const sHome = parseInt(document.getElementById('scoreHome').value);
+        const sAway = parseInt(document.getElementById('scoreAway').value);
+
+        if(home === away) return alert("¡Un equipo no puede jugar contra sí mismo!");
+        if(sHome === sAway) return alert("En el Softbol/Slowpitch no existen los empates. Define un ganador.");
+
+        const resultado = {
+            jornada: document.getElementById('jornada').value,
+            fecha: document.getElementById('fecha').value,
+            teamHome: home, scoreHome: sHome,
+            teamAway: away, scoreAway: sAway
+        };
+
+        fetch(firebaseResultadosURL, { method: 'POST', body: JSON.stringify(resultado) })
+        .then(() => {
+            document.getElementById('resultForm').reset();
+            inicializarFormulario();
+        });
+    });
+
+    function cargarResultados() {
+        fetch(firebaseResultadosURL).then(res => res.json()).then(data => {
+            const container = document.getElementById('listaResultados');
+            if(!data) { container.innerHTML = '<p style="color:#666; text-align:center;">No hay pizarras registradas.</p>'; return; }
+            container.innerHTML = '';
+            Object.keys(data).forEach(id => {
+                const r = data[id];
+                container.innerHTML += `
+                    <div class="match-item">
+                        <div><b>J-${r.jornada}</b> | ${r.teamHome} <span>${r.scoreHome}</span> - <span>${r.scoreAway}</span> ${r.teamAway}</div>
+                        <button onclick="eliminarResultado('${id}')" class="btn-delete">Eliminar</button>
+                    </div>`;
+            });
+        });
+    }
+
+    function eliminarResultado(id) {
+        if(confirm("¿Seguro que deseas eliminar esta pizarra? Se recalculará el standing.")) {
+            fetch(`https://vidagrandslam-default-rtdb.firebaseio.com/resultados/${id}.json`, { method: 'DELETE' }).then(() => cargarResultados());
+        }
+    }
+
+    window.onload = inicializarFormulario;
+</script>
+</body>
+</html>

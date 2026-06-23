@@ -83,6 +83,16 @@
         }
         button:hover { transform: scale(1.01); box-shadow: 0 0 10px var(--primary-neon); }
 
+        .admin-btn {
+            color: var(--primary-neon);
+            text-decoration: none;
+            font-size: 12px;
+            text-transform: uppercase;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
         /* Lista de partidos agendados */
         .match-item {
             background: #1c1c1c;
@@ -107,6 +117,8 @@
             font-size: 12px;
             width: auto;
             margin: 0;
+            border-radius: 4px;
+            cursor: pointer;
         }
         .btn-delete:hover { background: #931414; box-shadow: none; }
     </style>
@@ -126,23 +138,32 @@
             <div class="form-grid">
                 <div class="form-group">
                     <label for="teamHome">Equipo Local (CASA)</label>
-                    <input type="text" id="teamHome" placeholder="Ej. Novatas" required>
+                    <select id="teamHome" required></select>
                 </div>
                 <div class="form-group">
                     <label for="teamAway">Equipo Visitante</label>
-                    <input type="text" id="textAway" placeholder="Ej. Amazonas" required>
+                    <select id="teamAway" required></select>
                 </div>
                 <div class="form-group">
-                    <label for="gameDate">Fecha (Viernes)</label>
+                    <label for="gameDate">Fecha del Juego</label>
                     <input type="date" id="gameDate" required>
                 </div>
                 <div class="form-group">
                     <label for="gameTime">Hora del Juego</label>
-                    <input type="time" id="gameTime" required>
+                    <select id="gameTime" required>
+                        <option value="19:00">07:00 PM</option>
+                        <option value="20:30">08:30 PM</option>
+                        <option value="22:00">10:00 PM</option>
+                        <option value="23:00">11:00 PM (Opción Extra)</option>
+                    </select>
                 </div>
                 <div class="form-group full-width">
                     <label for="gameField">Campo / Sede</label>
-                    <input type="text" id="gameField" placeholder="Ej. Campo Principal" required>
+                    <select id="gameField" onchange="verificarOtroCampo(this)" required>
+                        <option value="CAMPO VIDA SAHUARO">CAMPO VIDA SAHUARO</option>
+                        <option value="OTRO">Otro campo...</option>
+                    </select>
+                    <input type="text" id="otroCampoInput" placeholder="Escribe el nombre del otro campo" style="display:none; margin-top:10px;">
                 </div>
             </div>
             <button type="submit">Publicar Juego</button>
@@ -162,19 +183,48 @@
     const gameForm = document.getElementById('gameForm');
     const adminGamesContainer = document.getElementById('adminGamesContainer');
     
+    // LISTA AUTOMÁTICA DE EQUIPOS
+    const listaEquipos = [
+        "YAQUESITAS","NOBAS","COW GIRLS","WILD ANGELS","ALBOROTADAS","COQUETAS",
+        "KLAN SIQUEIROS","PAPAS DEL MEMO"
+    ];
+
     let juegosDatabase = [];
+
+    // Función para llenar los selectores de equipos de forma automática
+    function inicializarEquipos() {
+        const homeSelect = document.getElementById('teamHome');
+        const awaySelect = document.getElementById('teamAway');
+        
+        let opciones = '<option value="" disabled selected>-- Seleccionar --</option>';
+        listaEquipos.forEach(equipo => {
+            opciones += `<option value="${equipo}">${equipo}</option>`;
+        });
+        
+        homeSelect.innerHTML = opciones;
+        awaySelect.innerHTML = opciones;
+    }
+
+    // Muestra el input de texto únicamente si se selecciona "Otro campo..."
+    function verificarOtroCampo(selectElement) {
+        const otroInput = document.getElementById('otroCampoInput');
+        if (selectElement.value === 'OTRO') {
+            otroInput.style.display = 'block';
+            otroInput.required = true;
+        } else {
+            otroInput.style.display = 'none';
+            otroInput.required = false;
+            otroInput.value = '';
+        }
+    }
 
     // Descargar juegos existentes
     function cargarJuegos() {
         fetch(firebasePartidosURL)
         .then(res => res.json())
         .then(data => {
-            // Firebase guarda arreglos o llaves, convertimos a arreglo limpio
             juegosDatabase = data ? Object.keys(data).map(key => ({ id: key, ...data[key] })) : [];
-            
-            // Ordenar los juegos por fecha y hora cronológicamente
             juegosDatabase.sort((a,b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
-            
             renderAdminGames();
         })
         .catch(() => {
@@ -186,20 +236,35 @@
     gameForm.addEventListener('submit', function(e) {
         e.preventDefault();
 
+        const homeTeam = document.getElementById('teamHome').value;
+        const awayTeam = document.getElementById('teamAway').value;
+
+        if (homeTeam === awayTeam) {
+            alert("¡Error! Un equipo no puede jugar contra sí mismo.");
+            return;
+        }
+
+        // Determinar qué valor de campo se enviará
+        let campoFinal = document.getElementById('gameField').value;
+        if (campoFinal === 'OTRO') {
+            campoFinal = document.getElementById('otroCampoInput').value.trim();
+        }
+
         const nuevoJuego = {
-            home: document.getElementById('teamHome').value.trim(),
-            away: document.getElementById('textAway').value.trim(),
+            home: homeTeam,
+            away: awayTeam,
             date: document.getElementById('gameDate').value,
             time: document.getElementById('gameTime').value,
-            field: document.getElementById('gameField').value.trim()
+            field: campoFinal
         };
 
         fetch(firebasePartidosURL, {
-            method: 'POST', // Genera una llave única automática en Firebase
+            method: 'POST',
             body: JSON.stringify(nuevoJuego)
         })
         .then(() => {
             gameForm.reset();
+            document.getElementById('otroCampoInput').style.display = 'none';
             cargarJuegos();
         });
     });
@@ -213,7 +278,6 @@
 
         adminGamesContainer.innerHTML = '';
         juegosDatabase.forEach(juego => {
-            // Dar formato legible a la fecha (AAAA-MM-DD a DD/MM/AAAA)
             const [year, month, day] = juego.date.split('-');
             const fechaFormateada = `${day}/${month}/${year}`;
 
@@ -224,7 +288,7 @@
                     <div class="match-teams">${juego.home} <span style="color:var(--primary-neon)">VS</span> ${juego.away}</div>
                     <div class="match-info">🗓️ <span>${fechaFormateada}</span> | ⏰ <span>${juego.time} Hrs</span> | 📍 <span>${juego.field}</span></div>
                 </div>
-                <button onclick="eliminarJuego('${juego.id}')" class="btn-danger btn-delete">Eliminar</button>
+                <button onclick="eliminarJuego('${juego.id}')" class="btn-delete">Eliminar</button>
             `;
             adminGamesContainer.appendChild(div);
         });
@@ -242,8 +306,11 @@
         }
     }
 
-    // Inicializar
-    cargarJuegos();
+    // Inicializar la página cargando los equipos y los juegos guardados
+    window.onload = function() {
+        inicializarEquipos();
+        cargarJuegos();
+    };
 </script>
 </body>
 </html>
