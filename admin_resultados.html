@@ -24,6 +24,9 @@
         select, input { background-color: #0d0d0d; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 5px; font-size: 14px; text-align: center; }
         select { text-align-last: center; }
         input:disabled, select:disabled { background-color: #222; color: #888; border-color: #444; }
+        /* Estilo visual para resaltar que Jornada y Fecha ya se pueden editar */
+        .editable-field { border-color: #555; background-color: #111; }
+        .editable-field:focus { border-color: var(--primary-neon); }
         label { font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: bold; text-align: center; margin-bottom: 5px; }
         button { background: linear-gradient(180deg, var(--primary-neon) 0%, var(--accent-green) 100%); color: #000; border: none; padding: 12px; font-weight: bold; text-transform: uppercase; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 10px; }
         button:hover { transform: scale(1.01); box-shadow: 0 0 10px var(--primary-neon); }
@@ -52,12 +55,12 @@
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                 <div style="display: flex; flex-direction: column;">
-                    <label>Jornada</label>
-                    <input type="number" id="jornada" min="1" placeholder="Ej. 1" required disabled>
+                    <label>Jornada (Modificable)</label>
+                    <input type="number" id="jornada" min="1" placeholder="Ej. 1" class="editable-field" required>
                 </div>
                 <div style="display: flex; flex-direction: column;">
-                    <label>Fecha del Encuentro</label>
-                    <input type="date" id="fecha" required disabled>
+                    <label>Fecha del Encuentro (Modificable)</label>
+                    <input type="date" id="fecha" class="editable-field" required>
                 </div>
             </div>
 
@@ -94,7 +97,6 @@
         cargarResultados();
     }
 
-    // Descarga la tabla de partidos programados para llenar el menú desplegable
     function cargarPartidosDelRol() {
         const partidoSelect = document.getElementById('partidoSelect');
         
@@ -111,7 +113,6 @@
             
             Object.keys(data).forEach(id => {
                 const p = data[id];
-                // Formatear fecha de AAAA-MM-DD a DD/MM para que el selector sea compacto y claro
                 const fechaCorta = p.date ? p.date.split('-').reverse().slice(0,2).join('/') : '';
                 options += `<option value="${id}">[${fechaCorta}] ${p.home} VS ${p.away}</option>`;
             });
@@ -123,24 +124,22 @@
         });
     }
 
-    // Llena de manera automática los inputs deshabilitados al cambiar la selección
     function autocompletarPartido(selectElement) {
         const partidoId = selectElement.value;
         const partido = partidosProgramados[partidoId];
         
         if (!partido) return;
 
+        // Autocompleta automáticamente, pero deja los campos listos por si quieren editarlos
         document.getElementById('jornada').value = partido.jornada || 1;
         document.getElementById('fecha').value = partido.date || '';
         
-        // Cargar y forzar la visualización de los nombres de los equipos
         const homeSel = document.getElementById('teamHome');
         const awaySel = document.getElementById('teamAway');
         
         homeSel.innerHTML = `<option value="${partido.home}" selected>${partido.home}</option>`;
         awaySel.innerHTML = `<option value="${partido.away}" selected>${partido.away}</option>`;
         
-        // Limpiar los campos de anotación previos
         document.getElementById('scoreHome').value = '';
         document.getElementById('scoreAway').value = '';
         document.getElementById('scoreHome').focus();
@@ -157,6 +156,7 @@
         if(!home || !away) return alert("Por favor, selecciona primero un partido válido del rol.");
         if(sHome === sAway) return alert("En el Softbol/Slowpitch no existen los empates. Define un ganador por carreras.");
 
+        // El objeto toma el valor del input directo, guardando lo que ustedes hayan editado a mano
         const resultado = {
             jornada: document.getElementById('jornada').value,
             fecha: document.getElementById('fecha').value,
@@ -164,13 +164,12 @@
             scoreHome: sHome,
             teamAway: away, 
             scoreAway: sAway,
-            partidoOriginalId: document.getElementById('partidoSelect').value // Mantiene el vínculo por si Standing lo requiere
+            partidoOriginalId: document.getElementById('partidoSelect').value
         };
 
         fetch(firebaseResultadosURL, { method: 'POST', body: JSON.stringify(resultado) })
         .then(() => {
             document.getElementById('resultForm').reset();
-            // Limpiar inputs simulados
             document.getElementById('teamHome').innerHTML = '';
             document.getElementById('teamAway').innerHTML = '';
             inicializarFormulario();
@@ -184,7 +183,6 @@
             if(!data) { container.innerHTML = '<p style="color:#666; text-align:center;">No hay pizarras registradas en el torneo.</p>'; return; }
             container.innerHTML = '';
             
-            // Mostrar del más nuevo al más viejo
             Object.keys(data).reverse().forEach(id => {
                 const r = data[id];
                 container.innerHTML += `

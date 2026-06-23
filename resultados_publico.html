@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pizarra de Resultados Oficiales - VIDA GRAND SLAM</title>
+    <link rel="icon" type="image/jfif" href="IMAGEN LOGO VIDA GRAN SLAM.jfif">
+    <style>
+        :root {
+            --bg-dark: #0a0a0a;
+            --card-bg: #141414;
+            --primary-neon: #7fff00;
+            --accent-green: #4db800;
+            --text-light: #ffffff;
+            --text-muted: #aaaaaa;
+            --win-gold: #d4af37;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container { max-width: 800px; margin: 0 auto; }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 3px solid var(--primary-neon);
+            padding-bottom: 15px;
+        }
+
+        h1 { color: #fff; text-transform: uppercase; letter-spacing: 1px; margin: 0; font-size: 26px; }
+        header p { color: var(--primary-neon); margin: 6px 0 0 0; font-size: 14px; font-weight: bold; }
+
+        /* Filtro de Jornadas */
+        .filter-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--card-bg);
+            border: 1px solid #222;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .filter-container label {
+            font-size: 13px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-weight: bold;
+        }
+
+        select {
+            background-color: #0d0d0d;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            outline: none;
+            cursor: pointer;
+        }
+        select:focus { border-color: var(--primary-neon); }
+
+        /* Tarjetas de Resultados */
+        .scoreboard-card {
+            background-color: var(--card-bg);
+            border: 1px solid #222;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #222;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-weight: bold;
+        }
+
+        .card-header span.jornada-badge {
+            background-color: #222;
+            color: var(--primary-neon);
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid #333;
+        }
+
+        .vs-row {
+            display: grid;
+            grid-template-columns: 1fr 60px 1fr;
+            align-items: center;
+            text-align: center;
+        }
+
+        .team-block {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .team-name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+            letter-spacing: 0.5px;
+        }
+
+        .team-score {
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--text-muted);
+        }
+
+        /* Resaltado para el ganador */
+        .winner .team-name { color: var(--primary-neon); }
+        .winner .team-score { color: #fff; text-shadow: 0 0 10px rgba(127, 255, 0, 0.4); }
+
+        .vs-badge {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--text-muted);
+            background: #1c1c1c;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            border: 1px solid #333;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Pizarra de Resultados</h1>
+        <p>VIDA GRAND SLAM — Rol Regular y Marcadores Oficiales</p>
+    </header>
+
+    <div class="filter-container">
+        <label for="jornadaFilter">Filtrar por Etapa / Semana:</label>
+        <select id="jornadaFilter" onchange="filtrarResultados()">
+            <option value="TODAS">Ver Todas las Jornadas</option>
+            <option value="1">Jornada 1</option>
+            <option value="2">Jornada 2</option>
+            <option value="3">Jornada 3</option>
+            <option value="4">Jornada 4</option>
+            <option value="5">Jornada 5</option>
+            <option value="6">Jornada 6</option>
+            <option value="7">Jornada 7</option>
+        </select>
+    </div>
+
+    <div id="resultadosContainer">
+        <div class="no-data">Conectando con la base de datos de la liga...</div>
+    </div>
+</div>
+
+<script>
+    const firebaseResultadosURL = 'https://vidagrandslam-default-rtdb.firebaseio.com/resultados.json';
+    let cacheResultados = [];
+
+    // Descargar pizarras de la nube
+    function cargarResultadosPublicos() {
+        const container = document.getElementById('resultadosContainer');
+
+        fetch(firebaseResultadosURL)
+        .then(res => res.json())
+        .then(data => {
+            if (!data) {
+                container.innerHTML = '<div class="no-data">Aún no se han capturado resultados en la jornada actual.</div>';
+                return;
+            }
+
+            // Convertimos el objeto de Firebase en un arreglo limpio y lo invertimos 
+            // para que los partidos más recientes salgan arriba
+            cacheResultados = Object.keys(data).map(key => data[key]).reverse();
+            
+            renderizarPizarras(cacheResultados);
+        })
+        .catch(() => {
+            container.innerHTML = '<div class="no-data" style="color: var(--danger);">Error al conectar con el servidor de Vida Grand Slam.</div>';
+        });
+    }
+
+    // Procesa y dibuja las tarjetas en base al filtro seleccionado
+    function renderizarPizarras(partidos) {
+        const container = document.getElementById('resultadosContainer');
+        container.innerHTML = '';
+
+        if (partidos.length === 0) {
+            container.innerHTML = '<div class="no-data">No hay pizarras registradas para esta selección.</div>';
+            return;
+        }
+
+        partidos.forEach(juego => {
+            // Dar formato visual limpio a la fecha (AAAA-MM-DD a DD/MM/AAAA)
+            let fechaFormateada = "Por definir";
+            if (juego.fecha) {
+                const [year, month, day] = juego.fecha.split('-');
+                fechaFormateada = `${day}/${month}/${year}`;
+            }
+
+            const sHome = parseInt(juego.scoreHome);
+            const sAway = parseInt(juego.scoreAway);
+
+            // Clases para marcar visualmente quién es el ganador
+            const classHome = sHome > sAway ? 'winner' : '';
+            const classAway = sAway > sHome ? 'winner' : '';
+
+            const card = document.createElement('div');
+            card.className = 'scoreboard-card';
+            card.innerHTML = `
+                <div class="card-header">
+                    <span class="jornada-badge">Jornada ${juego.jornada}</span>
+                    <span>🗓️ ${fechaFormateada}</span>
+                </div>
+                <div class="vs-row">
+                    <div class="team-block ${classHome}">
+                        <span class="team-name">${juego.teamHome}</span>
+                        <span class="team-score">${sHome}</span>
+                    </div>
+                    
+                    <div>
+                        <div class="vs-badge">VS</div>
+                    </div>
+                    
+                    <div class="team-block ${classAway}">
+                        <span class="team-name">${juego.teamAway}</span>
+                        <span class="team-score">${sAway}</span>
+                    </div>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    // Ejecuta el filtro dinámico sin recargar la página
+    function filtrarResultados() {
+        const filtro = document.getElementById('jornadaFilter').value;
+        
+        if (filtro === "TODAS") {
+            renderizarPizarras(cacheResultados);
+        } else {
+            const filtrados = cacheResultados.filter(juego => String(juego.jornada) === filtro);
+            renderizarPizarras(filtrados);
+        }
+    }
+
+    // Monitoreo en vivo: Auto-actualiza la pantalla cada 45 segundos por si están jugando
+    setInterval(cargarResultadosPublicos, 45000);
+
+    // Inicializar al abrir la ventana
+    window.onload = cargarResultadosPublicos;
+</script>
+</body>
+</html>
