@@ -23,11 +23,15 @@
         .row { display: grid; grid-template-columns: 1fr 80px 40px 80px 1fr; gap: 10px; align-items: center; margin-bottom: 15px; }
         select, input { background-color: #0d0d0d; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 5px; font-size: 14px; text-align: center; }
         select { text-align-last: center; }
+        input:disabled, select:disabled { background-color: #222; color: #888; border-color: #444; }
         label { font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: bold; text-align: center; margin-bottom: 5px; }
         button { background: linear-gradient(180deg, var(--primary-neon) 0%, var(--accent-green) 100%); color: #000; border: none; padding: 12px; font-weight: bold; text-transform: uppercase; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 10px; }
         button:hover { transform: scale(1.01); box-shadow: 0 0 10px var(--primary-neon); }
         .match-item { background: #1c1c1c; padding: 12px; border-radius: 4px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
         .btn-delete { background: var(--danger); color: white; padding: 5px 10px; font-size: 11px; width: auto; border: none; border-radius: 4px; cursor: pointer; }
+        
+        .selector-juego-group { display: flex; flex-direction: column; margin-bottom: 20px; border-bottom: 1px dashed #333; padding-bottom: 20px; }
+        .selector-juego-group select { background-color: #1a1a1a; border-color: var(--primary-neon); text-align: left; text-align-last: left; }
     </style>
 </head>
 <body>
@@ -39,27 +43,34 @@
 
     <div class="card">
         <form id="resultForm">
+            <div class="selector-juego-group">
+                <label style="color: var(--primary-neon); font-size: 12px; margin-bottom: 8px;">Seleccionar Partido Programado de la Base de Datos</label>
+                <select id="partidoSelect" onchange="autocompletarPartido(this)" required>
+                    <option value="" disabled selected>Cargando partidos desde el rol...</option>
+                </select>
+            </div>
+
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                 <div style="display: flex; flex-direction: column;">
                     <label>Jornada</label>
-                    <input type="number" id="jornada" min="1" placeholder="Ej. 1" required>
+                    <input type="number" id="jornada" min="1" placeholder="Ej. 1" required disabled>
                 </div>
                 <div style="display: flex; flex-direction: column;">
                     <label>Fecha del Encuentro</label>
-                    <input type="date" id="fecha" required>
+                    <input type="date" id="fecha" required disabled>
                 </div>
             </div>
 
             <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px; text-align: center; margin-bottom: 5px;">
-                <label>Equipo</label><label>Carreras</label>
+                <label>Equipo Local (Casa)</label><label>Carreras</label>
             </div>
 
             <div class="row">
-                <select id="teamHome" required></select>
-                <input type="number" id="scoreHome" min="0" placeholder="0" required>
+                <select id="teamHome" required disabled></select>
+                <input type="password" style="display:none;"><input type="number" id="scoreHome" min="0" placeholder="0" required>
                 <div style="text-align: center; font-weight: bold; color: var(--primary-neon)">VS</div>
                 <input type="number" id="scoreAway" min="0" placeholder="0" required>
-                <select id="teamAway" required></select>
+                <select id="teamAway" required disabled></select>
             </div>
 
             <button type="submit">Subir Resultado a la Nube</button>
@@ -73,53 +84,112 @@
 </div>
 
 <script>
+    const firebasePartidosURL = 'https://vidagrandslam-default-rtdb.firebaseio.com/partidos.json';
     const firebaseResultadosURL = 'https://vidagrandslam-default-rtdb.firebaseio.com/resultados.json';
-    const listaEquipos = ["YAQUESITAS","NOBAS","COW GIRLS","WILD ANGELS","ALBOROTADAS","COQUETAS",
-        "KLAN SIQUEIROS","PAPAS DEL MEMO"]; 
+    
+    let partidosProgramados = {};
 
     function inicializarFormulario() {
+        cargarPartidosDelRol();
+        cargarResultados();
+    }
+
+    // Descarga la tabla de partidos programados para llenar el menú desplegable
+    function cargarPartidosDelRol() {
+        const partidoSelect = document.getElementById('partidoSelect');
+        
+        fetch(firebasePartidosURL)
+        .then(res => res.json())
+        .then(data => {
+            if (!data) {
+                partidoSelect.innerHTML = '<option value="" disabled selected>No hay partidos en el rol para calificar</option>';
+                return;
+            }
+            
+            partidosProgramados = data;
+            let options = '<option value="" disabled selected>-- Elige un partido para capturar resultado --</option>';
+            
+            Object.keys(data).forEach(id => {
+                const p = data[id];
+                // Formatear fecha de AAAA-MM-DD a DD/MM para que el selector sea compacto y claro
+                const fechaCorta = p.date ? p.date.split('-').reverse().slice(0,2).join('/') : '';
+                options += `<option value="${id}">[${fechaCorta}] ${p.home} VS ${p.away}</option>`;
+            });
+            
+            partidoSelect.innerHTML = options;
+        })
+        .catch(() => {
+            partidoSelect.innerHTML = '<option value="" disabled selected>Error al cargar partidos programados</option>';
+        });
+    }
+
+    // Llena de manera automática los inputs deshabilitados al cambiar la selección
+    function autocompletarPartido(selectElement) {
+        const partidoId = selectElement.value;
+        const partido = partidosProgramados[partidoId];
+        
+        if (!partido) return;
+
+        document.getElementById('jornada').value = partido.jornada || 1;
+        document.getElementById('fecha').value = partido.date || '';
+        
+        // Cargar y forzar la visualización de los nombres de los equipos
         const homeSel = document.getElementById('teamHome');
         const awaySel = document.getElementById('teamAway');
-        let options = '<option value="" disabled selected>Selecciona Equipo</option>';
-        listaEquipos.forEach(e => options += `<option value="${e}">${e}</option>`);
-        homeSel.innerHTML = options; awaySel.innerHTML = options;
-        cargarResultados();
+        
+        homeSel.innerHTML = `<option value="${partido.home}" selected>${partido.home}</option>`;
+        awaySel.innerHTML = `<option value="${partido.away}" selected>${partido.away}</option>`;
+        
+        // Limpiar los campos de anotación previos
+        document.getElementById('scoreHome').value = '';
+        document.getElementById('scoreAway').value = '';
+        document.getElementById('scoreHome').focus();
     }
 
     document.getElementById('resultForm').addEventListener('submit', function(e) {
         e.preventDefault();
+        
         const home = document.getElementById('teamHome').value;
         const away = document.getElementById('teamAway').value;
         const sHome = parseInt(document.getElementById('scoreHome').value);
         const sAway = parseInt(document.getElementById('scoreAway').value);
 
-        if(home === away) return alert("¡Un equipo no puede jugar contra sí mismo!");
-        if(sHome === sAway) return alert("En el Softbol/Slowpitch no existen los empates. Define un ganador.");
+        if(!home || !away) return alert("Por favor, selecciona primero un partido válido del rol.");
+        if(sHome === sAway) return alert("En el Softbol/Slowpitch no existen los empates. Define un ganador por carreras.");
 
         const resultado = {
             jornada: document.getElementById('jornada').value,
             fecha: document.getElementById('fecha').value,
-            teamHome: home, scoreHome: sHome,
-            teamAway: away, scoreAway: sAway
+            teamHome: home, 
+            scoreHome: sHome,
+            teamAway: away, 
+            scoreAway: sAway,
+            partidoOriginalId: document.getElementById('partidoSelect').value // Mantiene el vínculo por si Standing lo requiere
         };
 
         fetch(firebaseResultadosURL, { method: 'POST', body: JSON.stringify(resultado) })
         .then(() => {
             document.getElementById('resultForm').reset();
+            // Limpiar inputs simulados
+            document.getElementById('teamHome').innerHTML = '';
+            document.getElementById('teamAway').innerHTML = '';
             inicializarFormulario();
+            alert("¡Pizarra guardada con éxito! El Standing se ha actualizado en vivo.");
         });
     });
 
     function cargarResultados() {
         fetch(firebaseResultadosURL).then(res => res.json()).then(data => {
             const container = document.getElementById('listaResultados');
-            if(!data) { container.innerHTML = '<p style="color:#666; text-align:center;">No hay pizarras registradas.</p>'; return; }
+            if(!data) { container.innerHTML = '<p style="color:#666; text-align:center;">No hay pizarras registradas en el torneo.</p>'; return; }
             container.innerHTML = '';
-            Object.keys(data).forEach(id => {
+            
+            // Mostrar del más nuevo al más viejo
+            Object.keys(data).reverse().forEach(id => {
                 const r = data[id];
                 container.innerHTML += `
                     <div class="match-item">
-                        <div><b>J-${r.jornada}</b> | ${r.teamHome} <span>${r.scoreHome}</span> - <span>${r.scoreAway}</span> ${r.teamAway}</div>
+                        <div><b>J-${r.jornada}</b> | ${r.teamHome} <span style="color:var(--primary-neon); font-weight:bold;">${r.scoreHome}</span> - <span style="color:var(--primary-neon); font-weight:bold;">${r.scoreAway}</span> ${r.teamAway}</div>
                         <button onclick="eliminarResultado('${id}')" class="btn-delete">Eliminar</button>
                     </div>`;
             });
@@ -127,7 +197,7 @@
     }
 
     function eliminarResultado(id) {
-        if(confirm("¿Seguro que deseas eliminar esta pizarra? Se recalculará el standing.")) {
+        if(confirm("¿Seguro que deseas eliminar esta pizarra del sistema? Las estadísticas volverán a su estado anterior.")) {
             fetch(`https://vidagrandslam-default-rtdb.firebaseio.com/resultados/${id}.json`, { method: 'DELETE' }).then(() => cargarResultados());
         }
     }
