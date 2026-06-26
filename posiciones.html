@@ -185,6 +185,7 @@
 <script>
     const firebasePosicionesURL = 'https://vidagrandslam-default-rtdb.firebaseio.com/posiciones.json';
     const firebaseTorneoURL = 'https://vidagrandslam-default-rtdb.firebaseio.com/torneo.json';
+    const firebaseResultadosURL = 'https://vidagrandslam-default-rtdb.firebaseio.com/resultados.json';
 
     const teamForm = document.getElementById('teamForm');
     const teamSelect = document.getElementById('teamSelect');
@@ -203,16 +204,42 @@
         .then(posData => {
             standingsDatabase = posData || [];
             
-            // 2. Descargar la lista central de equipos del torneo para sincronizar selectores
-            return fetch(firebaseTorneoURL);
+            // 2. Descargar la lista central de equipos del torneo y resultados
+            return Promise.all([
+                fetch(firebaseTorneoURL).then(r => r.json()),
+                fetch(firebaseResultadosURL).then(r => r.json())
+            ]);
         })
-        .then(res => res.json())
-        .then(torneoData => {
+        .then(([torneoData, resultadosData]) => {
             masterTeamsList = (torneoData && torneoData.equipos) ? torneoData.equipos : [];
             
             // Combinar los equipos del standing y del maestro para que no falte ninguno
             standingsDatabase.forEach(t => {
                 if(!masterTeamsList.includes(t.name)) masterTeamsList.push(t.name);
+            });
+
+            // Construir contraQuienGano a partir de resultados.json
+            const contraQuienGano = {};
+            if (resultadosData) {
+                Object.keys(resultadosData).forEach(id => {
+                    const juego = resultadosData[id];
+                    if (juego.teamHome && juego.teamAway) {
+                        const sh = parseInt(juego.scoreHome || 0);
+                        const sa = parseInt(juego.scoreAway || 0);
+                        if (sh > sa) {
+                            if (!contraQuienGano[juego.teamHome]) contraQuienGano[juego.teamHome] = [];
+                            contraQuienGano[juego.teamHome].push(juego.teamAway);
+                        } else if (sa > sh) {
+                            if (!contraQuienGano[juego.teamAway]) contraQuienGano[juego.teamAway] = [];
+                            contraQuienGano[juego.teamAway].push(juego.teamHome);
+                        }
+                    }
+                });
+            }
+
+            // Asignar contraQuienGano a cada equipo
+            standingsDatabase.forEach(t => {
+                t.contraQuienGano = contraQuienGano[t.name] || [];
             });
 
             actualizarSelectorEquipos();
@@ -332,8 +359,16 @@
             team.dif = team.ca - team.cr; 
         });
 
-        // Criterio Ballscore: PCT -> DIF -> G
-        standingsDatabase.sort((a, b) => b.pct - a.pct || b.dif - a.dif || b.w - a.w);
+        // Criterios: JJ -> G -> P -> CA -> CR -> DIF
+        standingsDatabase.sort((A, B) => {
+            const jjA = A.w + A.l, jjB = B.w + B.l;
+            if (jjB !== jjA) return jjB - jjA;
+            if (B.w !== A.w) return B.w - A.w;
+            if (A.l !== B.l) return A.l - B.l;
+            if (B.ca !== A.ca) return B.ca - A.ca;
+            if (A.cr !== B.cr) return A.cr - B.cr;
+            return B.dif - A.dif;
+        });
 
         fetch(firebasePosicionesURL, {
             method: 'PUT',
@@ -353,11 +388,26 @@
             return;
         }
 
-        standingsContainer.innerHTML = '';
-        const leaderW = standingsDatabase[0].w;
-        const leaderL = standingsDatabase[0].l;
+        // Reordenar con head-to-head incluido
+        const sorted = [...standingsDatabase].sort((A, B) => {
+            const jjA = A.w + A.l, jjB = B.w + B.l;
+            if (jjB !== jjA) return jjB - jjA;
+            if (B.w !== A.w) return B.w - A.w;
+            if (A.l !== B.l) return A.l - B.l;
+            if (B.ca !== A.ca) return B.ca - A.ca;
+            if (A.cr !== B.cr) return A.cr - B.cr;
+            if (B.dif !== A.dif) return B.dif - A.dif;
+            const cqA = A.contraQuienGano || [], cqB = B.contraQuienGano || [];
+            if (cqA.includes(B.name)) return -1;
+            if (cqB.includes(A.name)) return 1;
+            return 0;
+        });
 
-        standingsDatabase.forEach((team, index) => {
+        standingsContainer.innerHTML = '';
+        const leaderW = sorted[0].w;
+        const leaderL = sorted[0].l;
+
+        sorted.forEach((team, index) => {
             const jj = team.w + team.l;
             let jd = index === 0 ? '-' : ((leaderW - team.w) + (team.l - leaderL)) / 2;
 

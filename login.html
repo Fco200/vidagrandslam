@@ -4,7 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acceso Administrativo - VIDA GRAND SLAM</title>
+    <link rel="icon" type="image/jfif" href="IMAGEN LOGO VIDA GRAN SLAM.jfif">
     <style>
+        :root {
+            --bg-dark: #0a0a0a;
+            --card-bg: #141414;
+            --primary-neon: #7fff00;
+            --accent-green: #4db800;
+            --text-light: #ffffff;
+            --text-muted: #aaaaaa;
+            --danger: #ba1a1a;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -13,7 +24,7 @@
         }
 
         body {
-            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            background-color: var(--bg-dark);
             height: 100vh;
             display: flex;
             justify-content: center;
@@ -22,39 +33,39 @@
         }
 
         .login-card {
-            background: rgba(255, 255, 255, 0.95);
+            background: var(--card-bg);
             padding: 40px 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
             width: 100%;
             max-width: 400px;
             text-align: center;
+            border: 1px solid #222;
         }
 
-        .logo-placeholder {
-            width: 80px;
-            height: 80px;
-            background: #e0e0e0;
-            border: 2px dashed #999;
+        .login-logo {
+            width: 100px;
+            height: 100px;
             border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(127, 255, 0, 0.3);
             margin: 0 auto 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 12px;
-            color: #666;
+            display: block;
         }
 
         h2 {
-            color: #1a2a6c;
-            margin-bottom: 10px;
+            color: var(--text-light);
+            margin-bottom: 5px;
             font-size: 24px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         p.subtitle {
-            color: #666;
+            color: var(--text-muted);
             font-size: 14px;
             margin-bottom: 30px;
+            font-style: italic;
         }
 
         .form-group {
@@ -64,29 +75,38 @@
 
         label {
             display: block;
-            font-size: 14px;
-            color: #333;
+            font-size: 12px;
+            color: var(--text-muted);
             margin-bottom: 5px;
-            font-weight: 600;
+            font-weight: bold;
+            text-transform: uppercase;
         }
 
         select, input {
             width: 100%;
             padding: 12px;
-            border: 2px solid #ccc;
-            border-radius: 8px;
+            background-color: #0d0d0d;
+            border: 2px solid #333;
+            border-radius: 6px;
             font-size: 16px;
             outline: none;
             transition: 0.3s;
+            color: var(--text-light);
+        }
+
+        select option {
+            background-color: var(--card-bg);
+            color: var(--text-light);
         }
 
         select:focus, input:focus {
-            border-color: #b21f1f;
+            border-color: var(--primary-neon);
+            box-shadow: 0 0 8px rgba(127, 255, 0, 0.2);
         }
 
         .attempts-counter {
             font-size: 13px;
-            color: #b21f1f;
+            color: var(--danger);
             margin-bottom: 15px;
             font-weight: bold;
             display: none;
@@ -95,21 +115,42 @@
         .btn-submit {
             width: 100%;
             padding: 14px;
-            background: #1a2a6c;
-            color: white;
+            background: linear-gradient(180deg, var(--primary-neon) 0%, var(--accent-green) 100%);
+            color: #000;
             border: none;
-            border-radius: 8px;
+            border-radius: 6px;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            transition: 0.3s;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .btn-submit:hover {
-            background: #b21f1f;
+            box-shadow: 0 0 15px rgba(127, 255, 0, 0.3);
+            transform: translateY(-1px);
         }
 
-        /* Mensajes de Alerta */
+        .btn-submit:disabled {
+            background: #333;
+            color: #666;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: var(--primary-neon);
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .back-link:hover { text-decoration: underline; }
+
         .alert {
             padding: 12px;
             border-radius: 6px;
@@ -120,24 +161,24 @@
         }
 
         .alert-error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+            background-color: #2c1010;
+            color: #ff6b6b;
+            border: 1px solid #441515;
         }
 
         .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+            background-color: #0f2b0f;
+            color: var(--primary-neon);
+            border: 1px solid #1f4d1f;
         }
     </style>
 </head>
 <body>
 
     <div class="login-card">
-        <img src="IMAGEN LOGO VIDA GRAN SLAM.jfif" alt="Logo" class="logo-placeholder">
+        <img src="IMAGEN LOGO VIDA GRAN SLAM.jfif" alt="Logo" class="login-logo">
 
-        <h2>Módulo Administrativo</h2>
+        <h2>Acceso Privado</h2>
         <p class="subtitle">Torneo VIDA GRAND SLAM</p>
 
         <div id="alertError" class="alert alert-error"></div>
@@ -165,10 +206,11 @@
 
             <button type="submit" class="btn-submit">Ingresar al Sistema</button>
         </form>
+
+        <a href="index.html" class="back-link">⬅ Volver al Inicio</a>
     </div>
 
     <script>
-        // CONFIGURACIÓN DE USUARIOS Y CONTRASEÑAS (Fijas y Seguras)
         const usuariosValidos = {
             "FCO": "FcoSlam2026*",
             "YASSEL": "YasselPresidenta26*",
@@ -179,7 +221,7 @@
         let intentosRealizados = 0;
 
         function validarAcceso(event) {
-            event.preventDefault(); // Evita que la página se recargue
+            event.preventDefault();
 
             const userSelect = document.getElementById("usuario").value;
             const passInput = document.getElementById("password").value;
@@ -188,24 +230,19 @@
             const attemptsDiv = document.getElementById("attemptsText");
             const attemptsLeftSpan = document.getElementById("attemptsLeft");
 
-            // Ocultar alertas previas
             errorDiv.style.display = "none";
             successDiv.style.display = "none";
 
-            // Validar credenciales
             if (usuariosValidos[userSelect] && usuariosValidos[userSelect] === passInput) {
-                // ÉXITO
                 successDiv.innerText = `¡Acceso concedido! Bienvenido(a) ${userSelect}. Redirigiendo...`;
                 successDiv.style.display = "block";
                 document.getElementById("loginForm").reset();
                 
-                // Redirige al módulo administrador tras 1.5 segundos
                 setTimeout(() => {
                     window.location.href = "admin.html";
                 }, 1500);
 
             } else {
-                // ERROR
                 intentosRealizados++;
                 let restantes = intentosMaximos - intentosRealizados;
 
@@ -214,12 +251,10 @@
                     errorDiv.style.display = "block";
                     attemptsDiv.style.display = "none";
                     
-                    // Bloquear campos
                     document.getElementById("usuario").disabled = true;
                     document.getElementById("password").disabled = true;
                     document.querySelector(".btn-submit").disabled = true;
 
-                    // Redirigir a index.html tras 2 segundos
                     setTimeout(() => {
                         window.location.href = "index.html";
                     }, 2000);
@@ -227,11 +262,9 @@
                     errorDiv.innerText = "Usuario o contraseña incorrectos. Intenta de nuevo.";
                     errorDiv.style.display = "block";
                     
-                    // Mostrar contador de intentos
                     attemptsDiv.style.display = "block";
                     attemptsLeftSpan.innerText = restantes;
                     
-                    // Limpiar solo el campo de contraseña para reintentar
                     document.getElementById("password").value = "";
                 }
             }

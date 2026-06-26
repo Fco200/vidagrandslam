@@ -212,6 +212,10 @@
 
             <div class="grid-inputs">
                 <div>
+                    <label for="statJJ">Juegos (JJ)</label>
+                    <input type="number" id="statJJ" value="0" min="0" required>
+                </div>
+                <div>
                     <label for="statAB">Turnos (AB)</label>
                     <input type="number" id="statAB" value="0" min="0" required>
                 </div>
@@ -375,6 +379,7 @@
         if (jugadora) {
             playerActionId.value = jugadora.id;
             playerNameDisplay.value = jugadora.name;
+            document.getElementById('statJJ').value = jugadora.jj || 0;
             document.getElementById('statAB').value = jugadora.ab || 0;
             document.getElementById('statH').value = jugadora.h || 0;
             document.getElementById('statR').value = jugadora.r || 0;
@@ -420,7 +425,7 @@
         const nueva = {
             id: Date.now(),
             team: equipo,
-            name: nombre, ab:0, h:0, r:0, bb:0, so:0, sf:0, avg:".000", obp:".000"
+            name: nombre, jj:0, ab:0, h:0, r:0, bb:0, so:0, sf:0, avg:".000", obp:".000"
         };
 
         masterDatabase.jugadoras.push(nueva);
@@ -444,7 +449,7 @@
                 masterDatabase.jugadoras.push({
                     id: Date.now() + contador, // Evitar colisión de IDs idénticos
                     team: equipo,
-                    name: limpio, ab:0, h:0, r:0, bb:0, so:0, sf:0, avg:".000", obp:".000"
+                    name: limpio, jj:0, ab:0, h:0, r:0, bb:0, so:0, sf:0, avg:".000", obp:".000"
                 });
                 contador++;
             }
@@ -460,6 +465,7 @@
 
         if (!selectId) return;
 
+        const jj = parseInt(document.getElementById('statJJ').value) || 0;
         const ab = parseInt(document.getElementById('statAB').value) || 0;
         const h = parseInt(document.getElementById('statH').value) || 0;
         const r = parseInt(document.getElementById('statR').value) || 0;
@@ -473,6 +479,7 @@
 
         const idx = masterDatabase.jugadoras.findIndex(j => j.id == selectId);
         if (idx > -1) {
+            masterDatabase.jugadoras[idx].jj = jj;
             masterDatabase.jugadoras[idx].ab = ab;
             masterDatabase.jugadoras[idx].h = h;
             masterDatabase.jugadoras[idx].r = r;
@@ -536,6 +543,7 @@
                     <div class="meta">Equipo: ${player.team}</div>
                 </div>
                 <div class="player-stats">
+                    <div class="stat-box"><span class="label">JJ</span><span class="val">${player.jj}</span></div>
                     <div class="stat-box"><span class="label">AB</span><span class="val">${player.ab}</span></div>
                     <div class="stat-box"><span class="label">H</span><span class="val">${player.h}</span></div>
                     <div class="stat-box"><span class="label">R</span><span class="val">${player.r}</span></div>

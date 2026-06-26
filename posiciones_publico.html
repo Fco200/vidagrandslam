@@ -106,7 +106,7 @@
     <header>
         <h1>Tabla General de Posiciones</h1>
         <p>Torneo VIDA GRAND SLAM • Resultados Actualizados en Vivo</p>
-        <a href="index.html">Volver al Inicio</a>
+        <a href="index.html">Volver al Inicio</a> 
     </header>
 
     <div id="publicStandings" class="standings-container">
@@ -192,18 +192,17 @@
                 t.dif = t.ca - t.cr;
             });
 
-            // 4. CRITERIOS DE POSICIONAMIENTO SOLICITADOS[cite: 56]:
+            // 4. CRITERIOS DE POSICIONAMIENTO (debe coincidir con posiciones.html)
             arregloStanding.sort((A, B) => {
-                if (B.w !== A.w) return B.w - A.w; // 1° Juegos Ganados [cite: 56]
-                if (A.l !== B.l) return A.l - B.l; // 2° Juegos Perdidos (Menos perdidos arriba) [cite: 56]
-                if (B.ca !== A.ca) return B.ca - A.ca; // 3° Carreras a favor [cite: 56]
-                if (A.cr !== B.cr) return A.cr - B.cr; // 4° Carreras en contra (Menos carreras arriba) [cite: 56]
-                if (B.dif !== A.dif) return B.dif - A.dif; // 5° Diferencia de carreras [cite: 56]
-
-                // 6° Dominio directo (Verifica quién le ganó a quién en el nodo resultados) [cite: 56]
-                if (A.contraQuienGano.includes(B.name)) return -1;
+                const jjA = A.w + A.l, jjB = B.w + B.l;
+                if (jjB !== jjA) return jjB - jjA;             // 1° JJ (más juegos arriba)
+                if (B.w !== A.w) return B.w - A.w;             // 2° G (más ganados)
+                if (A.l !== B.l) return A.l - B.l;             // 3° P (menos perdidos)
+                if (B.ca !== A.ca) return B.ca - A.ca;         // 4° CA (más anotadas)
+                if (A.cr !== B.cr) return A.cr - B.cr;         // 5° CR (menos recibidas)
+                if (B.dif !== A.dif) return B.dif - A.dif;     // 6° DIF (mayor diferencia)
+                if (A.contraQuienGano.includes(B.name)) return -1;  // 7° Dominio directo
                 if (B.contraQuienGano.includes(A.name)) return 1;
-
                 return 0;
             });
 
