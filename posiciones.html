@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel del Anotador - VIDA GRAND SLAM</title>
-    <link rel="icon" type="image/jfif" href="IMAGEN LOGO VIDA GRAN SLAM.jfif">
+    <title>Panel de Posiciones - Administrador</title>
+    <link rel="icon" type="image/jfif" href="IMAGEN LOGO VIDA GRAN SALM.jfif">
     <style>
         :root {
             --primary-color: #1a472a;
@@ -12,7 +12,6 @@
             --dark-color: #2b2b2b;
             --light-color: #f4f6f4;
         }
-
         body {
             font-family: 'Segoe UI', sans-serif;
             background-color: var(--light-color);
@@ -20,7 +19,6 @@
             padding: 15px;
             margin: 0;
         }
-
         header {
             text-align: center;
             background-color: var(--primary-color);
@@ -31,7 +29,6 @@
             border-bottom: 4px solid var(--secondary-color);
             position: relative;
         }
-
         .btn-top-back {
             position: absolute;
             left: 15px;
@@ -47,9 +44,7 @@
             text-transform: uppercase;
         }
         .btn-top-back:hover { background: var(--secondary-color); color: #000; }
-
         .container { max-width: 950px; margin: 0 auto; }
-
         .card {
             background: white;
             padding: 20px;
@@ -57,19 +52,15 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
             margin-bottom: 20px;
         }
-
         .card h2 { margin-top: 0; color: var(--primary-color); font-size: 18px; border-bottom: 2px solid var(--light-color); padding-bottom: 8px; }
-
         .form-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
             gap: 10px;
             align-items: flex-end;
         }
-
         label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 12px; text-transform: uppercase; color: #555; }
         input, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-
         button {
             background-color: var(--primary-color);
             color: white;
@@ -81,11 +72,9 @@
             cursor: pointer;
             width: 100%;
         }
-
         button:hover { background-color: #24633b; }
         .btn-danger { background-color: #ba1a1a; }
         .btn-danger:hover { background-color: #931414; }
-
         .team-row {
             display: flex;
             flex-direction: column;
@@ -95,14 +84,11 @@
             padding: 12px;
             margin-bottom: 8px;
         }
-
         @media(min-width: 768px) {
             .team-row { flex-direction: row; align-items: center; justify-content: space-between; }
         }
-
         .team-identity { display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 16px; min-width: 180px; }
         .rank { background: var(--primary-color); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; }
-
         .team-stats {
             display: flex;
             flex-wrap: wrap;
@@ -112,9 +98,7 @@
             border-radius: 4px;
             margin: 10px 0;
         }
-
         @media(min-width: 768px) { .team-stats { margin: 0; } }
-
         .stat-item { text-align: center; min-width: 40px; }
         .stat-item .lbl { font-size: 9px; color: #666; display: block; font-weight: bold; }
         .stat-item .val { font-size: 14px; font-weight: bold; }
@@ -126,8 +110,8 @@
 <div class="container">
     <header>
         <a href="admin.html" class="btn-top-back">Volver</a>
-        <h1>Panel del Anotador - Control de Datos</h1>
-        <p>Torneo VIDA GRAND SLAM • Los datos se envían automáticamente a la pantalla pública</p>
+        <h1>Panel Administrativo - Tabla de Posiciones</h1>
+        <p>Torneo VIDA GRAND SLAM • Control Manual y Filtros de Clasificación</p>
     </header>
 
     <div class="card">
@@ -170,7 +154,7 @@
     </div>
 
     <div class="card">
-        <h2>Vista Previa de Clasificación (Ordenada automáticamente)</h2>
+        <h2>Vista Previa de Clasificación (Ordenada para el público)</h2>
         <div id="standingsContainer">
             <p style="color: #777; font-style: italic; text-align: center;">Cargando standings desde la nube de Firebase...</p>
         </div>
@@ -195,35 +179,32 @@
 
     let standingsDatabase = [];
     let masterTeamsList = [];
+    let contraQuienGano = {};
 
-    // Descargar bases de datos unificadas
     function descargarDatosNube() {
-        // 1. Descargar la lista de posiciones
-        fetch(firebasePosicionesURL)
-        .then(res => res.json())
-        .then(posData => {
-            standingsDatabase = posData || [];
+        Promise.all([
+            fetch(firebasePosicionesURL).then(res => res.json()),
+            fetch(firebaseTorneoURL).then(res => res.json()),
+            fetch(firebaseResultadosURL).then(res => res.json())
+        ])
+        .then(([posData, torneoData, resultadosData]) => {
+            if (posData) {
+                standingsDatabase = Array.isArray(posData) ? posData.filter(Boolean) : Object.values(posData);
+            } else {
+                standingsDatabase = [];
+            }
             
-            // 2. Descargar la lista central de equipos del torneo y resultados
-            return Promise.all([
-                fetch(firebaseTorneoURL).then(r => r.json()),
-                fetch(firebaseResultadosURL).then(r => r.json())
-            ]);
-        })
-        .then(([torneoData, resultadosData]) => {
             masterTeamsList = (torneoData && torneoData.equipos) ? torneoData.equipos : [];
             
-            // Combinar los equipos del standing y del maestro para que no falte ninguno
             standingsDatabase.forEach(t => {
-                if(!masterTeamsList.includes(t.name)) masterTeamsList.push(t.name);
+                if(t && t.name && !masterTeamsList.includes(t.name)) masterTeamsList.push(t.name);
             });
 
-            // Construir contraQuienGano a partir de resultados.json
-            const contraQuienGano = {};
+            // Reconstruir dominio directo desde resultados.json
+            contraQuienGano = {};
             if (resultadosData) {
-                Object.keys(resultadosData).forEach(id => {
-                    const juego = resultadosData[id];
-                    if (juego.teamHome && juego.teamAway) {
+                Object.values(resultadosData).forEach(juego => {
+                    if (juego && juego.teamHome && juego.teamAway) {
                         const sh = parseInt(juego.scoreHome || 0);
                         const sa = parseInt(juego.scoreAway || 0);
                         if (sh > sa) {
@@ -237,27 +218,20 @@
                 });
             }
 
-            // Asignar contraQuienGano a cada equipo
-            standingsDatabase.forEach(t => {
-                t.contraQuienGano = contraQuienGano[t.name] || [];
-            });
-
             actualizarSelectorEquipos();
             renderStandings();
         })
         .catch(err => {
-            standingsContainer.innerHTML = '<p style="color: red; text-align: center;">Error al conectar con la base de datos de Firebase.</p>';
+            console.error(err);
+            standingsContainer.innerHTML = '<p style="color: red; text-align: center;">Error al conectar con Firebase.</p>';
         });
     }
 
     function actualizarSelectorEquipos() {
         teamSelect.innerHTML = '<option value="">-- Elige un Equipo para Actualizar --</option>';
-        
         masterTeamsList.forEach(team => {
-            teamSelect.add(new Option(team, team));
+            if(team) teamSelect.add(new Option(team, team));
         });
-
-        // Opción especial para meter un equipo nuevo
         let optNuevo = new Option("➕ AGREGAR UN NUEVO EQUIPO AL TORNEO...", "NUEVO_EQUIPO");
         optNuevo.style.color = "var(--primary-color)";
         optNuevo.style.fontWeight = "bold";
@@ -266,30 +240,19 @@
 
     function evaluarSeleccionEquipo() {
         const val = teamSelect.value;
-        
         if (val === "NUEVO_EQUIPO") {
             newTeamInputBox.style.display = 'block';
             newTeamName.required = true;
             teamForm.reset();
-            teamSelect.value = "NUEVO_EQUIPO"; // Mantener la selección
+            teamSelect.value = "NUEVO_EQUIPO";
         } else if (val !== "") {
             newTeamInputBox.style.display = 'none';
             newTeamName.required = false;
-            
-            // Buscar si ya tiene récord previo en el standing para autorellenar
-            const equipoEncontrado = standingsDatabase.find(t => t.name.toLowerCase() === val.toLowerCase());
-            if (equipoEncontrado) {
-                document.getElementById('gamesWon').value = equipoEncontrado.w || 0;
-                document.getElementById('gamesLost').value = equipoEncontrado.l || 0;
-                document.getElementById('runsScored').value = equipoEncontrado.ca || 0;
-                document.getElementById('runsAgainst').value = equipoEncontrado.cr || 0;
-            } else {
-                // Si está dado de alta en jugadoras pero no tiene juegos en el standing
-                document.getElementById('gamesWon').value = 0;
-                document.getElementById('gamesLost').value = 0;
-                document.getElementById('runsScored').value = 0;
-                document.getElementById('runsAgainst').value = 0;
-            }
+            const equipo = standingsDatabase.find(t => t && t.name && t.name.toLowerCase() === val.toLowerCase());
+            document.getElementById('gamesWon').value = equipo ? (equipo.w || 0) : 0;
+            document.getElementById('gamesLost').value = equipo ? (equipo.l || 0) : 0;
+            document.getElementById('runsScored').value = equipo ? (equipo.ca || 0) : 0;
+            document.getElementById('runsAgainst').value = equipo ? (equipo.cr || 0) : 0;
         } else {
             newTeamInputBox.style.display = 'none';
             newTeamName.required = false;
@@ -298,166 +261,101 @@
 
     teamForm.addEventListener('submit', function(e) {
         e.preventDefault();
-
-        let name = '';
-        if (teamSelect.value === "NUEVO_EQUIPO") {
-            name = newTeamName.value.trim();
-            // Evitar duplicados
-            if(masterTeamsList.some(t => t.toLowerCase() === name.toLowerCase())) {
-                alert("Ese equipo ya existe en el torneo.");
-                return;
-            }
-        } else {
-            name = teamSelect.value;
-        }
-
-        if(!name) { alert("Selecciona o escribe un nombre de equipo."); return; }
+        let name = teamSelect.value === "NUEVO_EQUIPO" ? newTeamName.value.trim() : teamSelect.value;
+        if(!name) return;
 
         const w = parseInt(document.getElementById('gamesWon').value) || 0;
         const l = parseInt(document.getElementById('gamesLost').value) || 0;
         const ca = parseInt(document.getElementById('runsScored').value) || 0;
         const cr = parseInt(document.getElementById('runsAgainst').value) || 0;
 
-        const existingIndex = standingsDatabase.findIndex(t => t.name.toLowerCase() === name.toLowerCase());
+        const index = standingsDatabase.findIndex(t => t && t.name && t.name.toLowerCase() === name.toLowerCase());
+        const tData = { name, w, l, ca, cr, pct: (w+l)>0 ? (w/(w+l)) : 0, dif: ca - cr };
 
-        if (existingIndex > -1) {
-            standingsDatabase[existingIndex] = { name, w, l, ca, cr };
-        } else {
-            standingsDatabase.push({ name, w, l, ca, cr });
-        }
+        if (index > -1) standingsDatabase[index] = tData;
+        else standingsDatabase.push(tData);
 
-        // Si fue un equipo nuevo, meterlo también al listado del nodo maestro de la liga
-        if (teamSelect.value === "NUEVO_EQUIPO") {
-            inyectarEquipoEnListaMaestra(name);
-        } else {
-            guardarYCalcular();
-        }
+        if (teamSelect.value === "NUEVO_EQUIPO") inyectarEquipoEnListaMaestra(name);
+        else guardarYCalcular();
     });
 
     function inyectarEquipoEnListaMaestra(nombreNuevo) {
-        fetch(firebaseTorneoURL)
-        .then(res => res.json())
-        .then(data => {
-            let estructura = data || { equipos: [], jugadoras: [] };
-            if(!estructura.equipos) estructura.equipos = [];
-            if(!estructura.equipos.includes(nombreNuevo)) estructura.equipos.push(nombreNuevo);
-            
-            return fetch(firebaseTorneoURL, {
-                method: 'PUT',
-                body: JSON.stringify(estructura)
-            });
-        })
-        .then(() => {
-            guardarYCalcular();
-        });
+        fetch(firebaseTorneoURL).then(res => res.json()).then(data => {
+            let est = data || { equipos: [] };
+            if(!est.equipos) est.equipos = [];
+            if(!est.equipos.includes(nombreNuevo)) est.equipos.push(nombreNuevo);
+            return fetch(firebaseTorneoURL, { method: 'PUT', body: JSON.stringify(est) });
+        }).then(() => { guardarYCalcular(); });
     }
 
     function guardarYCalcular() {
-        standingsDatabase.forEach(team => {
-            const total = team.w + team.l;
-            team.pct = total > 0 ? (team.w / total) : 0;
-            team.dif = team.ca - team.cr; 
+        standingsDatabase.forEach(t => {
+            if(t) {
+                t.pct = (t.w + t.l) > 0 ? (t.w / (t.w + t.l)) : 0;
+                t.dif = t.ca - t.cr;
+            }
         });
 
-        // Criterios: JJ -> G -> P -> CA -> CR -> DIF
+        // Aplicamos criterios de desempate idénticos antes de subir
         standingsDatabase.sort((A, B) => {
-            const jjA = A.w + A.l, jjB = B.w + B.l;
-            if (jjB !== jjA) return jjB - jjA;
-            if (B.w !== A.w) return B.w - A.w;
-            if (A.l !== B.l) return A.l - B.l;
-            if (B.ca !== A.ca) return B.ca - A.ca;
-            if (A.cr !== B.cr) return A.cr - B.cr;
-            return B.dif - A.dif;
-        });
-
-        fetch(firebasePosicionesURL, {
-            method: 'PUT',
-            body: JSON.stringify(standingsDatabase)
-        })
-        .then(() => {
-            newTeamInputBox.style.display = 'none';
-            newTeamName.required = false;
-            teamForm.reset();
-            descargarDatosNube(); // Recargar todo fresco
-        });
-    }
-
-    function renderStandings() {
-        if (standingsDatabase.length === 0) {
-            standingsContainer.innerHTML = '<p style="color: #777; font-style: italic;">No hay récords registrados.</p>';
-            return;
-        }
-
-        // Reordenar con head-to-head incluido
-        const sorted = [...standingsDatabase].sort((A, B) => {
-            const jjA = A.w + A.l, jjB = B.w + B.l;
-            if (jjB !== jjA) return jjB - jjA;
-            if (B.w !== A.w) return B.w - A.w;
-            if (A.l !== B.l) return A.l - B.l;
-            if (B.ca !== A.ca) return B.ca - A.ca;
-            if (A.cr !== B.cr) return A.cr - B.cr;
-            if (B.dif !== A.dif) return B.dif - A.dif;
-            const cqA = A.contraQuienGano || [], cqB = B.contraQuienGano || [];
-            if (cqA.includes(B.name)) return -1;
+            if (B.w !== A.w) return B.w - A.w; // 1° Más Ganados
+            if (A.l !== B.l) return A.l - B.l; // 2° Menos Perdidos
+            if (B.ca !== A.ca) return B.ca - A.ca; // 3° Más CA
+            if (A.cr !== B.cr) return A.cr - B.cr; // 4° Menos CR
+            if (B.dif !== A.dif) return B.dif - A.dif; // 5° Diferencia
+            const cqA = contraQuienGano[A.name] || [], cqB = contraQuienGano[B.name] || [];
+            if (cqA.includes(B.name)) return -1; // 6° Dominio Directo
             if (cqB.includes(A.name)) return 1;
             return 0;
         });
 
-        standingsContainer.innerHTML = '';
-        const leaderW = sorted[0].w;
-        const leaderL = sorted[0].l;
+        fetch(firebasePosicionesURL, { method: 'PUT', body: JSON.stringify(standingsDatabase) })
+        .then(() => {
+            newTeamInputBox.style.display = 'none';
+            teamForm.reset();
+            descargarDatosNube();
+        });
+    }
 
-        sorted.forEach((team, index) => {
+    function renderStandings() {
+        const filtrados = standingsDatabase.filter(Boolean);
+        if (filtrados.length === 0) {
+            standingsContainer.innerHTML = '<p style="color: #777; font-style: italic;">No hay récords.</p>';
+            return;
+        }
+        standingsContainer.innerHTML = '';
+        const leaderW = filtrados[0].w;
+        const leaderL = filtrados[0].l;
+
+        filtrados.forEach((team, index) => {
             const jj = team.w + team.l;
             let jd = index === 0 ? '-' : ((leaderW - team.w) + (team.l - leaderL)) / 2;
-
             const row = document.createElement('div');
             row.className = 'team-row';
             row.innerHTML = `
-                <div class="team-identity">
-                    <div class="rank">${index + 1}</div>
-                    <div>${team.name}</div>
-                </div>
+                <div class="team-identity"><div class="rank">${index + 1}</div><div>${team.name}</div></div>
                 <div class="team-stats">
                     <div class="stat-item"><span class="lbl">JJ</span><span class="val">${jj}</span></div>
                     <div class="stat-item"><span class="lbl">G</span><span class="val">${team.w}</span></div>
                     <div class="stat-item"><span class="lbl">P</span><span class="val">${team.l}</span></div>
-                    <div class="stat-item highlight"><span class="lbl">PCT</span><span class="val">${parseFloat(team.pct).toFixed(3)}</span></div>
+                    <div class="stat-item highlight"><span class="lbl">PCT</span><span class="val">${parseFloat(team.pct||0).toFixed(3)}</span></div>
                     <div class="stat-item"><span class="lbl">JD</span><span class="val">${jd}</span></div>
                     <div class="stat-item"><span class="lbl">CA</span><span class="val">${team.ca}</span></div>
                     <div class="stat-item"><span class="lbl">CR</span><span class="val">${team.cr}</span></div>
                     <div class="stat-item highlight"><span class="lbl">DIF</span><span class="val">${team.dif > 0 ? '+' + team.dif : team.dif}</span></div>
                 </div>
                 <div>
-                    <button onclick="cargarEquipoDesdeTabla('${team.name}')" style="padding: 4px 8px; font-size: 11px; width:auto; background:#4f46e5; margin-right:5px;">Editar</button>
-                    <button onclick="eliminarEquipo(${index})" class="btn-danger" style="padding: 4px 8px; font-size: 11px; width:auto;">Eliminar</button>
+                    <button onclick="cargarEquipoDesdeTabla('${team.name}')" style="padding:4px 8px; font-size:11px; width:auto; background:#4f46e5; margin-right:5px;">Editar</button>
+                    <button onclick="eliminarEquipo(${index})" class="btn-danger" style="padding:4px 8px; font-size:11px; width:auto;">Eliminar</button>
                 </div>
             `;
             standingsContainer.appendChild(row);
         });
     }
 
-    function cargarEquipoDesdeTabla(nombreEquipo) {
-        teamSelect.value = nombreEquipo;
-        evaluarSeleccionEquipo();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function eliminarEquipo(index) {
-        if (confirm(`¿Seguro que deseas quitar los números de ${standingsDatabase[index].name} del standing?`)) {
-            standingsDatabase.splice(index, 1);
-            guardarYCalcular();
-        }
-    }
-
-    function reiniciarTabla() {
-        if (confirm("🚨 ¿Borrar todos los standings de la nube? Esto dejará la pantalla del público vacía.")) {
-            standingsDatabase = [];
-            fetch(firebasePosicionesURL, { method: 'DELETE' })
-            .then(() => { renderStandings(); });
-        }
-    }
-
+    function cargarEquipoDesdeTabla(n) { teamSelect.value = n; evaluarSeleccionEquipo(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    function eliminarEquipo(i) { if(confirm("¿Quitar del standing?")) { standingsDatabase.splice(i,1); guardarYCalcular(); } }
+    function reiniciarTabla() { if(confirm("¿Borrar standings de la nube?")) { fetch(firebasePosicionesURL, { method: 'DELETE' }).then(() => descargarDatosNube()); } }
     descargarDatosNube();
 </script>
 </body>
