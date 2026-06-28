@@ -4,15 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Control de Estadísticas - VIDA GRAND SLAM</title>
-    <link rel="icon" type="image/jfif" href="IMAGEN LOGO VIDA GRAN SLAM.jfif">
+    <link rel="icon" type="image/jfif" href="IMAGEN LOGO VIDA GRAN SALM.jfif">
     <style>
         :root {
             --primary-color: #1a472a; 
             --secondary-color: #d4af37; 
-            --dark-color: #2b2b2b;
-            --light-color: #f4f6f4;
+            --dark-color: #1e2520;
+            --light-color: #f4f7f5;
             --success-color: #155724;
             --success-bg: #d4edda;
+            --accent-blue: #0b5ed7;
+            --card-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
 
         body {
@@ -25,140 +27,184 @@
 
         header {
             text-align: center;
-            background-color: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-color) 0%, #0f301b 100%);
             color: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border-bottom: 4px solid var(--secondary-color);
+            padding: 25px 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border-bottom: 5px solid var(--secondary-color);
+            box-shadow: var(--card-shadow);
         }
 
-        header h1 { margin: 0; font-size: 24px; text-transform: uppercase; }
-        header p { margin: 5px 0 0 0; font-style: italic; }
+        header h1 { margin: 0; font-size: 26px; text-transform: uppercase; letter-spacing: 1px; }
+        header p { margin: 6px 0 0 0; font-style: italic; color: #e2ebd5; }
 
-        .container { max-width: 1000px; margin: 0 auto; }
+        .container { max-width: 1050px; margin: 0 auto; }
 
         .card {
             background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-            position: relative;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 25px;
+            border: 1px solid rgba(0,0,0,0.03);
         }
 
         .card h2 {
             margin-top: 0;
             color: var(--primary-color);
             border-bottom: 2px solid var(--light-color);
-            padding-bottom: 10px;
+            padding-bottom: 12px;
+            font-size: 20px;
         }
 
         .toast-success {
             background-color: var(--success-bg);
             color: var(--success-color);
-            padding: 12px;
-            border-left: 5px solid #28a745;
-            border-radius: 4px;
-            margin-bottom: 15px;
+            padding: 15px;
+            border-left: 6px solid #28a745;
+            border-radius: 6px;
+            margin-bottom: 20px;
             font-weight: bold;
             display: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; }
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; font-weight: 700; margin-bottom: 6px; font-size: 14px; color: #444; }
         .form-group input, .form-group select, .form-group textarea {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            padding: 12px;
+            border: 1px solid #ccd4ce;
+            border-radius: 6px;
             box-sizing: border-box;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .form-group input:focus, .form-group select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(26, 71, 42, 0.15);
         }
 
         .grid-inputs {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            gap: 12px;
             margin-bottom: 15px;
         }
-        .grid-inputs label { font-size: 12px; text-transform: uppercase; color: #555; }
+        .grid-inputs label { font-size: 11px; text-transform: uppercase; color: #555; font-weight: bold; }
+
+        .flex-actions-top {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
 
         button {
             background-color: var(--primary-color);
             color: white;
             border: none;
             padding: 12px 20px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             width: 100%;
-            transition: background 0.3s;
+            transition: all 0.2s;
         }
-        button:hover { background-color: #24633b; }
-        button:disabled { background-color: #cccccc; cursor: not-allowed; }
+        button:hover { background-color: #13351f; transform: translateY(-1px); }
+        button:active { transform: translateY(0); }
+        button:disabled { background-color: #cccccc; cursor: not-allowed; transform: none; }
+
+        .btn-sumar-top {
+            background-color: var(--accent-blue);
+            white-space: nowrap;
+            width: auto;
+            padding: 0 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-sumar-top:hover { background-color: #0a4ab8; }
+        .btn-danger { background-color: #ba1a1a; }
+        .btn-danger:hover { background-color: #931414; }
 
         .player-list { margin-top: 15px; }
         .player-row {
             background: #fff;
-            border: 1px solid #e0e0e0;
-            border-left: 5px solid var(--secondary-color);
-            padding: 15px;
-            border-radius: 4px;
-            margin-bottom: 10px;
+            border: 1px solid #e2e8e4;
+            border-left: 6px solid var(--secondary-color);
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 12px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .player-row:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.04);
         }
 
         @media(min-width: 768px) {
-            .player-row { flex-direction: row; justify-content: space-between; align-items: center; }
+            .player-row { flex-direction: row; justify-content: space-between; align-items: center; gap: 20px; }
         }
 
-        .player-info { flex: 2; }
+        .player-info { flex: 1.5; min-width: 180px; }
         .player-info .name { font-size: 18px; font-weight: bold; color: var(--primary-color); }
-        .player-info .meta { font-size: 12px; color: #777; }
+        .player-info .meta { font-size: 12px; color: #666; margin-top: 2px; }
 
         .player-stats {
-            flex: 3;
+            flex: 4;
             display: flex;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 10px;
             background: var(--light-color);
-            padding: 10px;
-            border-radius: 4px;
+            padding: 12px;
+            border-radius: 6px;
+            align-items: center;
         }
 
-        .stat-box { text-align: center; min-width: 45px; }
-        .stat-box .label { font-size: 10px; color: #666; display: block; text-transform: uppercase; }
-        .stat-box .val { font-size: 16px; font-weight: bold; }
-        .stat-box.highlight .val { color: var(--primary-color); }
-        .btn-danger { background-color: #ba1a1a; }
-        .btn-danger:hover { background-color: #931414; }
+        .stat-box { text-align: center; min-width: 42px; flex: 1; }
+        .stat-box .label { font-size: 10px; color: #555; display: block; text-transform: uppercase; font-weight: bold; margin-bottom: 2px; }
+        .stat-box .val { font-size: 15px; font-weight: bold; color: #222; }
+        .stat-box.highlight { background: rgba(212, 175, 55, 0.15); padding: 4px 6px; border-radius: 4px; }
+        .stat-box.highlight .val { color: #8a6d0f; }
+        .stat-box.highlight-primary { background: rgba(26, 71, 42, 0.08); padding: 4px 6px; border-radius: 4px; }
+        .stat-box.highlight-primary .val { color: var(--primary-color); }
 
-        /* Estilos del Modal */
+        /* Estilos de Modales */
         .modal {
             display: none; 
             position: fixed; 
-            z-index: 200; 
+            z-index: 300; 
             left: 0; top: 0; 
             width: 100%; height: 100%; 
-            background-color: rgba(0,0,0,0.5); 
+            background-color: rgba(0,0,0,0.55); 
             align-items: center; 
             justify-content: center;
+            backdrop-filter: blur(2px);
         }
         .modal-content { 
             background: white; 
-            padding: 25px; 
-            border-radius: 8px; 
-            max-width: 450px; 
+            padding: 30px; 
+            border-radius: 12px; 
+            max-width: 480px; 
             width: 90%; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+            box-shadow: 0 8px 25px rgba(0,0,0,0.25); 
+            animation: animatemodal 0.3s;
         }
-        .modal-actions { display: flex; gap: 10px; margin-top: 15px; }
-        .btn-secondary { background-color: #6c757d; }
-        .btn-secondary:hover { background-color: #5a6268; }
-        .link-helper { color: #0056b3; text-decoration: underline; cursor: pointer; font-size: 13px; display: inline-block; margin-top: 5px; }
+        @keyframes animatemodal {
+            from {transform: scale(0.85); opacity: 0;}
+            to {transform: scale(1); opacity: 1;}
+        }
+        .modal-actions { display: flex; gap: 12px; margin-top: 20px; }
+        .btn-secondary { background-color: #5c636a; }
+        .btn-secondary:hover { background-color: #4b5257; }
+        .link-helper { color: #0b5ed7; text-decoration: none; font-weight: bold; cursor: pointer; font-size: 13px; display: inline-block; margin-top: 6px; }
+        .link-helper:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -199,7 +245,7 @@
                 <select id="selectPlayer" onchange="cargarDatosJugadoraSeleccionada()" disabled>
                     <option value="">-- Primero elige un equipo --</option>
                 </select>
-                <span class="link-helper" id="btnOpenModalAlta" onclick="abrirModalAltaDirecta()" style="display: none;">¿La jugadora no aparece? Haz clic aquí para dar de alta</span>
+                <span class="link-helper" id="btnOpenModalAlta" onclick="abrirModalAltaDirecta()" style="display: none;">¿La jugadora no aparece? Registrar aquí</span>
             </div>
         </div>
 
@@ -207,7 +253,10 @@
             <input type="hidden" id="playerActionId">
             <div class="form-group">
                 <label for="playerNameDisplay">Jugadora Seleccionada</label>
-                <input type="text" id="playerNameDisplay" readonly placeholder="Ninguna jugadora seleccionada" style="background-color: #e9ecef;">
+                <div class="flex-actions-top">
+                    <input type="text" id="playerNameDisplay" readonly placeholder="Ninguna jugadora seleccionada" style="background-color: #e9ecef; font-weight: bold; color: var(--primary-color);">
+                    <button type="button" id="btnSumarStatsTop" class="btn-sumar-top" onclick="abrirModalSumarStatsDesdeTop()" disabled>+ Sumar Juego de Hoy</button>
+                </div>
             </div>
 
             <div class="grid-inputs">
@@ -241,12 +290,12 @@
                 </div>
             </div>
 
-            <button type="submit" id="btnSubmitStats" disabled>Guardar / Actualizar Estadísticas en Internet</button>
+            <button type="submit" id="btnSubmitStats" disabled>Guardar / Forzar Totales Acumulados</button>
         </form>
     </div>
 
     <div class="card">
-        <h2>Panel de Control Local (Vista General)</h2>
+        <h2>Panel de Roster y Auditoría Local</h2>
         <div id="playersContainer" class="player-list"></div>
         <div style="margin-top: 25px; display: flex; justify-content: space-between;">
             <button onclick="limpiarMemoriaStats()" class="btn-danger" style="width: auto; font-size: 12px; padding: 6px 12px;">Reiniciar Base de Datos</button>
@@ -286,6 +335,51 @@
     </div>
 </div>
 
+<div id="sumarStatsModal" class="modal">
+    <div class="modal-content">
+        <h3 style="margin-top:0; color: var(--accent-blue);" id="sumarModalTitle">Sumar Juego a Jugadora</h3>
+        <p style="font-size: 13px; color: #555; margin-bottom: 15px;">Introduce los datos de la jornada actual. Se sumarán automáticamente al total que ya tiene guardado en la nube.</p>
+        
+        <input type="hidden" id="sumarPlayerId">
+        
+        <div class="grid-inputs" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="form-group">
+                <label for="sumJJ">JJ (Juegos)</label>
+                <input type="number" id="sumJJ" value="1" min="0">
+            </div>
+            <div class="form-group">
+                <label for="sumAB">AB (Turnos)</label>
+                <input type="number" id="sumAB" value="0" min="0">
+            </div>
+            <div class="form-group">
+                <label for="sumH">H (Hits)</label>
+                <input type="number" id="sumH" value="0" min="0">
+            </div>
+            <div class="form-group">
+                <label for="sumR">R (Carreras)</label>
+                <input type="number" id="sumR" value="0" min="0">
+            </div>
+            <div class="form-group">
+                <label for="sumBB">BB (Bases)</label>
+                <input type="number" id="sumBB" value="0" min="0">
+            </div>
+            <div class="form-group">
+                <label for="sumSO">SO (Ponches)</label>
+                <input type="number" id="sumSO" value="0" min="0">
+            </div>
+            <div class="form-group">
+                <label for="sumSF">SF (Sacrif.)</label>
+                <input type="number" id="sumSF" value="0" min="0">
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button type="button" onclick="procesarSumaEstadisticas()" style="background-color: var(--accent-blue);">Insertar y Sumar</button>
+            <button type="button" onclick="cerrarModalSumar()" class="btn-secondary">Cancelar</button>
+        </div>
+    </div>
+</div>
+
 <script>
     const firebaseURL = 'https://vidagrandslam-default-rtdb.firebaseio.com/torneo.json';
     let masterDatabase = { equipos: [], jugadoras: [] };
@@ -295,6 +389,7 @@
     const playerNameDisplay = document.getElementById('playerNameDisplay');
     const playerActionId = document.getElementById('playerActionId');
     const btnSubmitStats = document.getElementById('btnSubmitStats');
+    const btnSumarStatsTop = document.getElementById('btnSumarStatsTop');
     const btnOpenModalAlta = document.getElementById('btnOpenModalAlta');
     const successMessage = document.getElementById('successMessage');
     const playersContainer = document.getElementById('playersContainer');
@@ -307,10 +402,11 @@
                 masterDatabase = data;
                 if(!masterDatabase.equipos) masterDatabase.equipos = [];
                 if(!masterDatabase.jugadoras) masterDatabase.jugadoras = [];
+                masterDatabase.jugadoras = masterDatabase.jugadoras.filter(j => j !== null);
             }
             desplegarSelectoresEquipos();
             renderPlayers();
-        });
+        }).catch(err => console.error("Error descargando datos:", err));
     }
 
     function mostrarExito(mensaje) {
@@ -324,7 +420,7 @@
         const input = document.getElementById('newTeamName');
         const nombre = input.value.trim();
 
-        if(masterDatabase.equipos.some(eq => eq.toLowerCase() === nombre.toLowerCase())) {
+        if(masterDatabase.equipos.some(eq => eq && eq.toLowerCase() === nombre.toLowerCase())) {
             alert("Este equipo ya está en el sistema.");
             return;
         }
@@ -344,6 +440,7 @@
         if (!equipoSeleccionado) {
             selectPlayer.disabled = true;
             btnSubmitStats.disabled = true;
+            btnSumarStatsTop.disabled = true;
             btnOpenModalAlta.style.display = 'none';
             renderPlayers();
             return;
@@ -351,9 +448,10 @@
 
         selectPlayer.disabled = false;
         btnSubmitStats.disabled = true;
+        btnSumarStatsTop.disabled = true;
         btnOpenModalAlta.style.display = 'inline-block';
 
-        const filtradas = masterDatabase.jugadoras.filter(j => j.team === equipoSeleccionado);
+        const filtradas = masterDatabase.jugadoras.filter(j => j && j.team === equipoSeleccionado);
         filtradas.forEach(j => {
             const opt = document.createElement('option');
             opt.value = j.id;
@@ -371,11 +469,13 @@
             playerNameDisplay.value = '';
             playerActionId.value = '';
             btnSubmitStats.disabled = true;
+            btnSumarStatsTop.disabled = true;
             return;
         }
 
         btnSubmitStats.disabled = false;
-        const jugadora = masterDatabase.jugadoras.find(j => j.id == idJugadora);
+        btnSumarStatsTop.disabled = false; // Activamos el botón azul superior
+        const jugadora = masterDatabase.jugadoras.find(j => j && j.id == idJugadora);
         if (jugadora) {
             playerActionId.value = jugadora.id;
             playerNameDisplay.value = jugadora.name;
@@ -439,7 +539,6 @@
 
         if(!rawText) { alert("Pega una lista de nombres válida."); return; }
 
-        // Dividir por saltos de línea o por comas
         let nombres = rawText.split(/[\n,]+/);
         let contador = 0;
 
@@ -447,7 +546,7 @@
             let limpio = n.trim();
             if(limpio !== "") {
                 masterDatabase.jugadoras.push({
-                    id: Date.now() + contador, // Evitar colisión de IDs idénticos
+                    id: Date.now() + contador, 
                     team: equipo,
                     name: limpio, jj:0, ab:0, h:0, r:0, bb:0, so:0, sf:0, avg:".000", obp:".000"
                 });
@@ -477,7 +576,7 @@
         let avg = ab > 0 ? (h / ab).toFixed(3) : ".000";
         let obp = pa > 0 ? ((h + bb) / pa).toFixed(3) : ".000";
 
-        const idx = masterDatabase.jugadoras.findIndex(j => j.id == selectId);
+        const idx = masterDatabase.jugadoras.findIndex(j => j && j.id == selectId);
         if (idx > -1) {
             masterDatabase.jugadoras[idx].jj = jj;
             masterDatabase.jugadoras[idx].ab = ab;
@@ -496,6 +595,70 @@
         playerActionId.value = '';
     }
 
+    // --- FUNCIONES DEL MODAL DE SUMATORIA RÁPIDA DESDE LA SECCIÓN SUPERIOR ---
+    function abrirModalSumarStatsDesdeTop() {
+        const id = playerActionId.value;
+        if(!id) return;
+        
+        const jugadora = masterDatabase.jugadoras.find(j => j && j.id == id);
+        if(!jugadora) return;
+
+        document.getElementById('sumarPlayerId').value = jugadora.id;
+        document.getElementById('sumarModalTitle').textContent = `Sumar Juego: ${jugadora.name}`;
+        
+        // Valores base para el nuevo partido
+        document.getElementById('sumJJ').value = 1;
+        document.getElementById('sumAB').value = 0;
+        document.getElementById('sumH').value = 0;
+        document.getElementById('sumR').value = 0;
+        document.getElementById('sumBB').value = 0;
+        document.getElementById('sumSO').value = 0;
+        document.getElementById('sumSF').value = 0;
+
+        document.getElementById('sumarStatsModal').style.display = 'flex';
+    }
+
+    function cerrarModalSumar() {
+        document.getElementById('sumarStatsModal').style.display = 'none';
+    }
+
+    function procesarSumaEstadisticas() {
+        const id = document.getElementById('sumarPlayerId').value;
+        const idx = masterDatabase.jugadoras.findIndex(j => j && j.id == id);
+        
+        if (idx === -1) return;
+
+        const addJJ = parseInt(document.getElementById('sumJJ').value) || 0;
+        const addAB = parseInt(document.getElementById('sumAB').value) || 0;
+        const addH = parseInt(document.getElementById('sumH').value) || 0;
+        const addR = parseInt(document.getElementById('sumR').value) || 0;
+        const addBB = parseInt(document.getElementById('sumBB').value) || 0;
+        const addSO = parseInt(document.getElementById('sumSO').value) || 0;
+        const addSF = parseInt(document.getElementById('sumSF').value) || 0;
+
+        const player = masterDatabase.jugadoras[idx];
+        player.jj = (player.jj || 0) + addJJ;
+        player.ab = (player.ab || 0) + addAB;
+        player.h = (player.h || 0) + addH;
+        player.r = (player.r || 0) + addR;
+        player.bb = (player.bb || 0) + addBB;
+        player.so = (player.so || 0) + addSO;
+        player.sf = (player.sf || 0) + addSF;
+
+        // Recalcular promedios oficiales Ballscore
+        const pa = player.ab + player.bb + player.sf;
+        player.avg = player.ab > 0 ? (player.h / player.ab).toFixed(3) : ".000";
+        player.obp = pa > 0 ? ((player.h + player.bb) / pa).toFixed(3) : ".000";
+
+        cerrarModalSumar();
+        guardarEnNube(`Estadísticas sumadas correctamente a "${player.name}".`);
+        
+        // Limpiamos los formularios para la siguiente acción
+        document.getElementById('statForm').reset();
+        playerNameDisplay.value = '';
+        playerActionId.value = '';
+    }
+
     function guardarEnNube(msgExito) {
         fetch(firebaseURL, {
             method: 'PUT',
@@ -505,17 +668,19 @@
             mostrarExito(msgExito);
             desplegarSelectoresEquipos();
             actualizarFiltrosJugadoras();
-        });
+        }).catch(err => console.error("Error subiendo datos:", err));
     }
 
     function desplegarSelectoresEquipos() {
         const seleccionadoPrevio = selectTeam.value;
         selectTeam.innerHTML = '<option value="">-- Elige un Equipo --</option>';
         masterDatabase.equipos.forEach(eq => {
-            const opt = document.createElement('option');
-            opt.value = eq;
-            opt.textContent = eq;
-            selectTeam.appendChild(opt);
+            if(eq) {
+                const opt = document.createElement('option');
+                opt.value = eq;
+                opt.textContent = eq;
+                selectTeam.appendChild(opt);
+            }
         });
         selectTeam.value = seleccionadoPrevio;
     }
@@ -527,7 +692,7 @@
             return;
         }
 
-        const jugadorasEquipo = masterDatabase.jugadoras.filter(j => j.team === equipoFiltrado);
+        const jugadorasEquipo = masterDatabase.jugadoras.filter(j => j && j.team === equipoFiltrado);
         if(jugadorasEquipo.length === 0) {
             playersContainer.innerHTML = '<p style="color: #777; font-style: italic;">Aún no hay jugadoras registradas en este equipo.</p>';
             return;
@@ -543,15 +708,15 @@
                     <div class="meta">Equipo: ${player.team}</div>
                 </div>
                 <div class="player-stats">
-                    <div class="stat-box"><span class="label">JJ</span><span class="val">${player.jj}</span></div>
-                    <div class="stat-box"><span class="label">AB</span><span class="val">${player.ab}</span></div>
-                    <div class="stat-box"><span class="label">H</span><span class="val">${player.h}</span></div>
-                    <div class="stat-box"><span class="label">R</span><span class="val">${player.r}</span></div>
-                    <div class="stat-box"><span class="label">BB</span><span class="val">${player.bb}</span></div>
-                    <div class="stat-box"><span class="label">SO</span><span class="val">${player.so}</span></div>
-                    <div class="stat-box"><span class="label">SF</span><span class="val">${player.sf}</span></div>
-                    <div class="stat-box highlight"><span class="label">AVG</span><span class="val">${player.avg}</span></div>
-                    <div class="stat-box highlight"><span class="label">OBP</span><span class="val">${player.obp}</span></div>
+                    <div class="stat-box"><span class="label">JJ</span><span class="val">${player.jj || 0}</span></div>
+                    <div class="stat-box"><span class="label">AB</span><span class="val">${player.ab || 0}</span></div>
+                    <div class="stat-box"><span class="label">H</span><span class="val">${player.h || 0}</span></div>
+                    <div class="stat-box"><span class="label">R</span><span class="val">${player.r || 0}</span></div>
+                    <div class="stat-box"><span class="label">BB</span><span class="val">${player.bb || 0}</span></div>
+                    <div class="stat-box"><span class="label">SO</span><span class="val">${player.so || 0}</span></div>
+                    <div class="stat-box"><span class="label">SF</span><span class="val">${player.sf || 0}</span></div>
+                    <div class="stat-box highlight-primary"><span class="label">AVG</span><span class="val">${player.avg || ".000"}</span></div>
+                    <div class="stat-box highlight"><span class="label">OBP</span><span class="val">${player.obp || ".000"}</span></div>
                 </div>
             `;
             playersContainer.appendChild(row);
