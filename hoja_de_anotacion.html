@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scorecard Avanzado Ballscore - VIDA GRAND SLAM</title>
+    <title>Scorecard Automatizado Ballscore - VIDA GRAND SLAM</title>
     <link rel="icon" type="image/jfif" href="IMAGEN LOGO VIDA GRAN SLAM.jfif">
     <style>
         :root {
             --primary-color: #1a472a;
             --secondary-color: #d4af37;
-            --dark-color: #2b2b2b;
-            --light-color: #f4f6f4;
+            --dark-color: #1e2520;
+            --light-color: #f4f7f5;
             --error-color: #ba1a1a;
-            --local-color: #1e3a8a;
+            --local-color: #0b5ed7;
             --visitante-color: #b91c1c;
+            --card-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
 
         body {
@@ -21,192 +22,278 @@
             background-color: var(--light-color);
             color: var(--dark-color);
             margin: 0;
-            padding: 15px;
+            padding: 20px;
         }
 
         header {
             text-align: center;
-            background-color: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-color) 0%, #0f301b 100%);
             color: white;
-            padding: 15px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            border-bottom: 4px solid var(--secondary-color);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border-bottom: 5px solid var(--secondary-color);
+            box-shadow: var(--card-shadow);
         }
+
+        header h1 { margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 1px; }
+        header p { margin: 5px 0 0 0; font-style: italic; color: #e2ebd5; }
+
+        .container { max-width: 1100px; margin: 0 auto; }
 
         .card {
             background: white;
-            padding: 20px;
-            border-radius: 6px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 25px;
+            border: 1px solid rgba(0,0,0,0.03);
         }
 
-        .card h2 { margin-top: 0; color: var(--primary-color); font-size: 18px; border-bottom: 2px solid var(--light-color); padding-bottom: 8px; }
+        .card h2 { margin-top: 0; color: var(--primary-color); font-size: 19px; border-bottom: 2px solid var(--light-color); padding-bottom: 10px; }
 
         .row { display: flex; flex-direction: column; gap: 15px; margin-bottom: 15px; }
         @media(min-width: 768px) { .row { flex-direction: row; } .col { flex: 1; } }
 
-        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
-        select, input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        label { display: block; font-weight: 700; margin-bottom: 6px; font-size: 13px; text-transform: uppercase; color: #555; }
+        select, input { width: 100%; padding: 11px; border: 1px solid #ccd4ce; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        select:focus, input:focus { border-color: var(--primary-color); outline: none; box-shadow: 0 0 0 3px rgba(26,71,42,0.12); }
+
+        .setup-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 20px; }
 
         .linescore-grid {
             display: grid;
-            grid-template-columns: 120px repeat(7, 1fr) 50px;
-            gap: 5px;
+            grid-template-columns: 140px repeat(7, 1fr) 60px;
+            gap: 6px;
             text-align: center;
             font-weight: bold;
-            background: #222;
+            background: #1c221e;
             color: #fff;
-            padding: 10px;
-            border-radius: 6px;
+            padding: 14px;
+            border-radius: 8px;
             margin-bottom: 20px;
+            align-items: center;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
         }
         .linescore-header { color: var(--secondary-color); font-size: 11px; text-transform: uppercase; }
-        .linescore-team { text-align: left; padding-left: 5px; }
+        .linescore-team { text-align: left; padding-left: 5px; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        .tabs-container { display: flex; gap: 5px; margin-bottom: 15px; }
-        .tab-btn {
-            flex: 1; padding: 12px; font-weight: bold; font-size: 16px; border: none; border-radius: 4px; cursor: pointer; text-transform: uppercase; color: white; background: #666;
+        .game-status-bar {
+            display: flex;
+            gap: 15px;
+            background: #e9ecef;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            font-size: 15px;
+            align-items: center;
+            justify-content: space-between;
         }
-        .tab-btn.local-active { background-color: var(--local-color); }
-        .tab-btn.visitante-active { background-color: var(--visitante-color); }
+
+        .tabs-container { display: flex; gap: 8px; margin-bottom: 15px; }
+        .tab-btn {
+            flex: 1; padding: 12px; font-weight: bold; font-size: 15px; border: none; border-radius: 6px; cursor: pointer; text-transform: uppercase; color: white; background: #717d74; transition: all 0.2s;
+        }
+        .tab-btn.local-active { background-color: var(--local-color); box-shadow: 0 3px 6px rgba(11,94,215,0.3); }
+        .tab-btn.visitante-active { background-color: var(--visitante-color); box-shadow: 0 3px 6px rgba(185,28,28,0.3); }
 
         .player-box {
-            background: #fff; border: 1px solid #ddd; border-left: 5px solid #666; border-radius: 4px; padding: 12px; margin-bottom: 10px;
+            background: #fff; border: 1px solid #e2e8e4; border-left: 6px solid #666; border-radius: 8px; padding: 14px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
         .local-box { border-left-color: var(--local-color); }
         .visitante-box { border-left-color: var(--visitante-color); }
 
-        .player-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; background: #f9f9f9; padding: 6px; border-radius: 4px; }
+        .player-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; background: #f8f9fa; padding: 8px 12px; border-radius: 6px; border: 1px solid #eee; }
         .innings-row { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 5px; }
 
         .ballscore-diamond-wrapper {
-            min-width: 85px; width: 85px; height: 85px; position: relative; background: #fff; border: 1px solid #aaa; border-radius: 4px; box-sizing: border-box; cursor: pointer;
+            min-width: 85px; width: 85px; height: 85px; position: relative; background: #fff; border: 1px solid #ccd4ce; border-radius: 6px; box-sizing: border-box; cursor: pointer; transition: all 0.2s;
         }
-        .inning-tag { position: absolute; top: 2px; left: 4px; font-size: 8px; color: #999; font-weight: bold; }
+        .ballscore-diamond-wrapper:hover { border-color: var(--primary-color); background: #f0faf2; }
+        .inning-tag { position: absolute; top: 3px; left: 5px; font-size: 9px; color: #888; font-weight: bold; }
         
-        .base-line { position: absolute; background: #ddd; z-index: 1; }
+        .base-line { position: absolute; background: #e2e8e4; z-index: 1; transition: background 0.2s; }
         .line-1b { width: 2px; height: 26px; top: 42px; left: 56px; transform: rotate(-45deg); }
         .line-2b { width: 26px; height: 2px; top: 28px; left: 30px; transform: rotate(-45deg); }
         .line-3b { width: 2px; height: 26px; top: 16px; left: 26px; transform: rotate(-45deg); }
         .line-hp { width: 26px; height: 2px; top: 56px; left: 42px; transform: rotate(-45deg); }
         
-        .base-line.active { background: #1a472a !important; box-shadow: 0 0 2px #1a472a; }
+        .base-line.active { background: var(--primary-color) !important; }
 
         .run-center-circle {
-            position: absolute; width: 18px; height: 18px; top: 33px; left: 33px; border-radius: 50%; border: 1px solid #ccc; background: #fff; z-index: 3;
+            position: absolute; width: 18px; height: 18px; top: 33px; left: 33px; border-radius: 50%; border: 1px solid #ccd4ce; background: #fff; z-index: 3; transition: all 0.2s;
         }
-        .run-center-circle.scored { background: var(--secondary-color) !important; border-color: var(--secondary-color); }
+        .run-center-circle.scored { background: var(--secondary-color) !important; border-color: #bc992a; }
 
-        .out-tag-display { position: absolute; bottom: 2px; left: 4px; font-size: 10px; font-weight: bold; color: var(--error-color); }
-        .play-text-display { position: absolute; bottom: 2px; right: 4px; font-size: 9px; font-weight: bold; color: #333; text-transform: uppercase; }
+        .out-tag-display { position: absolute; bottom: 3px; left: 5px; font-size: 11px; font-weight: bold; color: var(--error-color); }
+        .play-text-display { position: absolute; bottom: 3px; right: 5px; font-size: 10px; font-weight: bold; color: #333; text-transform: uppercase; }
 
         .modal {
-            display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center;
+            display: none; position: fixed; z-index: 400; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; backdrop-filter: blur(2px);
         }
-        .modal-content { background: white; padding: 20px; border-radius: 8px; max-width: 440px; width: 90%; max-height: 90vh; overflow-y: auto; }
-        .modal-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 15px; }
+        .modal-content { background: white; padding: 25px; border-radius: 12px; max-width: 460px; width: 95%; max-height: 92vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
 
-        .base-selector-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
-        .base-btn { padding: 8px; font-size: 11px; background: #eee; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; color: black; font-weight: bold;}
-        .base-btn.selected { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+        .runner-control-box {
+            background: #f1f3f5; border-left: 4px solid var(--secondary-color); padding: 10px; margin-top: 12px; border-radius: 4px;
+        }
 
-        button { background-color: var(--primary-color); color: white; border: none; padding: 10px; font-weight: bold; border-radius: 4px; cursor: pointer; text-transform: uppercase; }
-        .btn-secondary { background-color: #6c757d; }
-        .alert-box { background: #fff3cd; border: 1px solid #ffeeba; padding: 10px; border-radius: 4px; font-size: 12px; margin-top: 10px; display: none; color: #856404; }
+        button { background-color: var(--primary-color); color: white; border: none; padding: 12px 18px; font-weight: bold; border-radius: 6px; cursor: pointer; text-transform: uppercase; transition: all 0.2s; font-size: 14px; }
+        button:hover { background-color: #12341f; transform: translateY(-1px); }
+        .btn-secondary { background-color: #5c636a; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+        .btn-secondary:hover { background-color: #494e53; }
+        .btn-warning { background-color: var(--accent-blue); }
+        .btn-warning:hover { background-color: #0649aa; }
+        .btn-danger { background-color: var(--error-color); }
+        .btn-danger:hover { background-color: #931414; }
+
+        .roster-select-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 15px; }
+        .roster-row-item { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div style="max-width: 1000px; margin: 0 auto;">
+<div class="container">
     <header>
-        <h1>Scorecard Conectado Ballscore</h1>
-        <p>Sincronización Automática en la Nube — VIDA GRAND SLAM</p>
+        <h1>Scorecard Inteligente Ballscore</h1>
+        <p>Control Automatizado por Entradas — Liga VIDA GRAND SLAM</p>
     </header>
-    <a href="index.html" class="btn-secondary">Volver al Inicio</a>
-
-    <div class="card">
-        <h2>Pizarra de Carreras en Tiempo Real</h2>
-        <div class="row">
-            <div class="col"><label>Equipo Local</label><select id="selectLocalTeam" onchange="cargarLineupsDinamicos()"><option value="">Cargando Equipos...</option></select></div>
-            <div class="col"><label>Equipo Visitante</label><select id="selectVisitanteTeam" onchange="cargarLineupsDinamicos()"><option value="">Cargando Equipos...</option></select></div>
-        </div>
-
-        <div class="linescore-grid">
-            <div class="linescore-header" style="text-align: left;">Equipo</div>
-            <div class="linescore-header">1</div><div class="linescore-header">2</div><div class="linescore-header">3</div>
-            <div class="linescore-header">4</div><div class="linescore-header">5</div><div class="linescore-header">6</div>
-            <div class="linescore-header">7</div><div class="linescore-header" style="color:var(--secondary-color)">C</div>
-            
-            <div id="pizarraVisName" class="linescore-team">VISITANTE</div>
-            <div id="v1">0</div><div id="v2">0</div><div id="v3">0</div><div id="v4">0</div><div id="v5">0</div><div id="v6">0</div><div id="v7">0</div>
-            <div id="totalVisRuns" style="color:var(--secondary-color)">0</div>
-
-            <div id="pizarraLocName" class="linescore-team">LOCAL</div>
-            <div id="l1">0</div><div id="l2">0</div><div id="l3">0</div><div id="l4">0</div><div id="l5">0</div><div id="l6">0</div><div id="l7">0</div>
-            <div id="totalLocRuns" style="color:var(--secondary-color)">0</div>
+    
+    <div style="margin-bottom: 20px; display: flex; justify-content: space-between;">
+        <a href="index.html" class="btn-secondary" style="padding: 8px 15px; font-size: 13px;">← Volver al Inicio</a>
+        <div id="pnlControlesJuego" style="display:none; gap:10px;">
+            <button class="btn-warning" onclick="forzarCierreInningPorDecima()" style="padding: 8px 15px; font-size: 13px;">💥 Cierre 10ma Bateadora</button>
+            <button class="btn-danger" onclick="cambiarMitadInningManualmente()" style="padding: 8px 15px; font-size: 13px;">🔄 Cambiar Media Entrada</button>
         </div>
     </div>
 
-    <div class="tabs-container">
-        <button id="tabLocal" class="tab-btn local-active" onclick="cambiarFocoEquipo('local')">Local</button>
-        <button id="tabVisitante" class="tab-btn" onclick="cambiarFocoEquipo('visitante')">Visitante</button>
+    <div class="card" id="cardConfiguracion">
+        <h2>Paso 1: Configurar Partido y Line-ups oficiales</h2>
+        <div class="form-group" style="margin-bottom:20px;">
+            <label for="selectGameCloud">Selecciona el Juego Programado desde la Nube:</label>
+            <select id="selectGameCloud" onchange="seleccionarJuegoProgramado()">
+                <option value="">-- Buscando partidos agendados... --</option>
+            </select>
+        </div>
+
+        <div id="boxLineupSetup" style="display:none;">
+            <div class="row">
+                <div class="col">
+                    <h3 id="lblLocalSetupTitle" style="color:var(--local-color); font-size:16px; margin-bottom:10px;">Line-up Local</h3>
+                    <div id="containerRosterLocal" class="roster-select-grid"></div>
+                </div>
+                <div class="col">
+                    <h3 id="lblVisitanteSetupTitle" style="color:var(--visitante-color); font-size:16px; margin-bottom:10px;">Line-up Visitante</h3>
+                    <div id="containerRosterVisitante" class="roster-select-grid"></div>
+                </div>
+            </div>
+            <button onclick="confirmarEIniciarPartido()" style="background: var(--primary-color); width: 100%; margin-top: 20px; height: 48px; font-size: 16px;">Activar Hoja y Comenzar Arbitraje</button>
+        </div>
     </div>
 
-    <div class="card">
-        <h2 id="lineupTitle">Line-Up Oficial del Partido</h2>
-        <div id="lineupScoreboard"></div>
-    </div>
+    <div id="cardScorecardPrincipal" style="display:none;">
+        <div class="card">
+            <h2>Pizarra Oficial de Carreras</h2>
+            <div class="linescore-grid">
+                <div class="linescore-header" style="text-align: left;">Equipo</div>
+                <div class="linescore-header">1</div><div class="linescore-header">2</div><div class="linescore-header">3</div>
+                <div class="linescore-header">4</div><div class="linescore-header">5</div><div class="linescore-header">6</div>
+                <div class="linescore-header">7</div><div class="linescore-header" style="color:var(--secondary-color)">C</div>
+                
+                <div id="pizarraVisName" class="linescore-team">VISITANTE</div>
+                <div id="v1">0</div><div id="v2">0</div><div id="v3">0</div><div id="v4">0</div><div id="v5">0</div><div id="v6">0</div><div id="v7">0</div>
+                <div id="totalVisRuns" style="color:var(--secondary-color); font-size:18px;">0</div>
 
-    <button onclick="guardarCambiosYCompilar()" style="background: var(--secondary-color); color: black; font-size: 16px; margin-bottom: 40px; width:100%; height: 50px;">Finalizar Partido y Enviar Estadísticas a la Nube</button>
+                <div id="pizarraLocName" class="linescore-team">LOCAL</div>
+                <div id="l1">0</div><div id="l2">0</div><div id="l3">0</div><div id="l4">0</div><div id="l5">0</div><div id="l6">0</div><div id="l7">0</div>
+                <div id="totalLocRuns" style="color:var(--secondary-color); font-size:18px;">0</div>
+            </div>
+
+            <div class="game-status-bar">
+                <div>Entrada: <span id="txtCurrentInning" style="color:var(--primary-color);">1ra Alta</span></div>
+                <div>Outs: <span id="txtCurrentOuts" style="color:var(--error-color);">0 OUT</span></div>
+                <div>Pizarra de Alerta: <span id="txtAlertaBateadora" style="color:#666;">Bateadora 1 de la entrada</span></div>
+            </div>
+        </div>
+
+        <div class="tabs-container">
+            <button id="tabVisitante" class="tab-btn visitante-active" onclick="cambiarFocoEquipo('visitante')">Visitante (Bateando)</button>
+            <button id="tabLocal" class="tab-btn" onclick="cambiarFocoEquipo('local')">Local (Defendiendo)</button>
+        </div>
+
+        <div class="card">
+            <h2 id="lineupTitle">Rombos Colectivos Ballscore</h2>
+            <div id="lineupScoreboard"></div>
+        </div>
+
+        <button onclick="finalizarPartidoCompleto()" style="background: var(--secondary-color); color: black; font-size: 16px; margin-bottom: 50px; width:100%; height: 52px; box-shadow: 0 4px 10px rgba(212,175,55,0.25);">Cerrar Juego y Sincronizar Estadísticas Globales</button>
+    </div>
 </div>
 
 <div id="ballscoreModal" class="modal">
     <div class="modal-content">
-        <h3 id="modalTitle" style="margin-top:0; color: var(--primary-color);">Anotación de Evento</h3>
+        <h3 id="modalTitle" style="margin-top:0; color: var(--primary-color);">Registrar Turno</h3>
+        <p id="modalSubtitle" style="font-size:13px; color:#666; margin-bottom:15px;"></p>
         
-        <label>Ruta Visual del Corredor (Alcanzado):</label>
-        <div class="base-selector-grid">
-            <button id="btnB1" class="base-btn" onclick="toggleBaseBoton('b1')">1ra Base</button>
-            <button id="btnB2" class="base-btn" onclick="toggleBaseBoton('b2')">2da Base</button>
-            <button id="btnB3" class="base-btn" onclick="toggleBaseBoton('b3')">3ra Base</button>
-            <button id="btnB4" class="base-btn" onclick="toggleBaseBoton('b4')">Home (Carrera)</button>
-        </div>
+        <input type="hidden" id="hdnPlayerIdx">
+        <input type="hidden" id="hdnInning">
 
-        <div style="margin-top: 15px;">
-            <label for="selectPlayType">Suceso en el Turno:</label>
-            <select id="selectPlayType" onchange="evaluarTipoJugada(this.value)">
-                <option value="H">Hit (H)</option>
+        <div class="form-group">
+            <label for="selectPlayType">1. ¿Qué hizo la Bateadora en el plato?</label>
+            <select id="selectPlayType" onchange="validarEstructuraJugada(this.value)">
+                <option value="H1">Hit Sencillo (H)</option>
+                <option value="H2">Doble (2B)</option>
+                <option value="H3">Triple (3B)</option>
+                <option value="HR">Jonrón (HR)</option>
                 <option value="BB">Base por Bolas (BB)</option>
-                <option value="SF">Sacrificio Fly (SF)</option>
                 <option value="SO">Ponche (SO)</option>
-                <option value="OUT">Out de Campo / Ruta Regular</option>
-                <option value="DP">Doble Play (DP)</option>
+                <option value="SF">Sacrificio Fly (SF)</option>
+                <option value="OUT">Out de Ruta / Línea / Rola</option>
             </select>
         </div>
 
-        <div id="rutaOutBox" style="margin-top:12px; display:none;">
-            <label for="inputRuta">Ruta de la jugada / Asistencias (Ej: 63, 43, 543):</label>
-            <input type="text" id="inputRuta" placeholder="Introduce la combinación de números">
+        <div id="boxRutaDefensiva" style="margin-top:12px; display:none;">
+            <label for="inputRuta">Ruta o Asistencia del Out (Ej: 43, 63, 5u, 8):</label>
+            <input type="text" id="inputRuta" placeholder="Escribe los números de las posiciones">
         </div>
 
-        <div id="dpAlert" class="alert-box">
-            <strong>Doble Play:</strong> Registra el out de la otra corredora afectada en su rombo correspondiente limpiando su base.
-        </div>
+        <div id="boxControlCorredoras" style="margin-top:15px;">
+            <h4 style="margin:0 0 8px 0; font-size:13px; text-transform:uppercase; color:#333;">2. Destino de las Corredoras en Base:</h4>
+            
+            <div id="itemRunner3B" class="runner-control-box" style="display:none;">
+                <label>Corredora en 3ra Base:</label>
+                <select id="moveRunner3B">
+                    <option value="3B">Se queda en 3ra</option>
+                    <option value="4B" selected>Anota Carrera (Home)</option>
+                    <option value="OUT">Fue Out (En jugada o base)</option>
+                </select>
+            </div>
 
-        <div style="margin-top:15px;">
-            <label for="selectOutNum">Conteo de Outs en la Entrada:</label>
-            <select id="selectOutNum">
-                <option value="">Ninguno (Se embasó o anotó)</option>
-                <option value="1">1er Out</option>
-                <option value="2">2do Out</option>
-                <option value="3">3er Out</option>
-            </select>
+            <div id="itemRunner2B" class="runner-control-box" style="display:none;">
+                <label>Corredora en 2da Base:</label>
+                <select id="moveRunner2B">
+                    <option value="2B">Se queda en 2da</option>
+                    <option value="3B">Avanza a 3ra</option>
+                    <option value="4B">Anota Carrera (Home)</option>
+                    <option value="OUT">Fue Out (En jugada o base)</option>
+                </select>
+            </div>
+
+            <div id="itemRunner1B" class="runner-control-box" style="display:none;">
+                <label>Corredora en 1ra Base:</label>
+                <select id="moveRunner1B">
+                    <option value="1B">Se queda en 1ra</option>
+                    <option value="2B" selected>Avanza a 2da</option>
+                    <option value="3B">Avanza a 3ra</option>
+                    <option value="4B">Anota Carrera (Home)</option>
+                    <option value="OUT">Fue Out (En jugada o base)</option>
+                </select>
+            </div>
         </div>
 
         <div class="modal-actions">
-            <button onclick="aplicarJugadaModal()">Guardar en Scorecard</button>
+            <button onclick="procesarJugadaAutomatica()" style="background-color: var(--primary-color);">Aplicar Turno</button>
             <button onclick="cerrarModal()" class="btn-secondary">Cancelar</button>
         </div>
     </div>
@@ -214,18 +301,31 @@
 
 <script>
     const firebaseURL = 'https://vidagrandslam-default-rtdb.firebaseio.com/torneo.json';
+    const partidosURL = 'https://vidagrandslam-default-rtdb.firebaseio.com/partidos.json';
+    const resultadosURL = 'https://vidagrandslam-default-rtdb.firebaseio.com/resultados.json';
+
     let dbMaster = { equipos: [], jugadoras: [] };
-    let equipoEnFoco = 'local';
-    
-    let juegoData = {
-        local: { equipoName: '', lineup: [] },
-        visitante: { equipoName: '', lineup: [] }
+    let listaPartidosProgramados = [];
+    let juegoSeleccionadoRef = null;
+
+    // Estado del Juego en vivo
+    let gameState = {
+        inningActual: 1,
+        esBaja: false, // false = Alta, true = Baja
+        outs: 0,
+        bateadorasEnInning: 0,
+        corredoras: { b1: null, b2: null, b3: null } // Guarda el playerIdx de la corredora ocupando la base
     };
 
-    let celdaActiva = { equipo: '', playerIdx: 0, inning: 1 };
-    let basesTemporales = { b1: false, b2: false, b3: false, b4: false };
+    let equipoEnFoco = 'visitante'; // Tradicionalmente inicia bateando la visita
+    
+    let juegoData = {
+        local: { equipoName: '', lineup: [], carrerasPorInning: [0,0,0,0,0,0,0], totalCarreras: 0, indiceBateador: 0 },
+        visitante: { equipoName: '', lineup: [], carrerasPorInning: [0,0,0,0,0,0,0], totalCarreras: 0, indiceBateador: 0 }
+    };
 
-    function descargarDatosNube() {
+    function descargarDatosIniciales() {
+        // 1. Descargar catálogo maestro
         fetch(firebaseURL)
         .then(res => res.json())
         .then(data => {
@@ -233,45 +333,136 @@
                 dbMaster = data;
                 if(!dbMaster.equipos) dbMaster.equipos = [];
                 if(!dbMaster.jugadoras) dbMaster.jugadoras = [];
+                dbMaster.jugadoras = dbMaster.jugadoras.filter(j => j !== null);
             }
-            inicializarSelectores();
+            // 2. Descargar roles agendados
+            return fetch(partidosURL);
+        })
+        .then(res => res.json())
+        .then(partidos => {
+            if(partidos) {
+                listaPartidosProgramados = Object.keys(partidos).map(key => ({ idCloud: key, ...partidos[key] }));
+            }
+            llenarSelectorPartidos();
+        }).catch(err => console.error("Error cargando el ecosistema:", err));
+    }
+
+    function llenarSelectorPartidos() {
+        const select = document.getElementById('selectGameCloud');
+        select.innerHTML = '<option value="">-- Selecciona el Juego a Arbitrar --</option>';
+        listaPartidosProgramados.forEach(p => {
+            let opt = document.createElement('option');
+            opt.value = p.idCloud;
+            opt.textContent = `${p.jornada || 'Jor'} - ${p.teamHome} vs ${p.teamAway} (${p.fecha || ''})`;
+            select.appendChild(opt);
         });
     }
 
-    function inicializarSelectores() {
-        const selLocal = document.getElementById('selectLocalTeam');
-        const selVis = document.getElementById('selectVisitanteTeam');
-        selLocal.innerHTML = '<option value="">-- Seleccionar Local --</option>';
-        selVis.innerHTML = '<option value="">-- Seleccionar Visitante --</option>';
+    function seleccionarJuegoProgramado() {
+        const idGame = document.getElementById('selectGameCloud').value;
+        juegoSeleccionadoRef = listaPartidosProgramados.find(p => p.idCloud === idGame);
 
-        dbMaster.equipos.forEach(eq => {
-            selLocal.add(new Option(eq, eq));
-            selVis.add(new Option(eq, eq));
-        });
+        if(!juegoSeleccionadoRef) {
+            document.getElementById('boxLineupSetup').style.display = 'none';
+            return;
+        }
+
+        juegoData.local.equipoName = juegoSeleccionadoRef.teamHome;
+        juegoData.visitante.equipoName = juegoSeleccionadoRef.teamAway;
+
+        document.getElementById('lblLocalSetupTitle').textContent = `Line-up Oficial: ${juegoData.local.equipoName} (LOCAL)`;
+        document.getElementById('lblVisitanteSetupTitle').textContent = `Line-up Oficial: ${juegoData.visitante.equipoName} (VISITANTE)`;
+
+        // Desplegar selectores de jugadoras filtradas por equipo
+        desplegarSelectoresRoster('local', juegoData.local.equipoName);
+        desplegarSelectoresRoster('visitante', juegoData.visitante.equipoName);
+
+        document.getElementById('boxLineupSetup').style.display = 'block';
     }
 
-    function cargarLineupsDinamicos() {
-        juegoData.local.equipoName = document.getElementById('selectLocalTeam').value;
-        juegoData.visitante.equipoName = document.getElementById('selectVisitanteTeam').value;
+    function desplegarSelectoresRoster(lado, equipoName) {
+        const container = document.getElementById(lado === 'local' ? 'containerRosterLocal' : 'containerRosterVisitante');
+        container.innerHTML = '';
 
-        document.getElementById('pizarraLocName').textContent = juegoData.local.equipoName || "LOCAL";
-        document.getElementById('pizarraVisName').textContent = juegoData.visitante.equipoName || "VISITANTE";
+        const rosterFiltrado = dbMaster.jugadoras.filter(j => j && j.team === equipoName);
+
+        // Crear 12 selectores obligatorios para armar el Line-up
+        for (let i = 0; i < 12; i++) {
+            const div = document.createElement('div');
+            div.className = 'form-group';
+            div.style.marginBottom = '8px';
+            
+            const labelStr = document.createElement('label');
+            labelStr.textContent = `Bateadora #${i + 1} ${i >= 10 ? '(BD)' : ''}:`;
+            labelStr.style.fontSize = '11px';
+
+            const sel = document.createElement('select');
+            sel.className = `sel-lineup-${lado}`;
+            sel.id = `sel_${lado}_${i}`;
+            
+            sel.innerHTML = '<option value="">-- Seleccionar --</option>';
+            rosterFiltrado.forEach(player => {
+                let opt = document.createElement('option');
+                opt.value = player.id;
+                opt.textContent = player.name;
+                sel.appendChild(opt);
+            });
+
+            // Auto-seleccionar jugadoras en orden si existen en el roster
+            if(rosterFiltrado[i]) {
+                sel.value = rosterFiltrado[i].id;
+            }
+
+            div.appendChild(labelStr);
+            div.appendChild(sel);
+            container.appendChild(div);
+        }
+    }
+
+    function confirmarEIniciarPartido() {
+        // Validar y compilar alineaciones fijas de 12 jugadoras
+        let faltanLocal = false, faltanVisitante = false;
 
         ['local', 'visitante'].forEach(side => {
-            const eqName = juegoData[side].equipoName;
-            const jugadorasFiltradas = dbMaster.jugadoras.filter(j => j.team === eqName);
-            
             juegoData[side].lineup = [];
-            for(let i = 0; i < 12; i++) {
-                let pReal = jugadorasFiltradas[i] || { name: `Refuerzo #${i+1}`, id: `ref-${side}-${i}` };
+            for (let i = 0; i < 12; i++) {
+                const valId = document.getElementById(`sel_${side}_${i}`).value;
+                const selectElement = document.getElementById(`sel_${side}_${i}`);
+                const textName = selectElement.options[selectElement.selectedIndex].text;
+
+                if(!valId) {
+                    if(side === 'local') faltanLocal = true;
+                    else faltanVisitante = true;
+                }
+
                 juegoData[side].lineup.push({
-                    id: pReal.id, name: pReal.name, pos: i < 10 ? `Posición ${i+1}` : 'BD',
-                    entradas: {}
+                    id: valId || Date.now() + i,
+                    name: valId ? textName : `Refuerzo #${i+1}`,
+                    pos: i < 10 ? `Posición ${i+1}` : 'BD',
+                    entradas: {} // Guardará las jugadas por inning
                 });
             }
         });
+
+        if(faltanLocal || faltanVisitante) {
+            if(!confirm("⚠️ Algunas casillas de bateadoras quedaron vacías. ¿Deseas usar nombres genéricos de refuerzo e iniciar el juego?")) {
+                return;
+            }
+        }
+
+        // Configurar nombres en el Scorecard principal
+        document.getElementById('pizarraLocName').textContent = juegoData.local.equipoName;
+        document.getElementById('pizarraVisName').textContent = juegoData.visitante.equipoName;
+        document.getElementById('tabLocal').textContent = `${juegoData.local.equipoName} (Local)`;
+        document.getElementById('tabVisitante').textContent = `${juegoData.visitante.equipoName} (Visitante)`;
+
+        // Cambiar pantallas
+        document.getElementById('cardConfiguracion').style.display = 'none';
+        document.getElementById('cardScorecardPrincipal').style.display = 'block';
+        document.getElementById('pnlControlesJuego').style.display = 'flex';
+
+        actualizarBarraEstadoJugadores();
         renderScorecard();
-        calcularPizarraCarreras();
     }
 
     function cambiarFocoEquipo(side) {
@@ -286,14 +477,15 @@
         const sideData = juegoData[equipoEnFoco];
         container.innerHTML = '';
 
-        if (!sideData.equipoName) {
-            container.innerHTML = '<p style="font-style:italic; color:#777; text-align:center;">Selecciona los equipos arriba para desplegar los rombos de anotación.</p>';
-            return;
-        }
-
         sideData.lineup.forEach((player, idx) => {
             const pBox = document.createElement('div');
             pBox.className = `player-box ${equipoEnFoco === 'local' ? 'local-box' : 'visitante-box'}`;
+            
+            // Si es la bateadora activa de su equipo, le damos un fondo especial sutil
+            if(sideData.indiceBateador === idx && ((equipoEnFoco === 'visitante' && !gameState.esBaja) || (equipoEnFoco === 'local' && gameState.esBaja))) {
+                pBox.style.backgroundColor = '#fffdeb';
+                pBox.style.borderRight = '5px solid var(--secondary-color)';
+            }
 
             let cellsHtml = '';
             for(let i = 1; i <= 7; i++) {
@@ -305,13 +497,11 @@
                 let act4 = c.b4 ? 'active' : '';
                 let scoredClass = c.b4 ? 'scored' : '';
                 
-                let outDisplay = '';
-                if(c.outNum) outDisplay = `<span style="border: 1px solid red; background: #fff; border-radius:50%; width:14px; height:14px; display:inline-block; text-align:center; line-height:14px;">${c.outNum}</span>`;
-                
-                let textToShow = (c.play === 'OUT' || c.play === 'DP') ? c.ruta : c.play;
+                let outDisplay = c.outNum ? `<span style="border: 1px solid red; background: #fff; border-radius:50%; width:15px; height:15px; display:inline-block; text-align:center; line-height:15px; font-size:10px;">${c.outNum}</span>` : '';
+                let textToShow = c.play === 'OUT' ? c.ruta : c.play;
 
                 cellsHtml += `
-                    <div class="ballscore-diamond-wrapper" onclick="abrirModal('${equipoEnFoco}', ${idx}, ${i})">
+                    <div class="ballscore-diamond-wrapper" onclick="abrirAsistenteTurno(${idx}, ${i})">
                         <span class="inning-tag">E${i}</span>
                         <div class="base-line line-1b ${act1}"></div>
                         <div class="base-line line-2b ${act2}"></div>
@@ -325,75 +515,166 @@
             }
 
             pBox.innerHTML = `
-                <div class="player-header"><strong>${idx + 1}. ${player.name}</strong> <span>(${player.pos})</span></div>
+                <div class="player-header">
+                    <strong>${idx + 1}. ${player.name}</strong> 
+                    <span>(${player.pos})</span>
+                </div>
                 <div class="innings-row">${cellsHtml}</div>
             `;
             container.appendChild(pBox);
         });
     }
 
-    function abrirModal(equipo, playerIdx, inning) {
-        celdaActiva = { equipo, playerIdx, inning };
-        const player = juegoData[equipo].lineup[playerIdx];
-        let prev = player.entradas[inning] || { play: 'H', outNum: '', ruta: '', b1:false, b2:false, b3:false, b4:false };
+    // --- ASISTENTE INTERACTIVO AUTOMATIZADO ---
+    function abrirAsistenteTurno(playerIdx, inning) {
+        // Forzar a que solo se pueda anotar al equipo que está a la ofensiva reglamentariamente, o permitir libre auditoría
+        const ladoOfensivo = gameState.esBaja ? 'local' : 'visitante';
+        if(equipoEnFoco !== ladoOfensivo) {
+            if(!confirm(`⚠️ Actualmente el turno oficial corresponde al equipo ${juegoData[ladoOfensivo].equipoName}. ¿Deseas anotar de todos modos en esta pestaña?`)) {
+                return;
+            }
+        }
 
-        document.getElementById('selectPlayType').value = prev.play || 'H';
-        document.getElementById('inputRuta').value = prev.ruta || '';
-        document.getElementById('selectOutNum').value = prev.outNum || '';
+        celdaActiva = { equipo: equipoEnFoco, playerIdx, inning };
+        const player = juegoData[equipoEnFoco].lineup[playerIdx];
 
-        basesTemporales = { b1: prev.b1, b2: prev.b2, b3: prev.b3, b4: prev.b4 };
-        actualizarEstilosBotonesBase();
+        document.getElementById('hdnPlayerIdx').value = playerIdx;
+        document.getElementById('hdnInning').value = inning;
+        document.getElementById('modalTitle').textContent = `Anotar Entrada ${inning} - ${player.name}`;
+        
+        // Mostrar u ocultar controles de corredoras según el estado real de las bases actuales
+        document.getElementById('itemRunner1B').style.display = gameState.corredoras.b1 !== null ? 'block' : 'none';
+        document.getElementById('itemRunner2B').style.display = gameState.corredoras.b2 !== null ? 'block' : 'none';
+        document.getElementById('itemRunner3B').style.display = gameState.corredoras.b3 !== null ? 'block' : 'none';
 
-        evaluarTipoJugada(document.getElementById('selectPlayType').value);
+        // Reset inputs
+        document.getElementById('selectPlayType').value = 'H1';
+        document.getElementById('inputRuta').value = '';
+        validarEstructuraJugada('H1');
+
         document.getElementById('ballscoreModal').style.display = 'flex';
     }
 
-    function toggleBaseBoton(base) {
-        basesTemporales[base] = !basesTemporales[base];
-        actualizarEstilosBotonesBase();
-    }
-
-    function actualizarEstilosBotonesBase() {
-        ['b1','b2','b3','b4'].forEach(b => {
-            const btn = document.getElementById(`btn${b.toUpperCase()}`);
-            if(basesTemporales[b]) btn.classList.add('selected');
-            else btn.classList.remove('selected');
-        });
-    }
-
-    function evaluarTipoJugada(val) {
-        document.getElementById('rutaOutBox').style.display = (val === 'OUT' || val === 'DP') ? 'block' : 'none';
-        document.getElementById('dpAlert').style.display = (val === 'DP') ? 'block' : 'none';
-        
-        if(val === 'SO' || val === 'OUT') {
-            basesTemporales = { b1: false, b2: false, b3: false, b4: false };
-            actualizarEstilosBotonesBase();
-        }
+    function validarEstructuraJugada(val) {
+        document.getElementById('boxRutaDefensiva').style.display = (val === 'OUT') ? 'block' : 'none';
     }
 
     function cerrarModal() { document.getElementById('ballscoreModal').style.display = 'none'; }
 
-    function aplicarJugadaModal() {
-        const { equipo, playerIdx, inning } = celdaActiva;
-        const play = document.getElementById('selectPlayType').value;
-        let ruta = document.getElementById('inputRuta').value.trim();
-        const outNum = document.getElementById('selectOutNum').value;
+    function procesarJugadaAutomatica() {
+        const playerIdx = parseInt(document.getElementById('hdnPlayerIdx').value);
+        const inning = parseInt(document.getElementById('hdnInning').value);
+        const lado = equipoEnFoco;
 
-        if (play === 'DP' && !ruta) ruta = 'DP';
+        const playType = document.getElementById('selectPlayType').value;
+        const rutaDefensiva = document.getElementById('inputRuta').value.trim();
 
-        juegoData[equipo].lineup[playerIdx].entradas[inning] = {
-            play, ruta, outNum,
-            b1: basesTemporales.b1, b2: basesTemporales.b2, b3: basesTemporales.b3, b4: basesTemporales.b4
-        };
+        let cellResult = { play: '', outNum: '', ruta: '', b1: false, b2: false, b3: false, b4: false };
+        let esOutElBateador = false;
+
+        // Incrementar cuenta de bateadoras en la entrada actual para el control de la 10ma
+        gameState.bateadorasEnInning++;
+
+        // 1. Resolver el destino de la Bateadora
+        if (playType === 'H1') { cellResult.play = 'H'; cellResult.b1 = true; }
+        else if (playType === 'H2') { cellResult.play = '2B'; cellResult.b1 = true; cellResult.b2 = true; }
+        else if (playType === 'H3') { cellResult.play = '3B'; cellResult.b1 = true; cellResult.b2 = true; cellResult.b3 = true; }
+        else if (playType === 'HR') { cellResult.play = 'HR'; cellResult.b1 = true; cellResult.b2 = true; cellResult.b3 = true; cellResult.b4 = true; }
+        else if (playType === 'BB') { cellResult.play = 'BB'; cellResult.b1 = true; }
+        else if (playType === 'SF') { cellResult.play = 'SF'; esOutElBateador = true; }
+        else if (playType === 'SO') { cellResult.play = 'SO'; esOutElBateador = true; }
+        else if (playType === 'OUT') { cellResult.play = 'OUT'; cellResult.ruta = rutaDefensiva || 'Out'; esOutElBateador = true; }
+
+        if(esOutElBateador) {
+            gameState.outs++;
+            cellResult.outNum = gameState.outs;
+        }
+
+        // 2. Resolver y avanzar corredoras previas interactivamente
+        let nuevasBases = { b1: null, b2: null, b3: null };
+
+        if (gameState.corredoras.b3 !== null && document.getElementById('itemRunner3B').style.display !== 'none') {
+            const accion = document.getElementById('moveRunner3B').value;
+            const idxCorredora = gameState.corredoras.b3;
+            if(accion === '4B') {
+                juegoData[lado].lineup[idxCorredora].entradas[inning].b4 = true; // Anota carrera
+            } else if(accion === 'OUT') {
+                gameState.outs++;
+                juegoData[lado].lineup[idxCorredora].entradas[inning].outNum = gameState.outs;
+            } else { nuevasBases.b3 = idxCorredora; }
+        }
+
+        if (gameState.corredoras.b2 !== null && document.getElementById('itemRunner2B').style.display !== 'none') {
+            const accion = document.getElementById('moveRunner2B').value;
+            const idxCorredora = gameState.corredoras.b2;
+            if(accion === '4B') {
+                juegoData[lado].lineup[idxCorredora].entradas[inning].b3 = true;
+                juegoData[lado].lineup[idxCorredora].entradas[inning].b4 = true;
+            } else if(accion === '3B') {
+                juegoData[lado].lineup[idxCorredora].entradas[inning].b3 = true;
+                nuevasBases.b3 = idxCorredora;
+            } else if(accion === 'OUT') {
+                gameState.outs++;
+                juegoData[lado].lineup[idxCorredora].entradas[inning].outNum = gameState.outs;
+            } else { nuevasBases.b2 = idxCorredora; }
+        }
+
+        if (gameState.corredoras.b1 !== null && document.getElementById('itemRunner1B').style.display !== 'none') {
+            const accion = document.getElementById('moveRunner1B').value;
+            const idxCorredora = gameState.corredoras.b1;
+            if(accion === '4B') {
+                juegoData[lado].lineup[idxCorredora].entradas[inning].b2 = true;
+                juegoData[lado].lineup[idxCorredora].entradas[inning].b3 = true;
+                juegoData[lado].lineup[idxCorredora].entradas[inning].b4 = true;
+            } else if(accion === '3B') {
+                juegoData[lado].lineup[idxCorredora].entradas[inning].b2 = true;
+                juegoData[lado].lineup[idxCorredora].entradas[inning].b3 = true;
+                nuevasBases.b3 = idxCorredora;
+            } else if(accion === '2B') {
+                juegoData[lado].lineup[idxCorredora].entradas[inning].b2 = true;
+                nuevasBases.b2 = idxCorredora;
+            } else if(accion === 'OUT') {
+                gameState.outs++;
+                juegoData[lado].lineup[idxCorredora].entradas[inning].outNum = gameState.outs;
+            } else { nuevasBases.b1 = idxCorredora; }
+        }
+
+        // Asignar el destino de la bateadora actual en el mapa de bases vivas
+        if (!esOutElBateador) {
+            if(playType === 'H1' || playType === 'BB') nuevasBases.b1 = playerIdx;
+            if(playType === 'H2') nuevasBases.b2 = playerIdx;
+            if(playType === 'H3') nuevasBases.b3 = playerIdx;
+        }
+
+        // Guardar la jugada en la ficha de la jugadora actual
+        juegoData[lado].lineup[playerIdx].entradas[inning] = cellResult;
+
+        // Mapear bases del juego al nuevo estado
+        gameState.corredoras = nuevasBases;
+
+        // Avanzar el orden al bate automáticamente para la siguiente jugadora (Ciclo de las 12 al bat)
+        juegoData[lado].indiceBateador = (juegoData[lado].indiceBateador + 1) % 12;
 
         cerrarModal();
-        renderScorecard();
-        calcularPizarraCarreras();
+        recalcularPizarraLineScore();
+
+        // 3. Evaluar reglas de corte de la entrada (3 OUTS o Décima Bateadora)
+        // Recordar la regla de excepción: En la 7ma entrada no aplica regla de décima bateadora.
+        if (gameState.outs >= 3) {
+            alert("🚨 ¡3 OUTS completados! Cambio de media entrada automática.");
+            ejecutarCambioDeMediaEntrada();
+        } else if (gameState.bateadorasEnInning >= 10 && gameState.inningActual < 7) {
+            alert("💥 ¡Llegó la 10ma Bateadora Obligatoria! Se decreta el cierre forzado de la entrada reglamentaria.");
+            forzarCierreInningPorDecima();
+        } else {
+            actualizarBarraEstadoJugadores();
+            renderScorecard();
+        }
     }
 
-    function calcularPizarraCarreras() {
+    function recalcularPizarraLineScore() {
         ['local', 'visitante'].forEach(side => {
-            let totalRuns = 0;
+            let totalAcumulado = 0;
             const prefix = side === 'local' ? 'l' : 'v';
             
             for(let i = 1; i <= 7; i++) {
@@ -401,40 +682,99 @@
                 juegoData[side].lineup.forEach(p => {
                     if(p.entradas[i] && p.entradas[i].b4) runsInInning++;
                 });
-                document.getElementById(`${prefix}${i}`).textContent = runsInInning;
-                totalRuns += runsInInning;
+                const element = document.getElementById(`${prefix}${i}`);
+                if(element) element.textContent = runsInInning;
+                totalAcumulado += runsInInning;
             }
-            document.getElementById(side === 'local' ? 'totalLocRuns' : 'totalVisRuns').textContent = totalRuns;
+            juegoData[side].totalCarreras = totalAcumulado;
+            document.getElementById(side === 'local' ? 'totalLocRuns' : 'totalVisRuns').textContent = totalAcumulado;
         });
     }
 
-    function guardarCambiosYCompilar() {
-        if (!juegoData.local.equipoName || !juegoData.visitante.equipoName) {
-            alert("Por favor selecciona ambos equipos antes de cerrar el juego.");
+    function forzarCierreInningPorDecima() {
+        alert("Cerrando entrada por regla de la Décima Bateadora.");
+        ejecutarCambioDeMediaEntrada();
+    }
+
+    function cambiarMitadInningManualmente() {
+        if(confirm("¿Deseas alternar la media entrada de forma manual para ajustar la pizarra?")) {
+            ejecutarCambioDeMediaEntrada();
+        }
+    }
+
+    function ejecutarCambioDeMediaEntrada() {
+        // Limpiar base de corredoras y reiniciar outs de la entrada
+        gameState.outs = 0;
+        gameState.bateadorasEnInning = 0;
+        gameState.corredoras = { b1: null, b2: null, b3: null };
+
+        if (!gameState.esBaja) {
+            // Pasamos de Alta a Baja del mismo Inning
+            gameState.esBaja = true;
+            equipoEnFoco = 'local';
+        } else {
+            // Avanzamos al siguiente Inning (Alta)
+            gameState.esBaja = false;
+            gameState.inningActual++;
+            equipoEnFoco = 'visitante';
+        }
+
+        // Si sobrepasa las 7 entradas de softbol, mantenemos fijo en la 7ma entrada extra
+        if(gameState.inningActual > 7) gameState.inningActual = 7;
+
+        actualizarBarraEstadoJugadores();
+        cambiarFocoEquipo(equipoEnFoco);
+    }
+
+    function actualizarBarraEstadoJugadores() {
+        const parte = gameState.esBaja ? "Baja" : "Alta";
+        document.getElementById('txtCurrentInning').textContent = `${gameState.inningActual}ra ${parte}`;
+        document.getElementById('txtCurrentOuts').textContent = `${gameState.outs} OUT`;
+
+        let msgAlerta = `Bateadora #${gameState.bateadorasEnInning + 1} de la entrada.`;
+        if (gameState.bateadorasEnInning === 9 && gameState.inningActual < 7) {
+            msgAlerta = `⚠️ ALERTA: ¡Viene la 10MA BATEADORA de la entrada!`;
+        }
+        document.getElementById('txtAlertaBateadora').textContent = msgAlerta;
+    }
+
+    // --- GUARDADO FINAL Y SINCRONIZACIÓN EN LA NUBE ---
+    function finalizarPartidoCompleto() {
+        if (!confirm("🚨 ¿Estás seguro de finalizar el partido? Se compilarán los números del partido y se sincronizarán de inmediato con los récords mundiales en Firebase.")) {
             return;
         }
 
-        // Descargar la base maestra justo antes de sumar para evitar sobreescritura accidental
+        // 1. Descargar la base maestra de jugadoras para sumar limpiamente sin perder historiales
         fetch(firebaseURL)
         .then(res => res.json())
         .then(data => {
             if(data) dbMaster = data;
+            if(!dbMaster.jugadoras) dbMaster.jugadoras = [];
+            dbMaster.jugadoras = dbMaster.jugadoras.filter(j => j !== null);
 
+            // Procesar las estadísticas acumuladas de ambos equipos
             ['local', 'visitante'].forEach(side => {
                 juegoData[side].lineup.forEach(pScore => {
                     let ab = 0, h = 0, r = 0, bb = 0, so = 0, sf = 0;
 
                     Object.values(pScore.entradas).forEach(ent => {
                         if (ent.play === 'H') { h++; ab++; }
+                        if (ent.play === '2B') { h++; ab++; }
+                        if (ent.play === '3B') { h++; ab++; }
+                        if (ent.play === 'HR') { h++; ab++; }
                         if (ent.play === 'BB') bb++;
                         if (ent.play === 'SF') sf++;
                         if (ent.play === 'SO') { so++; ab++; }
-                        if (ent.play === 'OUT' || ent.play === 'DP') ab++;
+                        if (ent.play === 'OUT') ab++;
                         if (ent.b4) r++;
                     });
 
-                    let masterIdx = dbMaster.jugadoras.findIndex(jm => jm.id === pScore.id);
+                    // Si la jugadora tuvo participación (al menos 1 turno, carrera, base o juego), le sumamos +1 Juego Jugado (JJ)
+                    let jugoPartido = (ab > 0 || bb > 0 || sf > 0 || r > 0) ? 1 : 0;
+
+                    let masterIdx = dbMaster.jugadoras.findIndex(jm => jm && jm.id == pScore.id);
                     if (masterIdx > -1) {
+                        dbMaster.jugadoras[masterIdx].jj = (dbMaster.jugadoras[masterIdx].jj || 0) + jugoPartido;
                         dbMaster.jugadoras[masterIdx].ab = (dbMaster.jugadoras[masterIdx].ab || 0) + ab;
                         dbMaster.jugadoras[masterIdx].h = (dbMaster.jugadoras[masterIdx].h || 0) + h;
                         dbMaster.jugadoras[masterIdx].r = (dbMaster.jugadoras[masterIdx].r || 0) + r;
@@ -442,6 +782,7 @@
                         dbMaster.jugadoras[masterIdx].so = (dbMaster.jugadoras[masterIdx].so || 0) + so;
                         dbMaster.jugadoras[masterIdx].sf = (dbMaster.jugadoras[masterIdx].sf || 0) + sf;
 
+                        // Recalcular métricas Ballscore
                         let pa = dbMaster.jugadoras[masterIdx].ab + dbMaster.jugadoras[masterIdx].bb + dbMaster.jugadoras[masterIdx].sf;
                         dbMaster.jugadoras[masterIdx].avg = dbMaster.jugadoras[masterIdx].ab > 0 ? (dbMaster.jugadoras[masterIdx].h / dbMaster.jugadoras[masterIdx].ab).toFixed(3) : ".000";
                         dbMaster.jugadoras[masterIdx].obp = pa > 0 ? ((dbMaster.jugadoras[masterIdx].h + dbMaster.jugadoras[masterIdx].bb) / pa).toFixed(3) : ".000";
@@ -449,18 +790,37 @@
                 });
             });
 
-            // Empujar actualización completa a Firebase
-            fetch(firebaseURL, {
+            // 2. Crear el objeto con la pizarra de resultados para /resultados.json
+            const nuevaPizarraResultado = {
+                jornada: juegoSeleccionadoRef ? (juegoSeleccionadoRef.jornada || "J-Única") : "Jornada",
+                fecha: juegoSeleccionadoRef ? (juegoSeleccionadoRef.fecha || "") : "",
+                teamHome: juegoData.local.equipoName,
+                scoreHome: juegoData.local.totalCarreras,
+                teamAway: juegoData.visitante.equipoName,
+                scoreAway: juegoData.visitante.totalCarreras,
+                timestamp: Date.now()
+            };
+
+            // 3. Subir el resultado de la pizarra
+            return fetch(resultadosURL, {
+                method: 'POST',
+                body: JSON.stringify(nuevaPizarraResultado)
+            });
+        })
+        .then(() => {
+            // 4. Actualizar toda la base maestra de jugadoras en Firebase
+            return fetch(firebaseURL, {
                 method: 'PUT',
                 body: JSON.stringify(dbMaster)
-            })
-            .then(() => {
-                alert("¡Partido Cerrado! Las estadísticas ya viajaron a la nube y están listas para ser vistas por el público.");
             });
-        });
+        })
+        .then(() => {
+            alert("🎉 ¡PARTIDO FINALIZADO Y GUARDADO CON ÉXITO! Las carreras se enviaron a las pantallas públicas y los números individuales ya se sumaron al standing y perfiles sin perder nada de información.");
+            window.location.href = "index.html";
+        }).catch(err => alert("Error al sincronizar datos finales: " + err));
     }
 
-    descargarDatosNube();
+    descargarDatosIniciales();
 </script>
 </body>
 </html>
