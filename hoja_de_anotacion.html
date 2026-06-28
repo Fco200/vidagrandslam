@@ -59,8 +59,6 @@
         select, input { width: 100%; padding: 11px; border: 1px solid #ccd4ce; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
         select:focus, input:focus { border-color: var(--primary-color); outline: none; box-shadow: 0 0 0 3px rgba(26,71,42,0.12); }
 
-        .setup-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 20px; }
-
         .linescore-grid {
             display: grid;
             grid-template-columns: 140px repeat(7, 1fr) 60px;
@@ -149,7 +147,6 @@
         .btn-danger:hover { background-color: #931414; }
 
         .roster-select-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 15px; }
-        .roster-row-item { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -308,16 +305,16 @@
     let listaPartidosProgramados = [];
     let juegoSeleccionadoRef = null;
 
-    // Estado del Juego en vivo
     let gameState = {
         inningActual: 1,
-        esBaja: false, // false = Alta, true = Baja
+        esBaja: false, 
         outs: 0,
         bateadorasEnInning: 0,
-        corredoras: { b1: null, b2: null, b3: null } // Guarda el playerIdx de la corredora ocupando la base
+        corredoras: { b1: null, b2: null, b3: null } 
     };
 
-    let equipoEnFoco = 'visitante'; // Tradicionalmente inicia bateando la visita
+    let equipoEnFoco = 'visitante'; 
+    let celdaActiva = { equipo: '', playerIdx: 0, inning: 1 };
     
     let juegoData = {
         local: { equipoName: '', lineup: [], carrerasPorInning: [0,0,0,0,0,0,0], totalCarreras: 0, indiceBateador: 0 },
@@ -325,7 +322,6 @@
     };
 
     function descargarDatosIniciales() {
-        // 1. Descargar catálogo maestro
         fetch(firebaseURL)
         .then(res => res.json())
         .then(data => {
@@ -335,13 +331,22 @@
                 if(!dbMaster.jugadoras) dbMaster.jugadoras = [];
                 dbMaster.jugadoras = dbMaster.jugadoras.filter(j => j !== null);
             }
-            // 2. Descargar roles agendados
             return fetch(partidosURL);
         })
         .then(res => res.json())
         .then(partidos => {
             if(partidos) {
-                listaPartidosProgramados = Object.keys(partidos).map(key => ({ idCloud: key, ...partidos[key] }));
+                // CAPTURA PROTEGIDA: Soportamos tanto llaves dinámicas de Firebase como variables seguras (teamHome/teamAway/equipoLocal/equipoVisitante)
+                listaPartidosProgramados = Object.keys(partidos).map(key => {
+                    let p = partidos[key];
+                    return {
+                        idCloud: key,
+                        jornada: p.jornada || p.Jornada || "J-Única",
+                        fecha: p.fecha || p.Fecha || "",
+                        teamHome: p.teamHome || p.equipoLocal || p.local || "Local",
+                        teamAway: p.teamAway || p.equipoVisitante || p.visitante || "Visitante"
+                    };
+                });
             }
             llenarSelectorPartidos();
         }).catch(err => console.error("Error cargando el ecosistema:", err));
@@ -353,7 +358,7 @@
         listaPartidosProgramados.forEach(p => {
             let opt = document.createElement('option');
             opt.value = p.idCloud;
-            opt.textContent = `${p.jornada || 'Jor'} - ${p.teamHome} vs ${p.teamAway} (${p.fecha || ''})`;
+            opt.textContent = `${p.jornada} - ${p.teamAway} vs ${p.teamHome} (${p.fecha})`;
             select.appendChild(opt);
         });
     }
@@ -373,7 +378,6 @@
         document.getElementById('lblLocalSetupTitle').textContent = `Line-up Oficial: ${juegoData.local.equipoName} (LOCAL)`;
         document.getElementById('lblVisitanteSetupTitle').textContent = `Line-up Oficial: ${juegoData.visitante.equipoName} (VISITANTE)`;
 
-        // Desplegar selectores de jugadoras filtradas por equipo
         desplegarSelectoresRoster('local', juegoData.local.equipoName);
         desplegarSelectoresRoster('visitante', juegoData.visitante.equipoName);
 
@@ -386,7 +390,6 @@
 
         const rosterFiltrado = dbMaster.jugadoras.filter(j => j && j.team === equipoName);
 
-        // Crear 12 selectores obligatorios para armar el Line-up
         for (let i = 0; i < 12; i++) {
             const div = document.createElement('div');
             div.className = 'form-group';
@@ -397,10 +400,9 @@
             labelStr.style.fontSize = '11px';
 
             const sel = document.createElement('select');
-            sel.className = `sel-lineup-${lado}`;
             sel.id = `sel_${lado}_${i}`;
             
-            sel.innerHTML = '<option value="">-- Seleccionar --</option>';
+            sel.innerHTML = '<option value="">-- Seleccionar Jugadora --</option>';
             rosterFiltrado.forEach(player => {
                 let opt = document.createElement('option');
                 opt.value = player.id;
@@ -408,7 +410,6 @@
                 sel.appendChild(opt);
             });
 
-            // Auto-seleccionar jugadoras en orden si existen en el roster
             if(rosterFiltrado[i]) {
                 sel.value = rosterFiltrado[i].id;
             }
@@ -420,7 +421,6 @@
     }
 
     function confirmarEIniciarPartido() {
-        // Validar y compilar alineaciones fijas de 12 jugadoras
         let faltanLocal = false, faltanVisitante = false;
 
         ['local', 'visitante'].forEach(side => {
@@ -439,7 +439,7 @@
                     id: valId || Date.now() + i,
                     name: valId ? textName : `Refuerzo #${i+1}`,
                     pos: i < 10 ? `Posición ${i+1}` : 'BD',
-                    entradas: {} // Guardará las jugadas por inning
+                    entradas: {} 
                 });
             }
         });
@@ -450,13 +450,11 @@
             }
         }
 
-        // Configurar nombres en el Scorecard principal
         document.getElementById('pizarraLocName').textContent = juegoData.local.equipoName;
         document.getElementById('pizarraVisName').textContent = juegoData.visitante.equipoName;
         document.getElementById('tabLocal').textContent = `${juegoData.local.equipoName} (Local)`;
         document.getElementById('tabVisitante').textContent = `${juegoData.visitante.equipoName} (Visitante)`;
 
-        // Cambiar pantallas
         document.getElementById('cardConfiguracion').style.display = 'none';
         document.getElementById('cardScorecardPrincipal').style.display = 'block';
         document.getElementById('pnlControlesJuego').style.display = 'flex';
@@ -481,7 +479,6 @@
             const pBox = document.createElement('div');
             pBox.className = `player-box ${equipoEnFoco === 'local' ? 'local-box' : 'visitante-box'}`;
             
-            // Si es la bateadora activa de su equipo, le damos un fondo especial sutil
             if(sideData.indiceBateador === idx && ((equipoEnFoco === 'visitante' && !gameState.esBaja) || (equipoEnFoco === 'local' && gameState.esBaja))) {
                 pBox.style.backgroundColor = '#fffdeb';
                 pBox.style.borderRight = '5px solid var(--secondary-color)';
@@ -525,9 +522,7 @@
         });
     }
 
-    // --- ASISTENTE INTERACTIVO AUTOMATIZADO ---
     function abrirAsistenteTurno(playerIdx, inning) {
-        // Forzar a que solo se pueda anotar al equipo que está a la ofensiva reglamentariamente, o permitir libre auditoría
         const ladoOfensivo = gameState.esBaja ? 'local' : 'visitante';
         if(equipoEnFoco !== ladoOfensivo) {
             if(!confirm(`⚠️ Actualmente el turno oficial corresponde al equipo ${juegoData[ladoOfensivo].equipoName}. ¿Deseas anotar de todos modos en esta pestaña?`)) {
@@ -542,12 +537,10 @@
         document.getElementById('hdnInning').value = inning;
         document.getElementById('modalTitle').textContent = `Anotar Entrada ${inning} - ${player.name}`;
         
-        // Mostrar u ocultar controles de corredoras según el estado real de las bases actuales
         document.getElementById('itemRunner1B').style.display = gameState.corredoras.b1 !== null ? 'block' : 'none';
         document.getElementById('itemRunner2B').style.display = gameState.corredoras.b2 !== null ? 'block' : 'none';
         document.getElementById('itemRunner3B').style.display = gameState.corredoras.b3 !== null ? 'block' : 'none';
 
-        // Reset inputs
         document.getElementById('selectPlayType').value = 'H1';
         document.getElementById('inputRuta').value = '';
         validarEstructuraJugada('H1');
@@ -572,10 +565,8 @@
         let cellResult = { play: '', outNum: '', ruta: '', b1: false, b2: false, b3: false, b4: false };
         let esOutElBateador = false;
 
-        // Incrementar cuenta de bateadoras en la entrada actual para el control de la 10ma
         gameState.bateadorasEnInning++;
 
-        // 1. Resolver el destino de la Bateadora
         if (playType === 'H1') { cellResult.play = 'H'; cellResult.b1 = true; }
         else if (playType === 'H2') { cellResult.play = '2B'; cellResult.b1 = true; cellResult.b2 = true; }
         else if (playType === 'H3') { cellResult.play = '3B'; cellResult.b1 = true; cellResult.b2 = true; cellResult.b3 = true; }
@@ -590,14 +581,13 @@
             cellResult.outNum = gameState.outs;
         }
 
-        // 2. Resolver y avanzar corredoras previas interactivamente
         let nuevasBases = { b1: null, b2: null, b3: null };
 
         if (gameState.corredoras.b3 !== null && document.getElementById('itemRunner3B').style.display !== 'none') {
             const accion = document.getElementById('moveRunner3B').value;
             const idxCorredora = gameState.corredoras.b3;
             if(accion === '4B') {
-                juegoData[lado].lineup[idxCorredora].entradas[inning].b4 = true; // Anota carrera
+                juegoData[lado].lineup[idxCorredora].entradas[inning].b4 = true; 
             } else if(accion === 'OUT') {
                 gameState.outs++;
                 juegoData[lado].lineup[idxCorredora].entradas[inning].outNum = gameState.outs;
@@ -639,32 +629,24 @@
             } else { nuevasBases.b1 = idxCorredora; }
         }
 
-        // Asignar el destino de la bateadora actual en el mapa de bases vivas
         if (!esOutElBateador) {
             if(playType === 'H1' || playType === 'BB') nuevasBases.b1 = playerIdx;
             if(playType === 'H2') nuevasBases.b2 = playerIdx;
             if(playType === 'H3') nuevasBases.b3 = playerIdx;
         }
 
-        // Guardar la jugada en la ficha de la jugadora actual
         juegoData[lado].lineup[playerIdx].entradas[inning] = cellResult;
-
-        // Mapear bases del juego al nuevo estado
         gameState.corredoras = nuevasBases;
-
-        // Avanzar el orden al bate automáticamente para la siguiente jugadora (Ciclo de las 12 al bat)
         juegoData[lado].indiceBateador = (juegoData[lado].indiceBateador + 1) % 12;
 
         cerrarModal();
         recalcularPizarraLineScore();
 
-        // 3. Evaluar reglas de corte de la entrada (3 OUTS o Décima Bateadora)
-        // Recordar la regla de excepción: En la 7ma entrada no aplica regla de décima bateadora.
         if (gameState.outs >= 3) {
             alert("🚨 ¡3 OUTS completados! Cambio de media entrada automática.");
             ejecutarCambioDeMediaEntrada();
         } else if (gameState.bateadorasEnInning >= 10 && gameState.inningActual < 7) {
-            alert("💥 ¡Llegó la 10ma Bateadora Obligatoria! Se decreta el cierre forzado de la entrada reglamentaria.");
+            alert("💥 ¡Llegó la 10ma Bateadora Obligatoria! Cierre forzado de entrada.");
             forzarCierreInningPorDecima();
         } else {
             actualizarBarraEstadoJugadores();
@@ -692,7 +674,6 @@
     }
 
     function forzarCierreInningPorDecima() {
-        alert("Cerrando entrada por regla de la Décima Bateadora.");
         ejecutarCambioDeMediaEntrada();
     }
 
@@ -703,23 +684,19 @@
     }
 
     function ejecutarCambioDeMediaEntrada() {
-        // Limpiar base de corredoras y reiniciar outs de la entrada
         gameState.outs = 0;
         gameState.bateadorasEnInning = 0;
         gameState.corredoras = { b1: null, b2: null, b3: null };
 
         if (!gameState.esBaja) {
-            // Pasamos de Alta a Baja del mismo Inning
             gameState.esBaja = true;
             equipoEnFoco = 'local';
         } else {
-            // Avanzamos al siguiente Inning (Alta)
             gameState.esBaja = false;
             gameState.inningActual++;
             equipoEnFoco = 'visitante';
         }
 
-        // Si sobrepasa las 7 entradas de softbol, mantenemos fijo en la 7ma entrada extra
         if(gameState.inningActual > 7) gameState.inningActual = 7;
 
         actualizarBarraEstadoJugadores();
@@ -733,18 +710,16 @@
 
         let msgAlerta = `Bateadora #${gameState.bateadorasEnInning + 1} de la entrada.`;
         if (gameState.bateadorasEnInning === 9 && gameState.inningActual < 7) {
-            msgAlerta = `⚠️ ALERTA: ¡Viene la 10MA BATEADORA de la entrada!`;
+            msgAlerta = `⚠️ ALERTA: ¡Viene la 10MA BATEADORA!`;
         }
         document.getElementById('txtAlertaBateadora').textContent = msgAlerta;
     }
 
-    // --- GUARDADO FINAL Y SINCRONIZACIÓN EN LA NUBE ---
     function finalizarPartidoCompleto() {
-        if (!confirm("🚨 ¿Estás seguro de finalizar el partido? Se compilarán los números del partido y se sincronizarán de inmediato con los récords mundiales en Firebase.")) {
+        if (!confirm("🚨 ¿Estás seguro de finalizar el partido y sincronizar los números?")) {
             return;
         }
 
-        // 1. Descargar la base maestra de jugadoras para sumar limpiamente sin perder historiales
         fetch(firebaseURL)
         .then(res => res.json())
         .then(data => {
@@ -752,16 +727,12 @@
             if(!dbMaster.jugadoras) dbMaster.jugadoras = [];
             dbMaster.jugadoras = dbMaster.jugadoras.filter(j => j !== null);
 
-            // Procesar las estadísticas acumuladas de ambos equipos
             ['local', 'visitante'].forEach(side => {
                 juegoData[side].lineup.forEach(pScore => {
                     let ab = 0, h = 0, r = 0, bb = 0, so = 0, sf = 0;
 
                     Object.values(pScore.entradas).forEach(ent => {
-                        if (ent.play === 'H') { h++; ab++; }
-                        if (ent.play === '2B') { h++; ab++; }
-                        if (ent.play === '3B') { h++; ab++; }
-                        if (ent.play === 'HR') { h++; ab++; }
+                        if (ent.play === 'H' || ent.play === '2B' || ent.play === '3B' || ent.play === 'HR') { h++; ab++; }
                         if (ent.play === 'BB') bb++;
                         if (ent.play === 'SF') sf++;
                         if (ent.play === 'SO') { so++; ab++; }
@@ -769,7 +740,6 @@
                         if (ent.b4) r++;
                     });
 
-                    // Si la jugadora tuvo participación (al menos 1 turno, carrera, base o juego), le sumamos +1 Juego Jugado (JJ)
                     let jugoPartido = (ab > 0 || bb > 0 || sf > 0 || r > 0) ? 1 : 0;
 
                     let masterIdx = dbMaster.jugadoras.findIndex(jm => jm && jm.id == pScore.id);
@@ -782,7 +752,6 @@
                         dbMaster.jugadoras[masterIdx].so = (dbMaster.jugadoras[masterIdx].so || 0) + so;
                         dbMaster.jugadoras[masterIdx].sf = (dbMaster.jugadoras[masterIdx].sf || 0) + sf;
 
-                        // Recalcular métricas Ballscore
                         let pa = dbMaster.jugadoras[masterIdx].ab + dbMaster.jugadoras[masterIdx].bb + dbMaster.jugadoras[masterIdx].sf;
                         dbMaster.jugadoras[masterIdx].avg = dbMaster.jugadoras[masterIdx].ab > 0 ? (dbMaster.jugadoras[masterIdx].h / dbMaster.jugadoras[masterIdx].ab).toFixed(3) : ".000";
                         dbMaster.jugadoras[masterIdx].obp = pa > 0 ? ((dbMaster.jugadoras[masterIdx].h + dbMaster.jugadoras[masterIdx].bb) / pa).toFixed(3) : ".000";
@@ -790,10 +759,9 @@
                 });
             });
 
-            // 2. Crear el objeto con la pizarra de resultados para /resultados.json
             const nuevaPizarraResultado = {
-                jornada: juegoSeleccionadoRef ? (juegoSeleccionadoRef.jornada || "J-Única") : "Jornada",
-                fecha: juegoSeleccionadoRef ? (juegoSeleccionadoRef.fecha || "") : "",
+                jornada: juegoSeleccionadoRef ? juegoSeleccionadoRef.jornada : "J-Única",
+                fecha: juegoSeleccionadoRef ? juegoSeleccionadoRef.fecha : "",
                 teamHome: juegoData.local.equipoName,
                 scoreHome: juegoData.local.totalCarreras,
                 teamAway: juegoData.visitante.equipoName,
@@ -801,26 +769,18 @@
                 timestamp: Date.now()
             };
 
-            // 3. Subir el resultado de la pizarra
-            return fetch(resultadosURL, {
-                method: 'POST',
-                body: JSON.stringify(nuevaPizarraResultado)
-            });
+            return fetch(resultadosURL, { method: 'POST', body: JSON.stringify(nuevaPizarraResultado) });
         })
         .then(() => {
-            // 4. Actualizar toda la base maestra de jugadoras en Firebase
-            return fetch(firebaseURL, {
-                method: 'PUT',
-                body: JSON.stringify(dbMaster)
-            });
+            return fetch(firebaseURL, { method: 'PUT', body: JSON.stringify(dbMaster) });
         })
         .then(() => {
-            alert("🎉 ¡PARTIDO FINALIZADO Y GUARDADO CON ÉXITO! Las carreras se enviaron a las pantallas públicas y los números individuales ya se sumaron al standing y perfiles sin perder nada de información.");
+            alert("🎉 ¡PARTIDO GUARDADO CON ÉXITO!");
             window.location.href = "index.html";
-        }).catch(err => alert("Error al sincronizar datos finales: " + err));
+        }).catch(err => alert("Error al sincronizar: " + err));
     }
 
-    descargarDatosIniciales();
+    descargarDatosIniciailes();
 </script>
 </body>
 </html>
