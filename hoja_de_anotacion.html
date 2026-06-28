@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scorecard Automatizado Ballscore - VIDA GRAND SLAM</title>
-    <link rel="icon" type="image/jfif" href="IMAGEN LOGO VIDA GRAN SLAM.jfif">
+    <link rel="icon" type="image/jfif" href="IMAGEN LOGO VIDA GRAND SLAM.jfif">
     <style>
         :root {
             --primary-color: #1a472a;
@@ -105,27 +105,41 @@
         .player-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; background: #f8f9fa; padding: 8px 12px; border-radius: 6px; border: 1px solid #eee; }
         .innings-row { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 5px; }
 
+        /* DISEÑO DE CONTENEDOR REDISEÑADO CON DIAMANTE INTERNO */
         .ballscore-diamond-wrapper {
-            min-width: 85px; width: 85px; height: 85px; position: relative; background: #fff; border: 1px solid #ccd4ce; border-radius: 6px; box-sizing: border-box; cursor: pointer; transition: all 0.2s;
+            min-width: 90px; width: 90px; height: 90px; position: relative; background: #fff; border: 1px solid #ccd4ce; border-radius: 6px; box-sizing: border-box; cursor: pointer; transition: all 0.2s; overflow: hidden;
         }
         .ballscore-diamond-wrapper:hover { border-color: var(--primary-color); background: #f0faf2; }
-        .inning-tag { position: absolute; top: 3px; left: 5px; font-size: 9px; color: #888; font-weight: bold; }
         
-        .base-line { position: absolute; background: #e2e8e4; z-index: 1; transition: background 0.2s; }
-        .line-1b { width: 2px; height: 26px; top: 42px; left: 56px; transform: rotate(-45deg); }
-        .line-2b { width: 26px; height: 2px; top: 28px; left: 30px; transform: rotate(-45deg); }
-        .line-3b { width: 2px; height: 26px; top: 16px; left: 26px; transform: rotate(-45deg); }
-        .line-hp { width: 26px; height: 2px; top: 56px; left: 42px; transform: rotate(-45deg); }
+        .inning-tag { position: absolute; top: 3px; left: 5px; font-size: 9px; color: #888; font-weight: bold; z-index: 10; }
         
-        .base-line.active { background: var(--primary-color) !important; }
+        /* EL AUTÉNTICO DIAMANTE DE BÉISBOL/SOFTBOL */
+        .diamond-field {
+            position: absolute;
+            width: 44px;
+            height: 44px;
+            top: 23px;
+            left: 23px;
+            border: 2px dashed #ccd4ce;
+            transform: rotate(45deg);
+            box-sizing: border-box;
+            z-index: 1;
+            transition: all 0.2s;
+        }
+        
+        /* Pintar las bases alcanzadas sobre el diamante */
+        .diamond-field.active-1b { border-right-color: var(--primary-color); border-right-style: solid; }
+        .diamond-field.active-2b { border-top-color: var(--primary-color); border-top-style: solid; }
+        .diamond-field.active-3b { border-left-color: var(--primary-color); border-left-style: solid; }
+        .diamond-field.active-hp { border-bottom-color: var(--primary-color); border-bottom-style: solid; }
 
         .run-center-circle {
-            position: absolute; width: 18px; height: 18px; top: 33px; left: 33px; border-radius: 50%; border: 1px solid #ccd4ce; background: #fff; z-index: 3; transition: all 0.2s;
+            position: absolute; width: 16px; height: 16px; top: 37px; left: 37px; border-radius: 50%; border: 1px solid #ccd4ce; background: #fff; z-index: 3; transition: all 0.2s;
         }
-        .run-center-circle.scored { background: var(--secondary-color) !important; border-color: #bc992a; }
+        .run-center-circle.scored { background: var(--secondary-color) !important; border-color: #bc992a; transform: scale(1.1); }
 
-        .out-tag-display { position: absolute; bottom: 3px; left: 5px; font-size: 11px; font-weight: bold; color: var(--error-color); }
-        .play-text-display { position: absolute; bottom: 3px; right: 5px; font-size: 10px; font-weight: bold; color: #333; text-transform: uppercase; }
+        .out-tag-display { position: absolute; top: 3px; right: 5px; font-size: 11px; font-weight: bold; color: var(--error-color); z-index: 10; }
+        .play-text-display { position: absolute; bottom: 4px; left: 0; right: 0; text-align: center; font-size: 10px; font-weight: bold; color: #333; text-transform: uppercase; z-index: 10; letter-spacing: 0.5px; }
 
         .modal {
             display: none; position: fixed; z-index: 400; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; backdrop-filter: blur(2px);
@@ -160,8 +174,8 @@
     <div style="margin-bottom: 20px; display: flex; justify-content: space-between;">
         <a href="index.html" class="btn-secondary" style="padding: 8px 15px; font-size: 13px;">← Volver al Inicio</a>
         <div id="pnlControlesJuego" style="display:none; gap:10px;">
-            <button class="btn-warning" onclick="forzarCierreInningPorDecima()" style="padding: 8px 15px; font-size: 13px;">💥 Cierre 10ma Bateadora</button>
-            <button class="btn-danger" onclick="cambiarMitadInningManualmente()" style="padding: 8px 15px; font-size: 13px;">🔄 Cambiar Media Entrada</button>
+            <button class="btn-warning" onclick="forzarCierreInningPorDecima()">💥 Cierre 10ma Bateadora</button>
+            <button class="btn-danger" onclick="cambiarMitadInningManualmente()">🔄 Cambiar Media Entrada</button>
         </div>
     </div>
 
@@ -335,17 +349,24 @@
         })
         .then(res => res.json())
         .then(partidos => {
+            listaPartidosProgramados = [];
             if(partidos) {
-                // CAPTURA PROTEGIDA: Soportamos tanto llaves dinámicas de Firebase como variables seguras (teamHome/teamAway/equipoLocal/equipoVisitante)
-                listaPartidosProgramados = Object.keys(partidos).map(key => {
+                Object.keys(partidos).forEach(key => {
                     let p = partidos[key];
-                    return {
-                        idCloud: key,
-                        jornada: p.jornada || p.Jornada || "J-Única",
-                        fecha: p.fecha || p.Fecha || "",
-                        teamHome: p.teamHome || p.equipoLocal || p.local || "Local",
-                        teamAway: p.teamAway || p.equipoVisitante || p.visitante || "Visitante"
-                    };
+                    if (p && typeof p === 'object') {
+                        let local = p.home || p.teamHome || p.equipoLocal || "Local";
+                        let visitante = p.away || p.teamAway || p.equipoVisitante || "Visitante";
+                        let jor = p.jornada || p.Jornada || "J-Única";
+                        let fec = p.date || p.fecha || p.Fecha || "";
+
+                        listaPartidosProgramados.push({
+                            idCloud: key,
+                            jornada: jor,
+                            fecha: fec,
+                            teamHome: local,
+                            teamAway: visitante
+                        });
+                    }
                 });
             }
             llenarSelectorPartidos();
@@ -488,22 +509,20 @@
             for(let i = 1; i <= 7; i++) {
                 let c = player.entradas[i] || { play: '', outNum: '', ruta: '', b1: false, b2: false, b3: false, b4: false };
                 
-                let act1 = c.b1 ? 'active' : '';
-                let act2 = c.b2 ? 'active' : '';
-                let act3 = c.b3 ? 'active' : '';
-                let act4 = c.b4 ? 'active' : '';
+                // Mapeo seguro de clases de bordes activos para dibujar el diamante rotado
+                let cls1b = c.b1 ? 'active-1b' : '';
+                let cls2b = c.b2 ? 'active-2b' : '';
+                let cls3b = c.b3 ? 'active-3b' : '';
+                let clshp = c.b4 ? 'active-hp' : '';
                 let scoredClass = c.b4 ? 'scored' : '';
                 
-                let outDisplay = c.outNum ? `<span style="border: 1px solid red; background: #fff; border-radius:50%; width:15px; height:15px; display:inline-block; text-align:center; line-height:15px; font-size:10px;">${c.outNum}</span>` : '';
+                let outDisplay = c.outNum ? `O${c.outNum}` : '';
                 let textToShow = c.play === 'OUT' ? c.ruta : c.play;
 
                 cellsHtml += `
                     <div class="ballscore-diamond-wrapper" onclick="abrirAsistenteTurno(${idx}, ${i})">
                         <span class="inning-tag">E${i}</span>
-                        <div class="base-line line-1b ${act1}"></div>
-                        <div class="base-line line-2b ${act2}"></div>
-                        <div class="base-line line-3b ${act3}"></div>
-                        <div class="base-line line-hp ${act4}"></div>
+                        <div class="diamond-field ${cls1b} ${cls2b} ${cls3b} ${clshp}"></div>
                         <div class="run-center-circle ${scoredClass}"></div>
                         <div class="out-tag-display">${outDisplay}</div>
                         <div class="play-text-display">${textToShow}</div>
@@ -780,7 +799,7 @@
         }).catch(err => alert("Error al sincronizar: " + err));
     }
 
-    descargarDatosIniciailes();
+    descargarDatosIniciales();
 </script>
 </body>
 </html>
