@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Líderes del Torneo - VIDA GRAND SLAM</title>
+    <link rel="icon" type="image/jfif" href="IMAGEN LOGO VIDA GRAN SALM.jfif">
+    <style>
+        :root {
+            --primary-color: #1a472a; 
+            --secondary-color: #d4af37; 
+            --dark-bg: #111612;
+            --card-bg: #1c221d;
+            --text-light: #f4f7f5;
+            --accent-blue: #0b5ed7;
+            --card-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            margin: 0;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            background: linear-gradient(135deg, var(--primary-color) 0%, #0a2211 100%);
+            color: white;
+            padding: 30px 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border-bottom: 5px solid var(--secondary-color);
+            box-shadow: var(--card-shadow);
+        }
+
+        header h1 { margin: 0; font-size: 28px; text-transform: uppercase; letter-spacing: 1px; color: var(--secondary-color); }
+        header p { margin: 6px 0 0 0; font-style: italic; color: #cbd6cf; }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        .btn-back {
+            background-color: #334139;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 25px;
+            transition: background 0.2s;
+        }
+        .btn-back:hover { background-color: var(--primary-color); }
+
+        /* REJILLA DE CATEGORÍAS */
+        .leaders-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .leader-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid rgba(212, 175, 55, 0.1);
+            overflow: hidden;
+        }
+
+        .leader-card h2 {
+            background: linear-gradient(90deg, #16361a 0%, #204f27 100%);
+            margin: 0;
+            padding: 15px;
+            font-size: 16px;
+            color: var(--secondary-color);
+            text-transform: uppercase;
+            border-bottom: 2px solid var(--secondary-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .leader-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .leader-table tr {
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            transition: background 0.2s;
+        }
+        .leader-table tr:hover {
+            background-color: rgba(255,255,255,0.03);
+        }
+        .leader-table tr:last-child { border-bottom: none; }
+
+        .leader-table td {
+            padding: 14px 15px;
+            font-size: 14px;
+        }
+
+        .rank {
+            font-weight: bold;
+            width: 30px;
+            color: #888;
+            text-align: center;
+        }
+        tr:nth-child(1) .rank { color: var(--secondary-color); font-size: 18px; }
+        tr:nth-child(2) .rank { color: #b5b5b5; font-size: 16px; }
+        tr:nth-child(3) .rank { color: #cd7f32; }
+
+        .player-info {
+            font-weight: 600;
+        }
+        .player-info .team-tag {
+            display: block;
+            font-size: 11px;
+            color: #a0aba2;
+            font-weight: normal;
+            margin-top: 2px;
+        }
+
+        .stat-val {
+            text-align: right;
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--secondary-color);
+            width: 70px;
+        }
+        .broma-title .stat-val {
+            color: #ff6b6b;
+        }
+
+        .empty-msg {
+            padding: 25px;
+            text-align: center;
+            color: #888;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>🏆 Cuadro de Honor - Récords Individuales</h1>
+        <p>Líderes Oficiales de la Temporada — Torneo VIDA GRAND SLAM</p>
+    </header>
+
+    <a href="index.html" class="btn-back">← Volver al Inicio</a>
+
+    <div class="leaders-grid" id="containerLideres">
+        <div class="leader-card">
+            <h2><span>Las Rompe-Picheos</span> <span style="font-size:12px; color:#aaa;">(HITS)</span></h2>
+            <table class="leader-table" id="tableHits"></table>
+        </div>
+
+        <div class="leader-card">
+            <h2><span>Las Correcaminos</span> <span style="font-size:12px; color:#aaa;">(CARRERAS)</span></h2>
+            <table class="leader-table" id="tableCarreras"></table>
+        </div>
+
+        <div class="leader-card">
+            <h2><span>Ojo de Águila 🦅</span> <span style="font-size:12px; color:#aaa;">(BASES X BOLA)</span></h2>
+            <table class="leader-table" id="tableBases"></table>
+        </div>
+
+        <div class="leader-card">
+            <h2><span>Las que No Sueltan el Bat</span> <span style="font-size:12px; color:#aaa;">(TURNOS AB)</span></h2>
+            <table class="leader-table" id="tableTurnos"></table>
+        </div>
+
+        <div class="leader-card">
+            <h2><span>La Asistencia Perfecta 📆</span> <span style="font-size:12px; color:#aaa;">(JUEGOS JJ)</span></h2>
+            <table class="leader-table" id="tableJuegos"></table>
+        </div>
+
+        <div class="leader-card" style="border-color: rgba(186,26,26,0.3);">
+            <h2 class="broma-title" style="background: linear-gradient(90deg, #421111 0%, #210909 100%);">
+                <span style="color:#ff6b6b;">Las Más Abanicadoras 💨</span> <span style="font-size:12px; color:#999;">(PONCHES)</span>
+            </h2>
+            <table class="leader-table" id="tablePonches"></table>
+        </div>
+    </div>
+</div>
+
+<script>
+    const firebaseURL = 'https://vidagrandslam-default-rtdb.firebaseio.com/torneo.json';
+    let listaJugadoras = [];
+
+    function descargarDatosNube() {
+        fetch(firebaseURL)
+        .then(res => res.json())
+        .then(data => {
+            if (data && data.jugadoras) {
+                listaJugadoras = data.jugadoras.filter(j => j !== null);
+            }
+            compilarYRenderizarLideres();
+        }).catch(err => console.error("Error cargando los líderes:", err));
+    }
+
+    function compilarYRenderizarLideres() {
+        // Filtramos solo las jugadoras que tengan algún registro activo de participación
+        let activas = listaJugadoras.filter(j => (j.jj || 0) > 0 || (j.ab || 0) > 0 || (j.bb || 0) > 0);
+
+        if(activas.length === 0) {
+            let tablas = ['tableHits', 'tableCarreras', 'tableBases', 'tableTurnos', 'tableJuegos', 'tablePonches'];
+            tablas.forEach(id => {
+                document.getElementById(id).innerHTML = '<tr><td class="empty-msg">Aún no hay récords registrados esta jornada.</td></tr>';
+            });
+            return;
+        }
+
+        // Ordenar cada lista de mayor a menor según su estadística correspondiente
+        renderizarTablaEspecitica('tableHits', [...activas].sort((a,b) => (b.h || 0) - (a.h || 0)), 'h');
+        renderizarTablaEspecitica('tableCarreras', [...activas].sort((a,b) => (b.r || 0) - (a.r || 0)), 'r');
+        renderizarTablaEspecitica('tableBases', [...activas].sort((a,b) => (b.bb || 0) - (a.bb || 0)), 'bb');
+        renderizarTablaEspecitica('tableTurnos', [...activas].sort((a,b) => (b.ab || 0) - (a.ab || 0)), 'ab');
+        renderizarTablaEspecitica('tableJuegos', [...activas].sort((a,b) => (b.jj || 0) - (a.jj || 0)), 'jj');
+        renderizarTablaEspecitica('tablePonches', [...activas].sort((a,b) => (b.so || 0) - (a.so || 0)), 'so');
+    }
+
+    function renderizarTablaEspecitica(idTabla, listaOrdenada, propiedad) {
+        const tabla = document.getElementById(idTabla);
+        tabla.innerHTML = '';
+
+        // Extraer únicamente al Top 5 de líderes
+        const top5 = listaOrdenada.slice(0, 5);
+
+        top5.forEach((player, index) => {
+            const tr = document.createElement('tr');
+            
+            let rankBadge = index + 1;
+            if(index === 0) rankBadge = '🥇';
+            if(index === 1) rankBadge = '🥈';
+            if(index === 2) rankBadge = '🥉';
+
+            let valorEstadistica = player[propiedad] || 0;
+
+            tr.innerHTML = `
+                <td class="rank">${rankBadge}</td>
+                <td class="player-info">
+                    ${player.name}
+                    <span class="team-tag">Equipo: ${player.team || 'Sin Equipo'}</span>
+                </td>
+                <td class="stat-val">${valorEstadistica}</td>
+            `;
+            tabla.appendChild(tr);
+        });
+    }
+
+    descargarDatosNube();
+</script>
+</body>
+</html>

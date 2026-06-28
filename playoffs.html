@@ -243,57 +243,75 @@
 </div>
 
 <script>
+    const firebasePlayoffsControlURL = 'https://vidagrandslam-default-rtdb.firebaseio.com/playoffs_control.json';
     const firebaseStandingsURL = 'https://vidagrandslam-default-rtdb.firebaseio.com/posiciones.json';
 
-    function construirPlayoffs() {
-        fetch(firebaseStandingsURL)
+    function construirPlayoffsPublico() {
+        fetch(firebasePlayoffsControlURL)
         .then(res => res.json())
-        .then(posicionesData => {
-            if (!posicionesData) {
-                document.getElementById('loadingMessage').innerText = 'No se encontraron datos en el standing para estructurar los playoffs.';
+        .then(pData => {
+            if(!pData) {
+                mapearRespaldoAutomaticoStanding();
                 return;
             }
 
-            // Convertir de objeto a array si es necesario y limpiar registros nulos
-            let listaEquipos = Array.isArray(posicionesData) 
-                ? posicionesData.filter(Boolean) 
-                : Object.values(posicionesData);
-
-            if (listaEquipos.length < 8) {
-                document.getElementById('loadingMessage').innerHTML = `<span style="color: var(--secondary-color);">Se necesitan mínimo 8 equipos con estadísticas en el standing para desplegar los cruces completos. Actualmente hay: ${listaEquipos.length}</span>`;
-                return;
-            }
-
-            // Ocultamos el mensaje de carga y mostramos la estructura del bracket
             document.getElementById('loadingMessage').style.display = 'none';
             document.getElementById('bracketDisplay').style.display = 'flex';
 
-            // Asignación automatizada de los cruces oficiales por posición
-            // Cruce 1: 1° vs 8°
-            document.getElementById('q1-t1').innerText = listaEquipos[0].name;
-            document.getElementById('q1-t2').innerText = listaEquipos[7].name;
+            // 1. Renderizar Cuartos de Final (Muestra los marcadores a la derecha)
+            document.getElementById('q1-t1').innerHTML = `${pData.q1_t1 || 'Por definir'} <span style="float:right; color:var(--secondary-color); font-weight:bold;">${pData.q1_s1}</span>`;
+            document.getElementById('q1-t2').innerHTML = `${pData.q1_t2 || 'Por definir'} <span style="float:right; color:var(--secondary-color); font-weight:bold;">${pData.q1_s2}</span>`;
 
-            // Cruce 2: 4° vs 5°
-            document.getElementById('q2-t1').innerText = listaEquipos[3].name;
-            document.getElementById('q2-t2').innerText = listaEquipos[4].name;
+            document.getElementById('q2-t1').innerHTML = `${pData.q2_t1 || 'Por definir'} <span style="float:right; color:var(--secondary-color); font-weight:bold;">${pData.q2_s1}</span>`;
+            document.getElementById('q2-t2').innerHTML = `${pData.q2_t2 || 'Por definir'} <span style="float:right; color:var(--secondary-color); font-weight:bold;">${pData.q2_s2}</span>`;
 
-            // Cruce 3: 2° vs 7°
-            document.getElementById('q3-t1').innerText = listaEquipos[1].name;
-            document.getElementById('q3-t2').innerText = listaEquipos[6].name;
+            document.getElementById('q3-t1').innerHTML = `${pData.q3_t1 || 'Por definir'} <span style="float:right; color:var(--secondary-color); font-weight:bold;">${pData.q3_s1}</span>`;
+            document.getElementById('q3-t2').innerHTML = `${pData.q3_t2 || 'Por definir'} <span style="float:right; color:var(--secondary-color); font-weight:bold;">${pData.q3_s2}</span>`;
 
-            // Cruce 4: 3° vs 6°
-            document.getElementById('q4-t1').innerText = listaEquipos[2].name;
-            document.getElementById('q4-t2').innerText = listaEquipos[5].name;
-        })
-        .catch(err => {
-            document.getElementById('loadingMessage').innerHTML = '<span style="color: red;">Error crítico al enlazar con el servidor de la liga.</span>';
-            console.error(err);
+            document.getElementById('q4-t1').innerHTML = `${pData.q4_t1 || 'Por definir'} <span style="float:right; color:var(--secondary-color); font-weight:bold;">${pData.q4_s1}</span>`;
+            document.getElementById('q4-t2').innerHTML = `${pData.q4_t2 || 'Por definir'} <span style="float:right; color:var(--secondary-color); font-weight:bold;">${pData.q4_s2}</span>`;
+
+            // 2. Renderizar Semifinales (Serie 2 de 3)
+            const roundS = document.querySelectorAll('.round')[1].querySelectorAll('.matchup');
+            roundS[0].querySelectorAll('.team-row')[0].innerHTML = `<div class="team-info"><span class="seed">Ganador A</span><span>${pData.s1_t1 || 'Por definir'}</span></div><span style="color:var(--secondary-color); font-weight:bold;">${pData.s1_s1}</span>`;
+            roundS[0].querySelectorAll('.team-row')[1].innerHTML = `<div class="team-info"><span class="seed">Ganador B</span><span>${pData.s1_t2 || 'Por definir'}</span></div><span style="color:var(--secondary-color); font-weight:bold;">${pData.s1_s2}</span>`;
+
+            roundS[1].querySelectorAll('.team-row')[0].innerHTML = `<div class="team-info"><span class="seed">Ganador C</span><span>${pData.s2_t1 || 'Por definir'}</span></div><span style="color:var(--secondary-color); font-weight:bold;">${pData.s2_s1}</span>`;
+            roundS[1].querySelectorAll('.team-row')[1].innerHTML = `<div class="team-info"><span class="seed">Ganador D</span><span>${pData.s2_t2 || 'Por definir'}</span></div><span style="color:var(--secondary-color); font-weight:bold;">${pData.s2_s2}</span>`;
+
+            // 3. Renderizar Gran Final
+            const roundF = document.querySelectorAll('.round')[2].querySelector('.matchup');
+            roundF.querySelectorAll('.team-row')[0].innerHTML = `<div class="team-info"><span class="seed">Finalist A</span><span>${pData.f_t1 || 'Por definir'}</span></div><span style="color:var(--secondary-color); font-weight:bold;">${pData.f_s1}</span>`;
+            roundF.querySelectorAll('.team-row')[1].innerHTML = `<div class="team-info"><span class="seed">Finalist B</span><span>${pData.f_t2 || 'Por definir'}</span></div><span style="color:var(--secondary-color); font-weight:bold;">${pData.f_s2}</span>`;
+
+            // Opcional: Coronar visualmente si ya hay campeón (2 juegos ganados)
+            if (pData.f_s1 >= 2 || pData.f_s2 >= 2) {
+                let campeon = (pData.f_s1 > pData.f_s2) ? pData.f_t1 : pData.f_t2;
+                document.querySelector('.round-title:last-of-type').innerHTML = `🏆 ¡CAMPEÓN!: ${campeon.toUpperCase()}`;
+            }
+        }).catch(err => console.error(err));
+    }
+
+    function mapearRespaldoAutomaticoStanding() {
+        fetch(firebaseStandingsURL)
+        .then(res => res.json())
+        .then(posionesData => {
+            if(posionesData) {
+                let lista = Array.isArray(posionesData) ? posionesData.filter(Boolean) : Object.values(posionesData);
+                if(lista.length >= 8) {
+                    document.getElementById('loadingMessage').style.display = 'none';
+                    document.getElementById('bracketDisplay').style.display = 'flex';
+                    document.getElementById('q1-t1').innerText = lista[0].name; document.getElementById('q1-t2').innerText = lista[7].name;
+                    document.getElementById('q2-t1').innerText = lista[3].name; document.getElementById('q2-t2').innerText = lista[4].name;
+                    document.getElementById('q3-t1').innerText = lista[1].name; document.getElementById('q3-t2').innerText = lista[6].name;
+                    document.getElementById('q4-t1').innerText = lista[2].name; document.getElementById('q4-t2').innerText = lista[5].name;
+                }
+            }
         });
     }
 
-    // Actualización automatizada cada minuto
-    setInterval(construirPlayoffs, 60000);
-    construirPlayoffs();
+    setInterval(construirPlayoffsPublico, 30000);
+    construirPlayoffsPublico();
 </script>
 </body>
 </html>
