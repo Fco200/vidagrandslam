@@ -382,10 +382,11 @@
                 Object.keys(partidos).forEach(key => {
                     let p = partidos[key];
                     if (p && typeof p === 'object') {
-                        let local = p.home || p.teamHome || p.equipoLocal || "Local";
-                        let visitante = p.away || p.teamAway || p.equipoVisitante || "Visitante";
-                        let jor = p.jornada || p.Jornada || "J-Única";
-                        let fec = p.date || p.fecha || p.Fecha || "";
+                        // REPARACIÓN ENLACE CLOUD: Escaneamos con prioridad las variables reales de tu Firebase (Fecha, Local, Visitante, Jornada)
+                        let local = p.Local || p.home || p.teamHome || "Local";
+                        let visitante = p.Visitante || p.away || p.teamAway || "Visitante";
+                        let jor = p.Jornada || p.jornada || "J-Única";
+                        let fec = p.Fecha || p.date || p.fecha || "";
 
                         listaPartidosProgramados.push({
                             idCloud: key,
@@ -397,10 +398,6 @@
                     }
                 });
             }
-            
-            const selectElement = document.getElementById('selectGameCloud');
-            selectElement.id = "selectGameCloud";
-            
             llenarSelectorPartidos();
         }).catch(err => console.error("Error cargando el ecosistema:", err));
     }
@@ -668,10 +665,8 @@
     }
 
     function validarEstructuraJugada(val) {
-        // Habilitar la casilla de ruta defensiva para Out y Fielder's Choice
         document.getElementById('boxRutaDefensiva').style.display = (val === 'OUT' || val === 'FC') ? 'block' : 'none';
 
-        // PREDICCIONES AUTOMÁTICAS SUGERIDAS (CONFIRMABLES POR EL USUARIO)
         if (val === 'BB') {
             if (gameState.corredoras.b1 !== null) document.getElementById('moveRunner1B').value = '2B';
             if (gameState.corredoras.b1 !== null && gameState.corredoras.b2 !== null) document.getElementById('moveRunner2B').value = '3B';
@@ -693,7 +688,6 @@
             if (gameState.corredoras.b1 !== null) document.getElementById('moveRunner1B').value = '4B';
         }
         else if (val === 'FC') {
-            // Fielder's choice: La bateadora ocupa primera base de forma inicial
             if (gameState.corredoras.b1 !== null) document.getElementById('moveRunner1B').value = '2B';
         }
     }
@@ -715,7 +709,7 @@
 
         if (playType === 'H1') { cellResult.play = 'H'; cellResult.b1 = true; }
         else if (playType === 'H2') { cellResult.play = '2B'; cellResult.b1 = true; cellResult.b2 = true; }
-        else if (playType === 'H3') { cellResult.play = '3B'; cellResult.b1 = true; cellResult.b2 = true; cellResult.b3 = true; }
+        else if (playType === 'H3') { cellResult.play = '3B'; cellResult.b1 = true; cellResult.b2 = true; strokeResult = '3B'; cellResult.b3 = true; }
         else if (playType === 'HR') { cellResult.play = 'HR'; cellResult.b1 = true; cellResult.b2 = true; cellResult.b3 = true; cellResult.b4 = true; }
         else if (playType === 'BB') { cellResult.play = 'BB'; cellResult.b1 = true; }
         else if (playType === 'SF') { cellResult.play = 'SF'; esOutElBateador = true; }
@@ -785,6 +779,7 @@
         juegoData[lado].lineup[playerIdx].entradas[inning] = cellResult;
         gameState.corredoras = nuevasBases;
         
+        // CORRECCIÓN CONTINUIDAD TANDA AL BAT: Avanzamos de forma circular secuencial estricta sobre el lineup
         juegoData[lado].indiceBateador = (juegoData[lado].indiceBateador + 1) % 12;
 
         cerrarModal();
@@ -835,6 +830,7 @@
         }
     }
 
+    // MEMORIA DEL ORDEN AL BAT: Al rotar la media entrada, conservamos congelado el "indiceBateador" intacto
     function ejecutarCambioDeMediaEntrada() {
         gameState.outs = 0;
         gameState.bateadorasEnInning = 0;
@@ -913,7 +909,6 @@
         let ab = 0, h = 0, r = 0, bb = 0, so = 0, sf = 0;
 
         Object.values(mapaEntradas).forEach(ent => {
-            // El Fielder's Choice (FC) cuenta como turno oficial (AB) pero NO como hit (H)
             if (ent.play === 'H' || ent.play === '2B' || ent.play === '3B' || ent.play === 'HR') { h++; ab++; }
             if (ent.play === 'BB') bb++;
             if (ent.play === 'SF') sf++;
@@ -940,7 +935,7 @@
         }
     }
 
-    descargarDatosInitiales();
+    descargarDatosIniciales();
 </script>
 </body>
 </html>
