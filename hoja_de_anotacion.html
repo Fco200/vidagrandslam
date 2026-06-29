@@ -78,15 +78,17 @@
 
         .game-status-bar {
             display: flex;
-            gap: 15px;
+            flex-direction: column;
+            gap: 10px;
             background: #e9ecef;
-            padding: 12px 20px;
+            padding: 15px 20px;
             border-radius: 8px;
             margin-bottom: 20px;
             font-weight: bold;
             font-size: 15px;
-            align-items: center;
-            justify-content: space-between;
+        }
+        @media(min-width: 768px) {
+            .game-status-bar { flex-direction: row; justify-content: space-between; align-items: center; }
         }
 
         .tabs-container { display: flex; gap: 8px; margin-bottom: 15px; }
@@ -112,16 +114,7 @@
         .inning-tag { position: absolute; top: 3px; left: 5px; font-size: 9px; color: #888; font-weight: bold; z-index: 10; }
         
         .diamond-field {
-            position: absolute;
-            width: 44px;
-            height: 44px;
-            top: 23px;
-            left: 23px;
-            border: 2px dashed #ccd4ce;
-            transform: rotate(45deg);
-            box-sizing: border-box;
-            z-index: 1;
-            transition: all 0.2s;
+            position: absolute; width: 44px; height: 44px; top: 23px; left: 23px; border: 2px dashed #ccd4ce; transform: rotate(45deg); box-sizing: border-box; z-index: 1; transition: all 0.2s;
         }
         
         .diamond-field.active-1b { border-right-color: var(--primary-color); border-right-style: solid; }
@@ -140,7 +133,7 @@
         .modal {
             display: none; position: fixed; z-index: 400; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; backdrop-filter: blur(2px);
         }
-        .modal-content { background: white; padding: 25px; border-radius: 12px; max-width: 460px; width: 95%; max-height: 92vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .modal-content { background: white; padding: 25px; border-radius: 12px; max-width: 480px; width: 95%; max-height: 92vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         .modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
 
         .runner-control-box {
@@ -157,8 +150,24 @@
         .btn-danger:hover { background-color: #931414; }
         .btn-sub { background-color: #6c757d; font-size: 11px; padding: 4px 8px; border-radius: 4px; font-weight: bold; text-transform: none; width: auto; }
         .btn-sub:hover { background-color: #495057; }
+        .btn-undo { background-color: #ffc107; color: #000; padding: 8px 15px; font-size: 13px; }
+        .btn-undo:hover { background-color: #e0a800; }
+
+        .save-options-list { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+        .save-opt-btn { background-color: #e9ecef; color: #333; text-align: left; padding: 12px; border-radius: 6px; border: 1px solid #ccd4ce; font-weight: 600; text-transform: none; font-size: 14px; }
+        .save-opt-btn:hover { background-color: var(--primary-color); color: white; border-color: transparent; }
 
         .roster-select-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 15px; }
+
+        @media print {
+            body { background: white; color: black; padding: 0; }
+            header, .btn-secondary, #pnlControlesJuego, .tabs-container, .btn-sub, button, #btnFinalizarAccionPrincipal { display: none !important; }
+            .card { box-shadow: none; padding: 0; margin-bottom: 20px; border: none; }
+            #cardScorecardPrincipal { display: block !important; }
+            .ballscore-diamond-wrapper { border-color: #000; background: #fff !important; }
+            .player-box { border: 1px solid #000; margin-bottom: 10px; page-break-inside: avoid; }
+            .player-header { background: #eee; border-bottom: 1px solid #000; }
+        }
     </style>
 </head>
 <body>
@@ -170,10 +179,13 @@
     </header>
     
     <div style="margin-bottom: 20px; display: flex; justify-content: space-between;">
-        <a href="index.html" class="btn-secondary" style="padding: 8px 15px; font-size: 13px;">← Volver al Inicio</a>
+        <div style="display:flex; gap:10px;">
+            <a href="admin.html" class="btn-secondary" style="padding: 8px 15px; font-size: 13px;">← Panel Admin</a>
+            <button id="btnUndoAction" class="btn-undo" onclick="deshacerUltimaJugada()" style="display:none;">↩ Deshacer (Ctrl+Z)</button>
+        </div>
         <div id="pnlControlesJuego" style="display:none; gap:10px;">
-            <button class="btn-warning" onclick="forzarCierreInningPorDecima()">💥 Cierre 10ma Bateadora</button>
-            <button class="btn-danger" onclick="cambiarMitadInningManualmente()">🔄 Cambiar Media Entrada</button>
+            <button class="btn-warning" onclick="forzarCierreInningPorDecima()" style="padding: 8px 15px; font-size: 13px;">💥 Cierre 10ma Bateadora</button>
+            <button class="btn-danger" onclick="cambiarMitadInningManualmente()" style="padding: 8px 15px; font-size: 13px;">🔄 Cambiar Media Entrada</button>
         </div>
     </div>
 
@@ -209,7 +221,10 @@
             <div class="game-status-bar">
                 <div>Entrada: <span id="txtCurrentInning" style="color:var(--primary-color);">1ra Alta</span></div>
                 <div>Outs: <span id="txtCurrentOuts" style="color:var(--error-color);">0 OUT</span></div>
-                <div>Pizarra de Alerta: <span id="txtAlertaBateadora" style="color:#666;">Bateadora 1 de la entrada</span></div>
+                <div style="color:var(--primary-color); background-color:rgba(26,71,42,0.1); padding:4px 10px; border-radius:4px;">
+                    ⚾ Bateando: <span id="txtActiveBatterName">Por definir</span>
+                </div>
+                <div>Alerta: <span id="txtAlertaBateadora" style="color:#666;">Bateadora 1</span></div>
             </div>
         </div>
 
@@ -219,32 +234,30 @@
         </div>
 
         <div class="card">
-            <h2 id="lineupTitle">Rombos Colectivos Ballscore</h2>
+            <h2>Rombos Colectivos Ballscore</h2>
             <div id="lineupScoreboard"></div>
         </div>
 
-        <button onclick="finalizarPartidoCompleto()" style="background: var(--secondary-color); color: black; font-size: 16px; margin-bottom: 50px; width:100%; height: 52px; box-shadow: 0 4px 10px rgba(212,175,55,0.25);">Cerrar Juego y Sincronizar Estadísticas Globales</button>
+        <button id="btnFinalizarAccionPrincipal" onclick="abrirModalOpcionesCierre()" style="background: var(--secondary-color); color: black; font-size: 16px; margin-bottom: 50px; width:100%; height: 52px; box-shadow: 0 4px 10px rgba(212,175,55,0.25);">Cerrar Juego y Subir Datos</button>
     </div>
 </div>
 
 <div id="lineupSetupModal" class="modal">
     <div class="modal-content" style="max-width:900px; width:95%;">
-        <h3 style="margin-top:0; color:var(--primary-color); border-bottom:2px solid #eee; padding-bottom:10px;">Alistar Alineaciones Oficiales del Encuentro</h3>
-        <p style="font-size:13px; color:#555; margin-bottom:15px;">Selecciona el orden al bat oficial de las 12 jugadoras para cada equipo para este juego.</p>
-        
+        <h3>Alistar Alineaciones Oficiales del Encuentro</h3>
+        <p style="font-size:13px; color:#555; margin-bottom:15px;">Selecciona el orden al bat oficial de las 12 jugadoras para cada equipo.</p>
         <div class="row">
             <div class="col">
-                <h4 id="lblLocalSetupTitle" style="color:var(--local-color); font-size:14px; margin:0 0 10px 0;">Line-up Local</h4>
-                <div id="containerRosterLocal" style="max-height:55vh; overflow-y:auto; padding-right:5px;"></div>
+                <h4 id="lblLocalSetupTitle" style="color:var(--local-color); font-size:14px;">Line-up Local</h4>
+                <div id="containerRosterLocal" style="max-height:55vh; overflow-y:auto;"></div>
             </div>
             <div class="col">
-                <h4 id="lblVisitanteSetupTitle" style="color:var(--visitante-color); font-size:14px; margin:0 0 10px 0;">Line-up Visitante</h4>
-                <div id="containerRosterVisitante" style="max-height:55vh; overflow-y:auto; padding-right:5px;"></div>
+                <h4 id="lblVisitanteSetupTitle" style="color:var(--visitante-color); font-size:14px;">Line-up Visitante</h4>
+                <div id="containerRosterVisitante" style="max-height:55vh; overflow-y:auto;"></div>
             </div>
         </div>
-
         <div class="modal-actions" style="grid-template-columns:1fr;">
-            <button onclick="confirmarEIniciarPartido()" style="background-color:var(--primary-color); height:45px;">Confirmar y Activar Hoja de Anotación Digital</button>
+            <button onclick="confirmarEIniciarPartido()">Confirmar y Activar Hoja</button>
         </div>
     </div>
 </div>
@@ -253,7 +266,6 @@
     <div class="modal-content">
         <h3 id="modalTitle" style="margin-top:0; color: var(--primary-color);">Registrar Turno</h3>
         <p id="modalSubtitle" style="font-size:13px; color:#666; margin-bottom:15px;"></p>
-        
         <input type="hidden" id="hdnPlayerIdx">
         <input type="hidden" id="hdnInning">
 
@@ -273,32 +285,29 @@
         </div>
 
         <div id="boxRutaDefensiva" style="margin-top:12px; display:none;">
-            <label for="inputRuta">Ruta o Asistencia de la jugada (Ej: 43, 63, 5-4):</label>
-            <input type="text" id="inputRuta" placeholder="Escribe los números de las posiciones">
+            <label for="inputRuta">Ruta o Asistencia de la jugada (Ej: 43, 63):</label>
+            <input type="text" id="inputRuta" placeholder="Escribe posiciones">
         </div>
 
         <div id="boxControlCorredoras" style="margin-top:15px;">
-            <h4 style="margin:0 0 8px 0; font-size:13px; text-transform:uppercase; color:#333;">2. Destino de las Corredoras en Base (Sugerencia Inteligente):</h4>
-            
+            <h4>2. Destino de las Corredoras en Base:</h4>
             <div id="itemRunner3B" class="runner-control-box" style="display:none;">
                 <label>Corredora en 3ra Base:</label>
                 <select id="moveRunner3B">
                     <option value="3B">Se queda en 3ra</option>
                     <option value="4B" selected>Anota Carrera (Home)</option>
-                    <option value="OUT">Fue Out (En jugada o base)</option>
+                    <option value="OUT">Fue Out</option>
                 </select>
             </div>
-
             <div id="itemRunner2B" class="runner-control-box" style="display:none;">
                 <label>Corredora en 2da Base:</label>
                 <select id="moveRunner2B">
                     <option value="2B">Se queda en 2da</option>
                     <option value="3B">Avanza a 3ra</option>
                     <option value="4B">Anota Carrera (Home)</option>
-                    <option value="OUT">Fue Out (En jugada o base)</option>
+                    <option value="OUT">Fue Out</option>
                 </select>
             </div>
-
             <div id="itemRunner1B" class="runner-control-box" style="display:none;">
                 <label>Corredora en 1ra Base:</label>
                 <select id="moveRunner1B">
@@ -306,13 +315,12 @@
                     <option value="2B" selected>Avanza a 2da</option>
                     <option value="3B">Avanza a 3ra</option>
                     <option value="4B">Anota Carrera (Home)</option>
-                    <option value="OUT">Fue Out (En jugada o base)</option>
+                    <option value="OUT">Fue Out</option>
                 </select>
             </div>
         </div>
-
         <div class="modal-actions">
-            <button onclick="procesarJugadaAutomatica()" style="background-color: var(--primary-color);">Aplicar Turno</button>
+            <button onclick="procesarJugadaAutomatica()">Aplicar Turno</button>
             <button onclick="cerrarModal()" class="btn-secondary">Cancelar</button>
         </div>
     </div>
@@ -320,20 +328,31 @@
 
 <div id="substituteModal" class="modal">
     <div class="modal-content">
-        <h3 style="margin-top:0; color:var(--primary-color);">Realizar Cambio / Sustitución</h3>
-        <p style="font-size:13px; color:#555; margin-bottom:15px;">Selecciona la jugadora de la banca para entrar al encuentro en esta posición del line-up.</p>
+        <h3>Realizar Cambio / Sustitución</h3>
         <input type="hidden" id="hdnSubPlayerIdx">
-        
         <div class="form-group">
             <label for="selectBenchedPlayer">Sustituta Disponible de la Banca:</label>
-            <select id="selectBenchedPlayer">
-                <option value="">-- No hay jugadoras en la banca --</option>
-            </select>
+            <select id="selectBenchedPlayer"></select>
         </div>
-
         <div class="modal-actions">
             <button onclick="aplicarSustitucionRoster()">Confirmar Cambio</button>
             <button onclick="cerrarModalSub()" class="btn-secondary">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<div id="saveOptionsModal" class="modal">
+    <div class="modal-content">
+        <h3 style="margin-top:0; color:var(--primary-color);">Cierre de Encuentro Oficial</h3>
+        <p style="font-size:13px; color:#555; margin-bottom:15px;">¿Qué información deseas compilar y transmitir a la nube para cerrar este juego?</p>
+        
+        <div class="save-options-list">
+            <button class="save-opt-btn" onclick="ejecutarCierreConOpcion('resultado')">📊 Guardar ÚNICAMENTE el Marcador General (Pizarra)</button>
+            <button class="save-opt-btn" onclick="ejecutarCierreConOpcion('estadisticas')">🥎 Guardar ÚNICAMENTE las Estadísticas de las Jugadoras</button>
+            <button class="save-opt-btn" onclick="ejecutarCierreConOpcion('ambos')" style="background-color:var(--primary-color); color:white;">🔥 Guardar AMBOS Registros (Marcador y Estadísticas)</button>
+        </div>
+        <div class="modal-actions" style="grid-template-columns:1fr; margin-top:20px;">
+            <button onclick="cerrarModalCierre()" class="btn-secondary">Regresar a la Hoja</button>
         </div>
     </div>
 </div>
@@ -363,6 +382,10 @@
         visitante: { equipoName: '', lineup: [], carrerasPorInning: [0,0,0,0,0,0,0], totalCarreras: 0, indiceBateador: 0, historialCambios: [] }
     };
 
+    // Pila de historial para la función de deshacer (Ctrl + Z)
+    let undoHistoryStack = [];
+    let seleccionCierreOpcion = 'ambos';
+
     function descargarDatosIniciales() {
         fetch(firebaseURL)
         .then(res => res.json())
@@ -382,7 +405,6 @@
                 Object.keys(partidos).forEach(key => {
                     let p = partidos[key];
                     if (p && typeof p === 'object') {
-                        // REPARACIÓN ENLACE CLOUD: Escaneamos con prioridad las variables reales de tu Firebase (Fecha, Local, Visitante, Jornada)
                         let local = p.Local || p.home || p.teamHome || "Local";
                         let visitante = p.Visitante || p.away || p.teamAway || "Visitante";
                         let jor = p.Jornada || p.jornada || "J-Única";
@@ -399,7 +421,7 @@
                 });
             }
             llenarSelectorPartidos();
-        }).catch(err => console.error("Error cargando el ecosistema:", err));
+        }).catch(err => console.error("Error:", err));
     }
 
     function llenarSelectorPartidos() {
@@ -416,67 +438,46 @@
     function activarBotonLineup() {
         const idGame = document.getElementById('selectGameCloud').value;
         juegoSeleccionadoRef = listaPartidosProgramados.find(p => p.idCloud === idGame);
-
-        if(!juegoSeleccionadoRef) {
-            document.getElementById('btnOpenLineupModal').style.display = 'none';
-            return;
-        }
-
-        document.getElementById('btnOpenLineupModal').style.display = 'block';
+        document.getElementById('btnOpenLineupModal').style.display = juegoSeleccionadoRef ? 'block' : 'none';
     }
 
     function abrirModalLineupInicial() {
         juegoData.local.equipoName = juegoSeleccionadoRef.teamHome;
         juegoData.visitante.equipoName = juegoSeleccionadoRef.teamAway;
-
         document.getElementById('lblLocalSetupTitle').textContent = `Line-up Local: ${juegoData.local.equipoName}`;
         document.getElementById('lblVisitanteSetupTitle').textContent = `Line-up Visitante: ${juegoData.visitante.equipoName}`;
-
         desplegarSelectoresModal('local', juegoData.local.equipoName);
         desplegarSelectoresModal('visitante', juegoData.visitante.equipoName);
-
         document.getElementById('lineupSetupModal').style.display = 'flex';
     }
 
     function desplegarSelectoresModal(lado, equipoName) {
         const container = document.getElementById(lado === 'local' ? 'containerRosterLocal' : 'containerRosterVisitante');
         container.innerHTML = '';
-
         const rosterFiltrado = dbMaster.jugadoras.filter(j => j && j.team === equipoName);
 
         for (let i = 0; i < 12; i++) {
             const div = document.createElement('div');
             div.className = 'form-group';
             div.style.marginBottom = '8px';
-            
             const labelStr = document.createElement('label');
             labelStr.textContent = `Bateadora #${i + 1} ${i >= 10 ? '(BD)' : ''}:`;
             labelStr.style.fontSize = '11px';
 
             const sel = document.createElement('select');
             sel.id = `sel_${lado}_${i}`;
-            
             sel.innerHTML = '<option value="">-- Seleccionar Jugadora --</option>';
             rosterFiltrado.forEach(player => {
-                let opt = document.createElement('option');
-                opt.value = player.id;
-                opt.textContent = player.name;
-                sel.appendChild(opt);
+                sel.add(new Option(player.name, player.id));
             });
 
-            if(rosterFiltrado[i]) {
-                sel.value = rosterFiltrado[i].id;
-            }
-
-            div.appendChild(labelStr);
-            div.appendChild(sel);
-            container.appendChild(div);
+            if(rosterFiltrado[i]) sel.value = rosterFiltrado[i].id;
+            div.appendChild(labelStr); div.appendChild(sel); container.appendChild(div);
         }
     }
 
     function confirmarEIniciarPartido() {
         let faltanLocal = false, faltanVisitante = false;
-
         ['local', 'visitante'].forEach(side => {
             juegoData[side].lineup = [];
             juegoData[side].historialCambios = []; 
@@ -485,38 +486,23 @@
                 const valId = document.getElementById(`sel_${side}_${i}`).value;
                 const selectElement = document.getElementById(`sel_${side}_${i}`);
                 const textName = selectElement.options[selectElement.selectedIndex].text;
-
-                if(!valId) {
-                    if(side === 'local') faltanLocal = true;
-                    else faltanVisitante = true;
-                }
-
-                juegoData[side].lineup.push({
-                    id: valId || Date.now() + i,
-                    name: valId ? textName : `Refuerzo #${i+1}`,
-                    pos: i < 10 ? `Posición ${i+1}` : 'BD',
-                    entradas: {} 
-                });
+                if(!valId) { if(side === 'local') faltanLocal = true; else  faltanVisitante = true; }
+                juegoData[side].lineup.push({ id: valId || Date.now() + i, name: valId ? textName : `Refuerzo #${i+1}`, pos: i < 10 ? `Posición ${i+1}` : 'BD', entradas: {} });
             }
         });
 
-        if(faltanLocal || faltanVisitante) {
-            if(!confirm("⚠️ Algunas casillas de bateadoras quedaron vacías. ¿Deseas usar nombres genéricos de refuerzo e iniciar el juego?")) {
-                return;
-            }
-        }
-
+        if((faltanLocal || faltanVisitante) && !confirm("⚠️ ¿Deseas usar refuerzos de apoyo e iniciar?")) return;
         document.getElementById('lineupSetupModal').style.display = 'none';
-
         document.getElementById('pizarraLocName').textContent = juegoData.local.equipoName;
         document.getElementById('pizarraVisName').textContent = juegoData.visitante.equipoName;
         document.getElementById('tabLocal').textContent = `${juegoData.local.equipoName} (Local)`;
         document.getElementById('tabVisitante').textContent = `${juegoData.visitante.equipoName} (Visitante)`;
-
         document.getElementById('cardConfiguracion').style.display = 'none';
         document.getElementById('cardScorecardPrincipal').style.display = 'block';
         document.getElementById('pnlControlesJuego').style.display = 'flex';
+        document.getElementById('btnUndoAction').style.display = 'inline-block';
 
+        guardarEstadoEnHistorialUndo();
         actualizarBarraEstadoJugadores();
         renderScorecard();
     }
@@ -528,6 +514,41 @@
         renderScorecard();
     }
 
+    // NUEVO HISTORIAL INTERNO: Clonación profunda segura para la función de desarmado (Undo)
+    function guardarEstadoEnHistorialUndo() {
+        let snapshot = {
+            gameState: JSON.parse(JSON.stringify(gameState)),
+            equipoEnFoco: equipoEnFoco,
+            juegoData: JSON.parse(JSON.stringify(juegoData))
+        };
+        undoHistoryStack.push(snapshot);
+        if(undoHistoryStack.length > 25) undoHistoryStack.shift(); // Límite de memoria
+    }
+
+    function deshacerUltimaJugada() {
+        if(undoHistoryStack.length <= 1) {
+            alert("No hay más jugadas guardadas en el historial para deshacer.");
+            return;
+        }
+        undoHistoryStack.pop(); // Eliminar el estado actual roto
+        let previousState = undoHistoryStack[undoHistoryStack.length - 1];
+
+        // Re-mapear todo el tablero al estado pasado
+        gameState = JSON.parse(JSON.stringify(previousState.gameState));
+        equipoEnFoco = previousState.equipoEnFoco;
+        juegoData = JSON.parse(JSON.stringify(previousState.juegoData));
+
+        recalcularPizarraLineScore();
+        actualrarKitsTabs();
+        actualizarBarraEstadoJugadores();
+        renderScorecard();
+    }
+
+    function actualrarKitsTabs() {
+        document.getElementById('tabLocal').className = `tab-btn ${equipoEnFoco === 'local' ? 'local-active' : ''}`;
+        document.getElementById('tabVisitante').className = `tab-btn ${equipoEnFoco === 'visitante' ? 'visitante-active' : ''}`;
+    }
+
     function renderScorecard() {
         const container = document.getElementById('lineupScoreboard');
         const sideData = juegoData[equipoEnFoco];
@@ -536,24 +557,15 @@
         sideData.lineup.forEach((player, idx) => {
             const pBox = document.createElement('div');
             pBox.className = `player-box ${equipoEnFoco === 'local' ? 'local-box' : 'visitante-box'}`;
-            
             if(sideData.indiceBateador === idx && ((equipoEnFoco === 'visitante' && !gameState.esBaja) || (equipoEnFoco === 'local' && gameState.esBaja))) {
-                pBox.style.backgroundColor = '#fffdeb';
-                pBox.style.borderRight = '5px solid var(--secondary-color)';
+                pBox.style.backgroundColor = '#fffdeb'; pBox.style.borderRight = '5px solid var(--secondary-color)';
             }
 
             let cellsHtml = '';
             for(let i = 1; i <= 7; i++) {
                 let c = player.entradas[i] || { play: '', outNum: '', ruta: '', b1: false, b2: false, b3: false, b4: false };
-                
-                let cls1b = c.b1 ? 'active-1b' : '';
-                let cls2b = c.b2 ? 'active-2b' : '';
-                let cls3b = c.b3 ? 'active-3b' : '';
-                let clshp = c.b4 ? 'active-hp' : '';
-                let scoredClass = c.b4 ? 'scored' : '';
-                
-                let outDisplay = c.outNum ? `O${c.outNum}` : '';
-                let textToShow = c.play === 'OUT' ? c.ruta : (c.play === 'FC' ? 'FC' : c.play);
+                let cls1b = c.b1 ? 'active-1b' : ''; let cls2b = c.b2 ? 'active-2b' : ''; let cls3b = c.b3 ? 'active-3b' : ''; let clshp = c.b4 ? 'active-hp' : ''; let scoredClass = c.b4 ? 'scored' : '';
+                let outDisplay = c.outNum ? `O${c.outNum}` : ''; let textToShow = c.play === 'OUT' ? c.ruta : (c.play === 'FC' ? 'FC' : c.play);
 
                 cellsHtml += `
                     <div class="ballscore-diamond-wrapper" onclick="abrirAsistenteTurno(${idx}, ${i})">
@@ -562,20 +574,15 @@
                         <div class="run-center-circle ${scoredClass}"></div>
                         <div class="out-tag-display">${outDisplay}</div>
                         <div class="play-text-display">${textToShow}</div>
-                    </div>
-                `;
+                    </div>`;
             }
 
             pBox.innerHTML = `
                 <div class="player-header">
-                    <div>
-                        <strong>${idx + 1}. ${player.name}</strong> 
-                        <span>(${player.pos})</span>
-                    </div>
+                    <div><strong>${idx + 1}. ${player.name}</strong> <span>(${player.pos})</span></div>
                     <button class="btn-sub" onclick="abrirSustitucionFlotante(${idx})">🔄 Cambio</button>
                 </div>
-                <div class="innings-row">${cellsHtml}</div>
-            `;
+                <div class="innings-row">${cellsHtml}</div>`;
             container.appendChild(pBox);
         });
     }
@@ -583,72 +590,40 @@
     function abrirSustitucionFlotante(playerIdx) {
         document.getElementById('hdnSubPlayerIdx').value = playerIdx;
         const equipoName = juegoData[equipoEnFoco].equipoName;
-        
         const todoRoster = dbMaster.jugadoras.filter(j => j && j.team === equipoName);
-        
         let idsAlineadas = juegoData[equipoEnFoco].lineup.map(p => String(p.id));
         juegoData[equipoEnFoco].historialCambios.forEach(c => idsAlineadas.push(String(c.jugadoraSaliendoId)));
-
         const bancaDisponibles = todoRoster.filter(j => !idsAlineadas.includes(String(j.id)));
 
-        const selector = document.getElementById('selectBenchedPlayer');
-        selector.innerHTML = '';
-
-        if(bancaDisponibles.length === 0) {
-            selector.innerHTML = '<option value="">-- No hay jugadoras en la banca --</option>';
-        } else {
-            bancaDisponibles.forEach(j => {
-                let opt = document.createElement('option');
-                opt.value = j.id;
-                opt.textContent = j.name;
-                selector.appendChild(opt);
-            });
-        }
-
+        const selector = document.getElementById('selectBenchedPlayer'); selector.innerHTML = '';
+        if(bancaDisponibles.length === 0) { selector.innerHTML = '<option value="">-- No hay banca --</option>'; } 
+        else { bancaDisponibles.forEach(j => selector.add(new Option(j.name, j.id))); }
         document.getElementById('substituteModal').style.display = 'flex';
     }
 
-    function cerrarModalSub() {
-        document.getElementById('substituteModal').style.display = 'none';
-    }
+    function cerrarModalSub() { document.getElementById('substituteModal').style.display = 'none'; }
 
     function aplicarSustitucionRoster() {
+        guardarEstadoEnHistorialUndo();
         const playerIdx = parseInt(document.getElementById('hdnSubPlayerIdx').value);
         const subId = document.getElementById('selectBenchedPlayer').value;
         const subText = document.getElementById('selectBenchedPlayer').options[document.getElementById('selectBenchedPlayer').selectedIndex]?.text;
+        if(!subId) return alert("Selecciona una jugadora.");
 
-        if(!subId) {
-            alert("Selecciona una jugadora válida de la banca.");
-            return;
-        }
-
-        const jugadoraSaliendo = juegoData[equipoEnFoco].lineup[playerIdx];
-
-        juegoData[equipoEnFoco].historialCambios.push({
-            jugadoraSaliendoId: jugadoraSaliendo.id,
-            entradasAnotadas: {...jugadoraSaliendo.entradas}
-        });
-
+        juegoData[equipoEnFoco].historialCambios.push({ jugadoraSaliendoId: juegoData[equipoEnFoco].lineup[playerIdx].id, entradasAnotadas: {...juegoData[equipoEnFoco].lineup[playerIdx].entradas} });
         juegoData[equipoEnFoco].lineup[playerIdx].id = subId;
         juegoData[equipoEnFoco].lineup[playerIdx].name = subText;
         juegoData[equipoEnFoco].lineup[playerIdx].entradas = {};
 
-        cerrarModalSub();
-        renderScorecard();
-        alert(`Sustitución exitosa. Entra al partido: ${subText}`);
+        cerrarModalSub(); renderScorecard(); actualizarBarraEstadoJugadores();
     }
 
     function abrirAsistenteTurno(playerIdx, inning) {
         const ladoOfensivo = gameState.esBaja ? 'local' : 'visitante';
-        if(equipoEnFoco !== ladoOfensivo) {
-            if(!confirm(`⚠️ Actualmente el turno oficial corresponde al equipo ${juegoData[ladoOfensivo].equipoName}. ¿Deseas anotar de todos modos en esta pestaña?`)) {
-                return;
-            }
-        }
+        if(equipoEnFoco !== ladoOfensivo && !confirm("¿Anote de todos modos en esta pestaña?")) return;
 
         celdaActiva = { equipo: equipoEnFoco, playerIdx, inning };
         const player = juegoData[equipoEnFoco].lineup[playerIdx];
-
         document.getElementById('hdnPlayerIdx').value = playerIdx;
         document.getElementById('hdnInning').value = inning;
         document.getElementById('modalTitle').textContent = `Anotar Entrada ${inning} - ${player.name}`;
@@ -656,17 +631,12 @@
         document.getElementById('itemRunner1B').style.display = gameState.corredoras.b1 !== null ? 'block' : 'none';
         document.getElementById('itemRunner2B').style.display = gameState.corredoras.b2 !== null ? 'block' : 'none';
         document.getElementById('itemRunner3B').style.display = gameState.corredoras.b3 !== null ? 'block' : 'none';
-
-        document.getElementById('selectPlayType').value = 'H1';
-        document.getElementById('inputRuta').value = '';
-        validarEstructuraJugada('H1');
-
-        document.getElementById('ballscoreModal').style.display = 'flex';
+        document.getElementById('selectPlayType').value = 'H1'; document.getElementById('inputRuta').value = '';
+        validarEstructuraJugada('H1'); document.getElementById('ballscoreModal').style.display = 'flex';
     }
 
     function validarEstructuraJugada(val) {
         document.getElementById('boxRutaDefensiva').style.display = (val === 'OUT' || val === 'FC') ? 'block' : 'none';
-
         if (val === 'BB') {
             if (gameState.corredoras.b1 !== null) document.getElementById('moveRunner1B').value = '2B';
             if (gameState.corredoras.b1 !== null && gameState.corredoras.b2 !== null) document.getElementById('moveRunner2B').value = '3B';
@@ -695,21 +665,20 @@
     function cerrarModal() { document.getElementById('ballscoreModal').style.display = 'none'; }
 
     function procesarJugadaAutomatica() {
+        guardarEstadoEnHistorialUndo();
         const playerIdx = parseInt(document.getElementById('hdnPlayerIdx').value);
         const inning = parseInt(document.getElementById('hdnInning').value);
         const lado = equipoEnFoco;
-
         const playType = document.getElementById('selectPlayType').value;
         const rutaDefensiva = document.getElementById('inputRuta').value.trim();
 
         let cellResult = { play: '', outNum: '', ruta: '', b1: false, b2: false, b3: false, b4: false };
         let esOutElBateador = false;
-
         gameState.bateadorasEnInning++;
 
         if (playType === 'H1') { cellResult.play = 'H'; cellResult.b1 = true; }
         else if (playType === 'H2') { cellResult.play = '2B'; cellResult.b1 = true; cellResult.b2 = true; }
-        else if (playType === 'H3') { cellResult.play = '3B'; cellResult.b1 = true; cellResult.b2 = true; strokeResult = '3B'; cellResult.b3 = true; }
+        else if (playType === 'H3') { cellResult.play = '3B'; cellResult.b1 = true; cellResult.b2 = true; cellResult.b3 = true; }
         else if (playType === 'HR') { cellResult.play = 'HR'; cellResult.b1 = true; cellResult.b2 = true; cellResult.b3 = true; cellResult.b4 = true; }
         else if (playType === 'BB') { cellResult.play = 'BB'; cellResult.b1 = true; }
         else if (playType === 'SF') { cellResult.play = 'SF'; esOutElBateador = true; }
@@ -717,157 +686,112 @@
         else if (playType === 'FC') { cellResult.play = 'FC'; cellResult.ruta = rutaDefensiva || 'FC'; cellResult.b1 = true; }
         else if (playType === 'OUT') { cellResult.play = 'OUT'; cellResult.ruta = rutaDefensiva || 'Out'; esOutElBateador = true; }
 
-        if(esOutElBateador) {
-            gameState.outs++;
-            cellResult.outNum = gameState.outs;
-        }
-
+        if(esOutElBateador) { gameState.outs++; cellResult.outNum = gameState.outs; }
         let nuevasBases = { b1: null, b2: null, b3: null };
 
         if (gameState.corredoras.b3 !== null && document.getElementById('itemRunner3B').style.display !== 'none') {
-            const accion = document.getElementById('moveRunner3B').value;
-            const idxCorredora = gameState.corredoras.b3;
-            if(accion === '4B') {
-                juegoData[lado].lineup[idxCorredora].entradas[inning].b4 = true; 
-            } else if(accion === 'OUT') {
-                gameState.outs++;
-                juegoData[lado].lineup[idxCorredora].entradas[inning].outNum = gameState.outs;
-            } else { nuevasBases.b3 = idxCorredora; }
+            const accion = document.getElementById('moveRunner3B').value; const idxCorredora = gameState.corredoras.b3;
+            if(accion === '4B') { juegoData[lado].lineup[idxCorredora].entradas[inning].b4 = true; } 
+            else if(accion === 'OUT') { gameState.outs++; juegoData[lado].lineup[idxCorredora].entradas[inning].outNum = gameState.outs; } 
+            else { nuevasBases.b3 = idxCorredora; }
         }
 
         if (gameState.corredoras.b2 !== null && document.getElementById('itemRunner2B').style.display !== 'none') {
-            const accion = document.getElementById('moveRunner2B').value;
-            const idxCorredora = gameState.corredoras.b2;
-            if(accion === '4B') {
-                juegoData[lado].lineup[idxCorredora].entradas[inning].b3 = true;
-                juegoData[lado].lineup[idxCorredora].entradas[inning].b4 = true;
-            } else if(accion === '3B') {
-                juegoData[lado].lineup[idxCorredora].entradas[inning].b3 = true;
-                nuevasBases.b3 = idxCorredora;
-            } else if(accion === 'OUT') {
-                gameState.outs++;
-                juegoData[lado].lineup[idxCorredora].entradas[inning].outNum = gameState.outs;
-            } else { nuevasBases.b2 = idxCorredora; }
+            const accion = document.getElementById('moveRunner2B').value; const idxCorredora = gameState.corredoras.b2;
+            if(accion === '4B') { juegoData[lado].lineup[idxCorredora].entradas[inning].b3 = true; juegoData[lado].lineup[idxCorredora].entradas[inning].b4 = true; } 
+            else if(accion === '3B') { juegoData[lado].lineup[idxCorredora].entradas[inning].b3 = true; nuevasBases.b3 = idxCorredora; } 
+            else if(accion === 'OUT') { gameState.outs++; juegoData[lado].lineup[idxCorredora].entradas[inning].outNum = gameState.outs; } 
+            else { nuevasBases.b2 = idxCorredora; }
         }
 
         if (gameState.corredoras.b1 !== null && document.getElementById('itemRunner1B').style.display !== 'none') {
-            const accion = document.getElementById('moveRunner1B').value;
-            const idxCorredora = gameState.corredoras.b1;
-            if(accion === '4B') {
-                juegoData[lado].lineup[idxCorredora].entradas[inning].b2 = true;
-                juegoData[lado].lineup[idxCorredora].entradas[inning].b3 = true;
-                juegoData[lado].lineup[idxCorredora].entradas[inning].b4 = true;
-            } else if(accion === '3B') {
-                juegoData[lado].lineup[idxCorredora].entradas[inning].b2 = true;
-                juegoData[lado].lineup[idxCorredora].entradas[inning].b3 = true;
-                nuevasBases.b3 = idxCorredora;
-            } else if(accion === '2B') {
-                juegoData[lado].lineup[idxCorredora].entradas[inning].b2 = true;
-                nuevasBases.b2 = idxCorredora;
-            } else if(accion === 'OUT') {
-                gameState.outs++;
-                juegoData[lado].lineup[idxCorredora].entradas[inning].outNum = gameState.outs;
-            } else { nuevasBases.b1 = idxCorredora; }
+            const accion = document.getElementById('moveRunner1B').value; const idxCorredora = gameState.corredoras.b1;
+            if(accion === '4B') { juegoData[lado].lineup[idxCorredora].entradas[inning].b2 = true; juegoData[lado].lineup[idxCorredora].entradas[inning].b3 = true; juegoData[lado].lineup[idxCorredora].entradas[inning].b4 = true; } 
+            else if(accion === '3B') { juegoData[lado].lineup[idxCorredora].entradas[inning].b2 = true; juegoData[lado].lineup[idxCorredora].entradas[inning].b3 = true; nuevasBases.b3 = idxCorredora; } 
+            else if(accion === '2B') { juegoData[lado].lineup[idxCorredora].entradas[inning].b2 = true; nuevasBases.b2 = idxCorredora; } 
+            else if(accion === 'OUT') { gameState.outs++; juegoData[lado].lineup[idxCorredora].entradas[inning].outNum = gameState.outs; } 
+            else { nuevasBases.b1 = idxCorredora; }
         }
 
         if (!esOutElBateador) {
             if(playType === 'H1' || playType === 'BB' || playType === 'FC') nuevasBases.b1 = playerIdx;
-            if(playType === 'H2') nuevasBases.b2 = playerIdx;
-            if(playType === 'H3') nuevasBases.b3 = playerIdx;
+            if(playType === 'H2') nuevasBases.b2 = playerIdx; if(playType === 'H3') nuevasBases.b3 = playerIdx;
         }
 
-        juegoData[lado].lineup[playerIdx].entradas[inning] = cellResult;
-        gameState.corredoras = nuevasBases;
-        
-        // CORRECCIÓN CONTINUIDAD TANDA AL BAT: Avanzamos de forma circular secuencial estricta sobre el lineup
+        juegoData[lado].lineup[playerIdx].entradas[inning] = cellResult; gameState.corredoras = nuevasBases;
         juegoData[lado].indiceBateador = (juegoData[lado].indiceBateador + 1) % 12;
 
-        cerrarModal();
-        recalcularPizarraLineScore();
+        cerrarModal(); recalcularPizarraLineScore();
 
         if (gameState.outs >= 3) {
-            alert(`🚨 ¡3 OUTS completados! Fin de la media entrada. El orden al bat se queda guardado para la siguiente entrada.`);
-            ejecutarCambioDeMediaEntrada();
+            alert(`🚨 ¡3 OUTS completados! Fin de la media entrada. Tanda guardada.`); ejecutarCambioDeMediaEntrada();
         } else if (gameState.bateadorasEnInning >= 10 && gameState.inningActual < 7) {
-            alert("💥 ¡Llegó la 10ma Bateadora Obligatoria! Cierre forzado de entrada.");
-            forzarCierreInningPorDecima();
+            alert("💥 ¡Llegó la 10ma Bateadora Obligatoria! Cierre."); forzarCierreInningPorDecima();
         } else {
-            actualizarBarraEstadoJugadores();
-            renderScorecard();
+            actualizarBarraEstadoJugadores(); renderScorecard();
         }
     }
 
     function recalcularPizarraLineScore() {
         ['local', 'visitante'].forEach(side => {
-            let totalAcumulado = 0;
-            const prefix = side === 'local' ? 'l' : 'v';
-            
+            let totalAcumulado = 0; const prefix = side === 'local' ? 'l' : 'v';
             for(let i = 1; i <= 7; i++) {
                 let runsInInning = 0;
-                juegoData[side].lineup.forEach(p => {
-                    if(p.entradas[i] && p.entradas[i].b4) runsInInning++;
-                });
-                juegoData[side].historialCambios.forEach(pSaliente => {
-                    if(pSaliente.entradasAnotadas[i] && pSaliente.entradasAnotadas[i].b4) runsInInning++;
-                });
-
-                const element = document.getElementById(`${prefix}${i}`);
-                if(element) element.textContent = runsInInning;
-                totalAcumulado += runsInInning;
+                juegoData[side].lineup.forEach(p => { if(p.entradas[i] && p.entradas[i].b4) runsInInning++; });
+                juegoData[side].historialCambios.forEach(pSaliente => { if(pSaliente.entradasAnotadas[i] && pSaliente.entradasAnotadas[i].b4) runsInInning++; });
+                const element = document.getElementById(`${prefix}${i}`); if(element) element.textContent = runsInInning; totalAcumulado += runsInInning;
             }
-            juegoData[side].totalCarreras = totalAcumulado;
-            document.getElementById(side === 'local' ? 'totalLocRuns' : 'totalVisRuns').textContent = totalAcumulado;
+            juegoData[side].totalCarreras = totalAcumulado; document.getElementById(side === 'local' ? 'totalLocRuns' : 'totalVisRuns').textContent = totalAcumulado;
         });
     }
 
-    function forzarCierreInningPorDecima() {
-        ejecutarCambioDeMediaEntrada();
-    }
+    function forzarCierreInningPorDecima() { ejecutarCambioDeMediaEntrada(); }
+    function cambiarMitadInningManualmente() { if(confirm("¿Alternar media entrada manual?")) ejecutarCambioDeMediaEntrada(); }
 
-    function cambiarMitadInningManualmente() {
-        if(confirm("¿Deseas alternar la media entrada de forma manual para ajustar la pizarra?")) {
-            ejecutarCambioDeMediaEntrada();
-        }
-    }
-
-    // MEMORIA DEL ORDEN AL BAT: Al rotar la media entrada, conservamos congelado el "indiceBateador" intacto
     function ejecutarCambioDeMediaEntrada() {
-        gameState.outs = 0;
-        gameState.bateadorasEnInning = 0;
-        gameState.corredoras = { b1: null, b2: null, b3: null };
-
-        if (!gameState.esBaja) {
-            gameState.esBaja = true;
-            equipoEnFoco = 'local';
-        } else {
-            gameState.esBaja = false;
-            gameState.inningActual++;
-            equipoEnFoco = 'visitante';
-        }
-
+        gameState.outs = 0; gameState.bateadorasEnInning = 0; gameState.corredoras = { b1: null, b2: null, b3: null };
+        if (!gameState.esBaja) { gameState.esBaja = true; equipoEnFoco = 'local'; } 
+        else { gameState.esBaja = false; gameState.inningActual++; equipoEnFoco = 'visitante'; }
         if(gameState.inningActual > 7) gameState.inningActual = 7;
-
-        actualizarBarraEstadoJugadores();
-        cambiarFocoEquipo(equipoEnFoco);
+        actualizarBarraEstadoJugadores(); cambiarFocoEquipo(equipoEnFoco);
     }
 
+    // MEMORIA DE BATEADORA ACTIVA COMPILADA CORRECTAMENTE EN PANTALLA SOLICITADA
     function actualizarBarraEstadoJugadores() {
         const parte = gameState.esBaja ? "Baja" : "Alta";
         document.getElementById('txtCurrentInning').textContent = `${gameState.inningActual}ra ${parte}`;
         document.getElementById('txtCurrentOuts').textContent = `${gameState.outs} OUT`;
 
+        const sideOff = gameState.esBaja ? 'local' : 'visitante';
+        const idxActive = juegoData[sideOff].indiceBateador;
+        const playerActive = juegoData[sideOff].lineup[idxActive];
+        document.getElementById('txtActiveBatterName').textContent = playerActive ? playerActive.name : "Por definir";
+
         let msgAlerta = `Bateadora #${gameState.bateadorasEnInning + 1} de la entrada.`;
-        if (gameState.bateadorasEnInning === 9 && gameState.inningActual < 7) {
-            msgAlerta = `⚠️ ALERTA: ¡Viene la 10MA BATEADORA!`;
-        }
+        if (gameState.bateadorasEnInning === 9 && gameState.inningActual < 7) msgAlerta = `⚠️ ALERTA: ¡Viene la 10MA BATEADORA!`;
         document.getElementById('txtAlertaBateadora').textContent = msgAlerta;
     }
 
-    function finalizarPartidoCompleto() {
-        if (!confirm("🚨 ¿Estás seguro de finalizar el partido y sincronizar los números?")) {
-            return;
-        }
+    // --- NUEVAS VENTANAS INTERACTIVAS DE OPCIÓN DE CIERRE FLEXIBLE (SOLICITADO) ---
+    function abrirModalOpcionesCierre() {
+        document.getElementById('saveOptionsModal').style.display = 'flex';
+    }
+    function cerrarModalCierre() {
+        document.getElementById('saveOptionsModal').style.display = 'none';
+    }
 
+    function ejecutarCierreConOpcion(opcionSeleccionada) {
+        seleccionCierreOpcion = opcionSeleccionada;
+        cerrarModalCierre();
+        
+        if (confirm("🚨 ¿Deseas aplicar el cierre definitivo del encuentro? Se abrirá el panel para guardar en PDF y luego se enviarán los datos seleccionados a la nube.")) {
+            // Generar descarga digital en PDF nativa
+            window.print();
+            procesarTransmisionNubeFinal();
+        }
+    }
+
+    function procesarTransmisionNubeFinal() {
         fetch(firebaseURL)
         .then(res => res.json())
         .then(data => {
@@ -875,50 +799,46 @@
             if(!dbMaster.jugadoras) dbMaster.jugadoras = [];
             dbMaster.jugadoras = dbMaster.jugadoras.filter(j => j !== null);
 
-            ['local', 'visitante'].forEach(side => {
-                juegoData[side].lineup.forEach(pScore => {
-                    sumarEstadisticaIndividualAFirebase(pScore.id, pScore.entradas);
+            // EVALUAR SI SE DESEAN SUBIR LAS ESTADÍSTICAS INDIVIDUALES A FIREBASE
+            if (seleccionCierreOpcion === 'estadisticas' || seleccionCierreOpcion === 'ambos') {
+                ['local', 'visitante'].forEach(side => {
+                    juegoData[side].lineup.forEach(pScore => { sumarEstadisticaIndividualAFirebase(pScore.id, pScore.entradas); });
+                    juegoData[side].historialCambios.forEach(pSaliente => { sumarEstadisticaIndividualAFirebase(pSaliente.jugadoraSaliendoId, pSaliente.entradasAnotadas); });
                 });
-                juegoData[side].historialCambios.forEach(pSaliente => {
-                    sumarEstadisticaIndividualAFirebase(pSaliente.jugadoraSaliendoId, pSaliente.entradasAnotadas);
-                });
-            });
+            }
 
-            const nuevaPizarraResultado = {
-                jornada: juegoSeleccionadoRef ? juegoSeleccionadoRef.jornada : "J-Única",
-                fecha: juegoSeleccionadoRef ? juegoSeleccionadoRef.fecha : "",
-                teamHome: juegoData.local.equipoName,
-                scoreHome: juegoData.local.totalCarreras,
-                teamAway: juegoData.visitante.equipoName,
-                scoreAway: juegoData.visitante.totalCarreras,
-                timestamp: Date.now()
-            };
-
-            return fetch(resultadosURL, { method: 'POST', body: JSON.stringify(nuevaPizarraResultado) });
+            // EVALUAR SI SE DESEA SUBIR LA PIZARRA COLECTIVA AL HISTORIAL
+            if (seleccionCierreOpcion === 'resultado' || seleccionCierreOpcion === 'ambos') {
+                const nuevaPizarraResultado = {
+                    jornada: juegoSeleccionadoRef ? juegoSeleccionadoRef.jornada : "J-Única",
+                    fecha: juegoSeleccionadoRef ? juegoSeleccionadoRef.fecha : "",
+                    teamHome: juegoData.local.equipoName,
+                    scoreHome: juegoData.local.totalCarreras,
+                    teamAway: juegoData.visitante.equipoName,
+                    scoreAway: juegoData.visitante.totalCarreras,
+                    timestamp: Date.now()
+                };
+                return fetch(resultadosURL, { method: 'POST', body: JSON.stringify(nuevaPizarraResultado) });
+            }
         })
         .then(() => {
             return fetch(firebaseURL, { method: 'PUT', body: JSON.stringify(dbMaster) });
         })
         .then(() => {
-            alert("🎉 ¡PARTIDO GUARDADO CON ÉXITO!");
-            window.location.href = "index.html";
-        }).catch(err => alert("Error al sincronizar: " + err));
+            alert("🎉 ¡PARTIDO CERRADO Y PDF TRANSMITIDO CON ÉXITO!");
+            window.location.href = "admi.html"; // Redirección al panel admin solicitada
+        }).catch(err => alert("Error: " + err));
     }
 
     function sumarEstadisticaIndividualAFirebase(idJugadora, mapaEntradas) {
         let ab = 0, h = 0, r = 0, bb = 0, so = 0, sf = 0;
-
         Object.values(mapaEntradas).forEach(ent => {
             if (ent.play === 'H' || ent.play === '2B' || ent.play === '3B' || ent.play === 'HR') { h++; ab++; }
-            if (ent.play === 'BB') bb++;
-            if (ent.play === 'SF') sf++;
-            if (ent.play === 'SO') { so++; ab++; }
-            if (ent.play === 'OUT' || ent.play === 'FC') ab++;
-            if (ent.b4) r++;
+            if (ent.play === 'BB') bb++; if (ent.play === 'SF') sf++; if (ent.play === 'SO') { so++; ab++; }
+            if (ent.play === 'OUT' || ent.play === 'FC') ab++; if (ent.b4) r++;
         });
 
         let jugoPartido = (ab > 0 || bb > 0 || sf > 0 || r > 0) ? 1 : 0;
-
         let masterIdx = dbMaster.jugadoras.findIndex(jm => jm && jm.id == idJugadora);
         if (masterIdx > -1) {
             dbMaster.jugadoras[masterIdx].jj = (dbMaster.jugadoras[masterIdx].jj || 0) + jugoPartido;
