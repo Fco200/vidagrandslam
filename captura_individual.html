@@ -74,9 +74,30 @@
         .player-box {
             background: #fff; border: 1px solid #e2e8e4; border-left: 6px solid var(--primary-color); border-radius: 8px; padding: 14px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
+        .player-box.active-batting {
+            background-color: #fffdeb;
+            border-right: 5px solid var(--secondary-color);
+        }
 
         .player-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; background: #f8f9fa; padding: 8px 12px; border-radius: 6px; border: 1px solid #eee; }
-        .innings-row { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 5px; }
+        
+        /* DISEÑO DE HISTORIAL SUB-ROW PARA CAMBIOS */
+        .sub-player-row {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #ccd4ce;
+            background-color: rgba(0,0,0,0.01);
+        }
+        .sub-player-label {
+            min-width: 150px;
+            font-size: 13px;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .innings-row { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 5px; flex-grow: 1; }
 
         .ballscore-diamond-wrapper {
             min-width: 90px; width: 90px; height: 90px; position: relative; background: #fff; border: 1px solid #ccd4ce; border-radius: 6px; box-sizing: border-box; cursor: pointer; transition: all 0.2s; overflow: hidden;
@@ -127,8 +148,9 @@
             .card { box-shadow: none; padding: 0; margin-bottom: 20px; border: none; }
             #cardScorecardPrincipal { display: block !important; }
             .ballscore-diamond-wrapper { border-color: #000; background: #fff !important; }
-            .player-box { border: 1px solid #000; margin-bottom: 10px; page-break-inside: avoid; }
-            .player-header { background: #eee; border-bottom: 1px solid #000; }
+            .player-box { border: 1px solid #000; margin-bottom: 10px; page-break-inside: avoid; background-color: #fff !important; }
+            .player-header { background: #eee !important; border-bottom: 1px solid #000; color: #000; }
+            .sub-player-row { border-top: 1px dashed #000; background: #fff !important; }
         }
     </style>
 </head>
@@ -141,7 +163,7 @@
     </header>
     
     <div style="margin-bottom: 20px;">
-        <a href="admin.html" class="btn-secondary" style="padding: 8px 15px; font-size: 13px;">← Volver a Panel Admin</a>
+        <a href="admi.html" class="btn-secondary" style="padding: 8px 15px; font-size: 13px;">← Volver a Panel Admin</a>
     </div>
 
     <div class="card" id="cardConfiguracion">
@@ -297,7 +319,7 @@
         name: '',
         lineup: [],
         indiceBateador: 0,
-        historialCambios: []
+        historialCambios: {} // ID del puesto al bat -> Array de jugadoras anteriores que pasaron por ahí
     };
 
     let celdaActiva = { playerIdx: 0, inning: 1 };
@@ -373,7 +395,7 @@
     function activarHojaIndividual() {
         let faltaAlguien = false;
         equipoData.lineup = [];
-        equipoData.historialCambios = [];
+        equipoData.historialCambios = {};
         equipoData.indiceBateador = 0;
         currentInning = 1;
         currentOuts = 0;
@@ -387,11 +409,13 @@
             if(!valId) faltaAlguien = true;
 
             equipoData.lineup.push({
+                slotIndex: i, // Puesto único al bat
                 id: valId || Date.now() + i,
                 name: valId ? textName : `Refuerzo #${i+1}`,
                 pos: i < 10 ? `Posición ${i+1}` : 'DESIGNADA',
                 entradas: {}
             });
+            equipoData.historialCambios[i] = []; // Inicializar almacén para este slot
         }
 
         if(faltaAlguien) {
@@ -408,41 +432,44 @@
         renderScorecard();
     }
 
+    // MAPEO INTEGRADO TOTAL: Renderiza la jugadora activa y abajo sus cambios históricos en renglones espejo
     function renderScorecard() {
         const container = document.getElementById('lineupScoreboard');
         container.innerHTML = '';
 
         equipoData.lineup.forEach((player, idx) => {
+            const slotId = player.slotIndex;
             const pBox = document.createElement('div');
             pBox.className = 'player-box';
             
             if(equipoData.indiceBateador === idx) {
-                pBox.style.backgroundColor = '#fffdeb';
-                pBox.style.borderRight = '5px solid var(--secondary-color)';
+                pBox.classList.add('active-batting');
             }
 
+            // 1. Fila de la jugadora que está ACTIVA en este momento en el partido
             let cellsHtml = '';
             for(let i = 1; i <= 7; i++) {
                 let c = player.entradas[i] || { play: '', outNum: '', ruta: '', b1: false, b2: false, b3: false, b4: false };
-                
-                let cls1b = c.b1 ? 'active-1b' : '';
-                let cls2b = c.b2 ? 'active-2b' : '';
-                let cls3b = c.b3 ? 'active-3b' : '';
-                let clshp = c.b4 ? 'active-hp' : '';
-                let scoredClass = c.b4 ? 'scored' : '';
-                
-                let outDisplay = c.outNum ? `O${c.outNum}` : '';
-                let textToShow = c.play === 'OUT' ? c.ruta : (c.play === 'FC' ? 'FC' : c.play);
+                cellsHtml += generarCeldaRomboHtml(c, idx, i);
+            }
 
-                cellsHtml += `
-                    <div class="ballscore-diamond-wrapper" onclick="abrirAsistenteTurno(${idx}, ${i})">
-                        <span class="inning-tag">E${i}</span>
-                        <div class="diamond-field ${cls1b} ${cls2b} ${cls3b} ${clshp}"></div>
-                        <div class="run-center-circle ${scoredClass}"></div>
-                        <div class="out-tag-display">${outDisplay}</div>
-                        <div class="play-text-display">${textToShow}</div>
-                    </div>
-                `;
+            let subRowsHtml = '';
+            // 2. Dibujar en cascada las jugadoras que salieron previamente de este slot al bat
+            if(equipoData.historialCambios[slotId] && equipoData.historialCambios[slotId].length > 0) {
+                equipoData.historialCambios[slotId].forEach(pastPlayer => {
+                    let subCells = '';
+                    for(let i = 1; i <= 7; i++) {
+                        let c = pastPlayer.entradasAnotadas[i] || { play: '', outNum: '', ruta: '', b1: false, b2: false, b3: false, b4: false };
+                        // Bloqueadas, solo lectura para auditoría visual
+                        subCells += generarCeldaRomboHtml(c, -1, i, true);
+                    }
+                    subRowsHtml += `
+                        <div class="sub-player-row">
+                            <div class="sub-player-label">⬅ Salio: ${pastPlayer.name}</div>
+                            <div class="innings-row">${subCells}</div>
+                        </div>
+                    `;
+                });
             }
 
             pBox.innerHTML = `
@@ -450,18 +477,47 @@
                     <div><strong>${idx + 1}. ${player.name}</strong> <span>(${player.pos})</span></div>
                     <button class="btn-sub" onclick="abrirSustitucionFlotante(${idx})">🔄 Cambio</button>
                 </div>
-                <div class="innings-row">${cellsHtml}</div>
+                <div style="display:flex; align-items:center; width:100%;">
+                   <div class="innings-row">${cellsHtml}</div>
+                </div>
+                ${subRowsHtml}
             `;
             container.appendChild(pBox);
         });
+    }
+
+    function generarCeldaRomboHtml(c, idx, inning, esEstatico = false) {
+        let cls1b = c.b1 ? 'active-1b' : '';
+        let cls2b = c.b2 ? 'active-2b' : '';
+        let cls3b = c.b3 ? 'active-3b' : '';
+        let clshp = c.b4 ? 'active-hp' : '';
+        let scoredClass = c.b4 ? 'scored' : '';
+        
+        let outDisplay = c.outNum ? `O${c.outNum}` : '';
+        let textToShow = c.play === 'OUT' ? c.ruta : (c.play === 'FC' ? 'FC' : c.play);
+        let clickEvent = esEstatico ? '' : `onclick="abrirAsistenteTurno(${idx}, ${inning})"`;
+
+        return `
+            <div class="ballscore-diamond-wrapper" ${clickEvent}>
+                <span class="inning-tag">E${inning}</span>
+                <div class="diamond-field ${cls1b} ${cls2b} ${cls3b} ${clshp}"></div>
+                <div class="run-center-circle ${scoredClass}"></div>
+                <div class="out-tag-display">${outDisplay}</div>
+                <div class="play-text-display">${textToShow}</div>
+            </div>
+        `;
     }
 
     function abrirSustitucionFlotante(playerIdx) {
         document.getElementById('hdnSubPlayerIdx').value = playerIdx;
         
         const todoRoster = dbMaster.jugadoras.filter(j => j && j.team === equipoData.name);
+        
+        // Recopilar IDs alineadas (las activas más las que ya fueron archivadas históricamente)
         let idsAlineadas = equipoData.lineup.map(p => String(p.id));
-        equipoData.historialCambios.forEach(c => idsAlineadas.push(String(c.jugadoraSaliendoId)));
+        Object.keys(equipoData.historialCambios).forEach(slotKey => {
+            equipoData.historialCambios[slotKey].forEach(past => idsAlineadas.push(String(past.id)));
+        });
 
         const bancaDisponibles = todoRoster.filter(j => !idsAlineadas.includes(String(j.id)));
         const selector = document.getElementById('selectBenchedPlayer');
@@ -488,12 +544,16 @@
         if(!subId) return alert("Selecciona una sustituta válida.");
 
         const saliente = equipoData.lineup[playerIdx];
+        const slotId = saliente.slotIndex;
 
-        equipoData.historialCambios.push({
-            jugadoraSaliendoId: saliente.id,
+        // Archivar la jugadora saliente en el historial exclusivo de este Slot de Bateo
+        equipoData.historialCambios[slotId].push({
+            id: saliente.id,
+            name: saliente.name,
             entradasAnotadas: {...saliente.entradas}
         });
 
+        // La nueva jugadora ocupa el puesto activo del Line-up con su mapa de turnos vacío para empezar a batear
         equipoData.lineup[playerIdx].id = subId;
         equipoData.lineup[playerIdx].name = subText;
         equipoData.lineup[playerIdx].entradas = {};
@@ -503,6 +563,7 @@
     }
 
     function abrirAsistenteTurno(playerIdx, inning) {
+        if(playerIdx === -1) return; // Celda estática bloqueada
         if(inning !== currentInning) {
             if(!confirm(`Estás anotando en la entrada ${inning}, pero la pizarra marca la entrada ${currentInning}. ¿Deseas continuar?`)) return;
         }
@@ -666,9 +727,8 @@
     }
 
     function finalizarCargaEquipoCompleto() {
-        if(!confirm("¿Deseas guardar el vaciado? Se abrirá el asistente para guardar el PDF y luego se enviarán los datos a la nube.")) return;
+        if(!confirm("¿Deseas guardar el vaciado? Se abrirá el asistente para guardar el PDF completo con historial de cambios y luego se enviarán los datos a la nube.")) return;
 
-        // DISPARADOR DE PDF NATIVO AUTOMÁTICO
         window.print();
 
         fetch(firebaseURL)
@@ -678,19 +738,23 @@
             if(!dbMaster.jugadoras) dbMaster.jugadoras = [];
             dbMaster.jugadoras = dbMaster.jugadoras.filter(j => j !== null);
 
+            // 1. Inyectar estadísticas de las jugadoras que finalizaron en juego
             equipoData.lineup.forEach(p => {
                 inyectarEstadisticaMatriz(p.id, p.entradas);
             });
 
-            equipoData.historialCambios.forEach(pSaliente => {
-                inyectarEstadisticaMatriz(pSaliente.jugadoraSaliendoId, pSaliente.entradasAnotadas);
+            // 2. Inyectar estadísticas acumuladas por las jugadoras que salieron de cambio (desde todo el mapa de slots)
+            Object.keys(equipoData.historialCambios).forEach(slotKey => {
+                equipoData.historialCambios[slotKey].forEach(pastPlayer => {
+                    inyectarEstadisticaMatriz(pastPlayer.id, pastPlayer.entradasAnotadas);
+                });
             });
 
             return fetch(firebaseURL, { method: 'PUT', body: JSON.stringify(dbMaster) });
         })
         .then(() => {
             alert("🎉 ¡ESTADÍSTICAS INDIVIDUALES ACUMULADAS Y PDF GENERADO CON ÉXITO!");
-            window.location.href = "admin.html"; // RE-DIRECCIÓN AUTOMÁTICA SOLICITADA
+            window.location.href = "admi.html";
         }).catch(err => alert("Error: " + err));
     }
 
