@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Captura de Estadísticas Individuales - VIDA GRAND SLAM</title>
+    <link rel="icon" type="image/jfif" href="IMAGEN LOGO VIDA GRAND SLAM.jfif">
+    <style>
+        :root {
+            --primary-color: #1a472a;
+            --secondary-color: #d4af37;
+            --dark-color: #1e2520;
+            --light-color: #f4f7f5;
+            --error-color: #ba1a1a;
+            --accent-blue: #0b5ed7;
+            --card-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            background: linear-gradient(135deg, var(--primary-color) 0%, #0f301b 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border-bottom: 5px solid var(--secondary-color);
+            box-shadow: var(--card-shadow);
+        }
+
+        header h1 { margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 1px; }
+        header p { margin: 5px 0 0 0; font-style: italic; color: #e2ebd5; }
+
+        .container { max-width: 1100px; margin: 0 auto; }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 25px;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+
+        .card h2 { margin-top: 0; color: var(--primary-color); font-size: 19px; border-bottom: 2px solid var(--light-color); padding-bottom: 10px; }
+
+        .row { display: flex; flex-direction: column; gap: 15px; margin-bottom: 15px; }
+        @media(min-width: 768px) { .row { flex-direction: row; } .col { flex: 1; } }
+
+        label { display: block; font-weight: 700; margin-bottom: 6px; font-size: 13px; text-transform: uppercase; color: #555; }
+        select, input { width: 100%; padding: 11px; border: 1px solid #ccd4ce; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        select:focus, input:focus { border-color: var(--primary-color); outline: none; box-shadow: 0 0 0 3px rgba(26,71,42,0.12); }
+
+        .game-status-bar {
+            display: flex;
+            gap: 15px;
+            background: #e9ecef;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            font-size: 15px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .player-box {
+            background: #fff; border: 1px solid #e2e8e4; border-left: 6px solid var(--primary-color); border-radius: 8px; padding: 14px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .player-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; background: #f8f9fa; padding: 8px 12px; border-radius: 6px; border: 1px solid #eee; }
+        .innings-row { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 5px; }
+
+        .ballscore-diamond-wrapper {
+            min-width: 90px; width: 90px; height: 90px; position: relative; background: #fff; border: 1px solid #ccd4ce; border-radius: 6px; box-sizing: border-box; cursor: pointer; transition: all 0.2s; overflow: hidden;
+        }
+        .ballscore-diamond-wrapper:hover { border-color: var(--primary-color); background: #f0faf2; }
+        .inning-tag { position: absolute; top: 3px; left: 5px; font-size: 9px; color: #888; font-weight: bold; z-index: 10; }
+        
+        .diamond-field {
+            position: absolute; width: 44px; height: 44px; top: 23px; left: 23px; border: 2px dashed #ccd4ce; transform: rotate(45deg); box-sizing: border-box; z-index: 1; transition: all 0.2s;
+        }
+        
+        .diamond-field.active-1b { border-right-color: var(--primary-color); border-right-style: solid; }
+        .diamond-field.active-2b { border-top-color: var(--primary-color); border-top-style: solid; }
+        .diamond-field.active-3b { border-left-color: var(--primary-color); border-left-style: solid; }
+        .diamond-field.active-hp { border-bottom-color: var(--primary-color); border-bottom-style: solid; }
+
+        .run-center-circle {
+            position: absolute; width: 16px; height: 16px; top: 37px; left: 37px; border-radius: 50%; border: 1px solid #ccd4ce; background: #fff; z-index: 3; transition: all 0.2s;
+        }
+        .run-center-circle.scored { background: var(--secondary-color) !important; border-color: #bc992a; transform: scale(1.1); }
+
+        .out-tag-display { position: absolute; top: 3px; right: 5px; font-size: 11px; font-weight: bold; color: var(--error-color); z-index: 10; }
+        .play-text-display { position: absolute; bottom: 4px; left: 0; right: 0; text-align: center; font-size: 10px; font-weight: bold; color: #333; text-transform: uppercase; z-index: 10; letter-spacing: 0.5px; }
+
+        .modal {
+            display: none; position: fixed; z-index: 400; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; backdrop-filter: blur(2px);
+        }
+        .modal-content { background: white; padding: 25px; border-radius: 12px; max-width: 500px; width: 95%; max-height: 92vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+
+        .runner-control-box {
+            background: #f1f3f5; border-left: 4px solid var(--secondary-color); padding: 10px; margin-top: 12px; border-radius: 4px;
+        }
+
+        button { background-color: var(--primary-color); color: white; border: none; padding: 12px 18px; font-weight: bold; border-radius: 6px; cursor: pointer; text-transform: uppercase; transition: all 0.2s; font-size: 14px; }
+        button:hover { background-color: #12341f; transform: translateY(-1px); }
+        .btn-secondary { background-color: #5c636a; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+        .btn-secondary:hover { background-color: #494e53; }
+        .btn-warning { background-color: var(--accent-blue); }
+        .btn-warning:hover { background-color: #0649aa; }
+        .btn-sub { background-color: #6c757d; font-size: 11px; padding: 4px 8px; border-radius: 4px; font-weight: bold; text-transform: none; width: auto; }
+        .btn-sub:hover { background-color: #495057; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Módulo de Vaciado Rápido - Estadísticas por Equipo</h1>
+        <p>Anotación Individual Dirigida — Liga VIDA GRAND SLAM</p>
+    </header>
+    
+    <div style="margin-bottom: 20px;">
+        <a href="index.html" class="btn-secondary" style="padding: 8px 15px; font-size: 13px;">← Volver al Inicio</a>
+    </div>
+
+    <div class="card" id="cardConfiguracion">
+        <h2>Paso 1: Seleccionar el Equipo a Capturar</h2>
+        <div class="form-group" style="margin-bottom:20px;">
+            <label for="selectTeamCloud">Selecciona el Equipo desde la Nube:</label>
+            <select id="selectTeamCloud" onchange="verificarEquipoSeleccionado()">
+                <option value="">-- Buscando catálogo de equipos... --</option>
+            </select>
+        </div>
+        <button id="btnOpenLineupModal" onclick="abrirModalLineupFiltro()" style="width:100%; display:none; background-color:var(--accent-blue);">📋 Configurar Line-up de este Equipo</button>
+    </div>
+
+    <div id="cardScorecardPrincipal" style="display:none;">
+        <div class="card">
+            <h2 id="lblTituloEquipoMesa">Rombos de Turnos Activos</h2>
+            <div class="game-status-bar">
+                <div>Entrada en Captura: <span id="txtCurrentInning" style="color:var(--primary-color);">Inning 1</span></div>
+                <div>Outs de la Entrada: <span id="txtCurrentOuts" style="color:var(--error-color);">0 OUT</span></div>
+                <button class="btn-sub" onclick="avanzarEntradaManualmente()" style="background-color:var(--accent-blue); padding:6px 12px;">Next Inning ➔</button>
+            </div>
+            <div id="lineupScoreboard"></div>
+        </div>
+
+        <button onclick="finalizarCargaEquipoCompleto()" style="background: var(--primary-color); color: white; font-size: 16px; margin-bottom: 50px; width:100%; height: 52px; box-shadow: var(--card-shadow);">Subir y Sumar Estadísticas de este Equipo a la Nube</button>
+    </div>
+</div>
+
+<div id="lineupSetupModal" class="modal">
+    <div class="modal-content" style="max-width:550px; width:95%;">
+        <h3 style="margin-top:0; color:var(--primary-color); border-bottom:2px solid #eee; padding-bottom:10px;">Armar Line-up de la Jornada</h3>
+        
+        <div class="form-group" style="margin-bottom:15px;">
+            <label for="selectSizeLineup">Formato de Bateadoras para este juego:</label>
+            <select id="selectSizeLineup" onchange="ajustarTamanoCamposLineup()">
+                <option value="10">10 Jugadoras (Alineación Estándar)</option>
+                <option value="11">11 Jugadoras (Alineación con Extra)</option>
+                <option value="12" selected>12 Jugadoras (Con 2 Designadas)</option>
+            </select>
+        </div>
+
+        <h4 style="font-size:13px; margin:15px 0 8px 0; color:#666; text-transform:uppercase;">Orden al Bat:</h4>
+        <div id="containerRosterDinamico" style="max-height:48vh; overflow-y:auto; padding-right:5px; margin-bottom:25px;"></div>
+
+        <div class="modal-actions" style="grid-template-columns:1fr;">
+            <button onclick="activarHojaIndividual()" style="background-color:var(--primary-color); height:45px;">Confirmar y Cargar Rombos</button>
+        </div>
+    </div>
+</div>
+
+<div id="ballscoreModal" class="modal">
+    <div class="modal-content">
+        <h3 id="modalTitle" style="margin-top:0; color: var(--primary-color);">Registrar Turno</h3>
+        <p id="modalSubtitle" style="font-size:13px; color:#666; margin-bottom:15px;"></p>
+        
+        <input type="hidden" id="hdnPlayerIdx">
+        <input type="hidden" id="hdnInning">
+
+        <div class="form-group">
+            <label for="selectPlayType">1. ¿Qué hizo la Bateadora en el plato?</label>
+            <select id="selectPlayType" onchange="validarEstructuraJugada(this.value)">
+                <option value="H1">Hit Sencillo (H)</option>
+                <option value="H2">Doble (2B)</option>
+                <option value="H3">Triple (3B)</option>
+                <option value="HR">Jonrón (HR)</option>
+                <option value="BB">Base por Bolas (BB)</option>
+                <option value="SO">Ponche (SO)</option>
+                <option value="SF">Sacrificio Fly (SF)</option>
+                <option value="FC">Bola Ocupada / Fielder's Choice (FC)</option>
+                <option value="OUT">Out de Ruta / Línea / Rola</option>
+            </select>
+        </div>
+
+        <div id="boxRutaDefensiva" style="margin-top:12px; display:none;">
+            <label for="inputRuta">Ruta o Asistencia de la jugada (Ej: 43, 63, 5-4):</label>
+            <input type="text" id="inputRuta" placeholder="Escribe los números de las posiciones">
+        </div>
+
+        <div id="boxControlCorredoras" style="margin-top:15px;">
+            <h4 style="margin:0 0 8px 0; font-size:13px; text-transform:uppercase; color:#333;">2. Destino de las Corredoras en Base:</h4>
+            
+            <div id="itemRunner3B" class="runner-control-box" style="display:none;">
+                <label>Corredora en 3ra Base:</label>
+                <select id="moveRunner3B">
+                    <option value="3B">Se queda en 3ra</option>
+                    <option value="4B" selected>Anota Carrera (Home)</option>
+                    <option value="OUT">Fue Out (En jugada o base)</option>
+                </select>
+            </div>
+
+            <div id="itemRunner2B" class="runner-control-box" style="display:none;">
+                <label>Corredora en 2da Base:</label>
+                <select id="moveRunner2B">
+                    <option value="2B">Se queda en 2da</option>
+                    <option value="3B">Avanza a 3ra</option>
+                    <option value="4B">Anota Carrera (Home)</option>
+                    <option value="OUT">Fue Out (En jugada o base)</option>
+                </select>
+            </div>
+
+            <div id="itemRunner1B" class="runner-control-box" style="display:none;">
+                <label>Corredora en 1ra Base:</label>
+                <select id="moveRunner1B">
+                    <option value="1B">Se queda en 1ra</option>
+                    <option value="2B" selected>Avanza a 2da</option>
+                    <option value="3B">Avanza a 3ra</option>
+                    <option value="4B">Anota Carrera (Home)</option>
+                    <option value="OUT">Fue Out (En jugada o base)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button onclick="procesarJugadaAutomatica()" style="background-color: var(--primary-color);">Aplicar Turno</button>
+            <button onclick="cerrarModal()" class="btn-secondary">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<div id="substituteModal" class="modal">
+    <div class="modal-content">
+        <h3 style="margin-top:0; color:var(--primary-color);">Realizar Cambio / Sustitución</h3>
+        <p style="font-size:13px; color:#555; margin-bottom:15px;">Selecciona la jugadora de la banca para entrar al juego.</p>
+        <input type="hidden" id="hdnSubPlayerIdx">
+        
+        <div class="form-group">
+            <label for="selectBenchedPlayer">Sustituta Disponible de la Banca:</label>
+            <select id="selectBenchedPlayer">
+                <option value="">-- No hay jugadoras en la banca --</option>
+            </select>
+        </div>
+
+        <div class="modal-actions">
+            <button onclick="aplicarSustitucionRoster()">Confirmar Cambio</button>
+            <button onclick="cerrarModalSub()" class="btn-secondary">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const firebaseURL = 'https://vidagrandslam-default-rtdb.firebaseio.com/torneo.json';
+    let dbMaster = { equipos: [], jugadoras: [] };
+    
+    let currentInning = 1;
+    let currentOuts = 0;
+    let maxLineupSize = 12;
+
+    let gameState = {
+        corredoras: { b1: null, b2: null, b3: null }
+    };
+
+    let equipoData = {
+        name: '',
+        lineup: [],
+        indiceBateador: 0,
+        historialCambios: []
+    };
+
+    let celdaActiva = { playerIdx: 0, inning: 1 };
+
+    function descargarDatosIniciales() {
+        fetch(firebaseURL)
+        .then(res => res.json())
+        .then(data => {
+            if (data) {
+                dbMaster = data;
+                if(!dbMaster.equipos) dbMaster.equipos = [];
+                if(!dbMaster.jugadoras) dbMaster.jugadoras = [];
+                dbMaster.jugadoras = dbMaster.jugadoras.filter(j => j !== null);
+            }
+            llenarSelectorEquipos();
+        }).catch(err => console.error("Error conectando con Firebase:", err));
+    }
+
+    function llenarSelectorEquipos() {
+        const select = document.getElementById('selectTeamCloud');
+        select.innerHTML = '<option value="">-- Selecciona el Equipo a Capturar --</option>';
+        dbMaster.equipos.forEach(eq => {
+            if(eq) select.add(new Option(eq, eq));
+        });
+    }
+
+    function verificarEquipoSeleccionado() {
+        const eqName = document.getElementById('selectTeamCloud').value;
+        if(!eqName) {
+            document.getElementById('btnOpenLineupModal').style.display = 'none';
+            return;
+        }
+        document.getElementById('btnOpenLineupModal').style.display = 'block';
+    }
+
+    function abrirModalLineupFiltro() {
+        equipoData.name = document.getElementById('selectTeamCloud').value;
+        document.getElementById('lineupSetupModal').style.display = 'flex';
+        ajustarTamanoCamposLineup();
+    }
+
+    function ajustarTamanoCamposLineup() {
+        maxLineupSize = parseInt(document.getElementById('selectSizeLineup').value);
+        const container = document.getElementById('containerRosterDinamico');
+        container.innerHTML = '';
+
+        const filtradas = dbMaster.jugadoras.filter(j => j && j.team === equipoData.name);
+
+        for (let i = 0; i < maxLineupSize; i++) {
+            const div = document.createElement('div');
+            div.style.marginBottom = '10px';
+            
+            const labelStr = document.createElement('label');
+            labelStr.textContent = `Bateadora #${i + 1}:`;
+            labelStr.style.fontSize = '12px';
+
+            const sel = document.createElement('select');
+            sel.id = `sel_player_${i}`;
+            sel.innerHTML = '<option value="">-- Seleccionar Jugadora --</option>';
+            
+            filtradas.forEach(p => {
+                sel.add(new Option(p.name, p.id));
+            });
+
+            if(filtradas[i]) sel.value = filtradas[i].id;
+
+            div.appendChild(labelStr);
+            div.appendChild(sel);
+            container.appendChild(div);
+        }
+    }
+
+    function activarHojaIndividual() {
+        let faltaAlguien = false;
+        equipoData.lineup = [];
+        equipoData.historialCambios = [];
+        equipoData.indiceBateador = 0;
+        currentInning = 1;
+        currentOuts = 0;
+        gameState.corredoras = { b1: null, b2: null, b3: null };
+
+        for (let i = 0; i < maxLineupSize; i++) {
+            const valId = document.getElementById(`sel_player_${i}`).value;
+            const selectElement = document.getElementById(`sel_player_${i}`);
+            const textName = selectElement.options[selectElement.selectedIndex]?.text;
+
+            if(!valId) faltaAlguien = true;
+
+            equipoData.lineup.push({
+                id: valId || Date.now() + i,
+                name: valId ? textName : `Refuerzo #${i+1}`,
+                pos: i < 10 ? `Posición ${i+1}` : 'DESIGNADA',
+                entradas: {}
+            });
+        }
+
+        if(faltaAlguien) {
+            if(!confirm("⚠️ Quedaron casillas vacías en el line-up. ¿Deseas rellenarlas con refuerzos de apoyo e iniciar la captura?")) return;
+        }
+
+        document.getElementById('lineupSetupModal').style.display = 'none';
+        document.getElementById('cardConfiguracion').style.display = 'none';
+        document.getElementById('cardScorecardPrincipal').style.display = 'block';
+        
+        document.getElementById('lblTituloEquipoMesa').textContent = `Capturando Estadísticas: ${equipoData.name}`;
+        
+        actualizarBarraEstadoEntradas();
+        renderScorecard();
+    }
+
+    function renderScorecard() {
+        const container = document.getElementById('lineupScoreboard');
+        container.innerHTML = '';
+
+        equipoData.lineup.forEach((player, idx) => {
+            const pBox = document.createElement('div');
+            pBox.className = 'player-box';
+            
+            if(equipoData.indiceBateador === idx) {
+                pBox.style.backgroundColor = '#fffdeb';
+                pBox.style.borderRight = '5px solid var(--secondary-color)';
+            }
+
+            let cellsHtml = '';
+            for(let i = 1; i <= 7; i++) {
+                let c = player.entradas[i] || { play: '', outNum: '', ruta: '', b1: false, b2: false, b3: false, b4: false };
+                
+                let cls1b = c.b1 ? 'active-1b' : '';
+                let cls2b = c.b2 ? 'active-2b' : '';
+                let cls3b = c.b3 ? 'active-3b' : '';
+                let clshp = c.b4 ? 'active-hp' : '';
+                let scoredClass = c.b4 ? 'scored' : '';
+                
+                let outDisplay = c.outNum ? `O${c.outNum}` : '';
+                let textToShow = c.play === 'OUT' ? c.ruta : (c.play === 'FC' ? 'FC' : c.play);
+
+                cellsHtml += `
+                    <div class="ballscore-diamond-wrapper" onclick="abrirAsistenteTurno(${idx}, ${i})">
+                        <span class="inning-tag">E${i}</span>
+                        <div class="diamond-field ${cls1b} ${cls2b} ${cls3b} ${clshp}"></div>
+                        <div class="run-center-circle ${scoredClass}"></div>
+                        <div class="out-tag-display">${outDisplay}</div>
+                        <div class="play-text-display">${textToShow}</div>
+                    </div>
+                `;
+            }
+
+            pBox.innerHTML = `
+                <div class="player-header">
+                    <div><strong>${idx + 1}. ${player.name}</strong> <span>(${player.pos})</span></div>
+                    <button class="btn-sub" onclick="abrirSustitucionFlotante(${idx})">🔄 Cambio</button>
+                </div>
+                <div class="innings-row">${cellsHtml}</div>
+            `;
+            container.appendChild(pBox);
+        });
+    }
+
+    function abrirSustitucionFlotante(playerIdx) {
+        document.getElementById('hdnSubPlayerIdx').value = playerIdx;
+        
+        const todoRoster = dbMaster.jugadoras.filter(j => j && j.team === equipoData.name);
+        let idsAlineadas = equipoData.lineup.map(p => String(p.id));
+        equipoData.historialCambios.forEach(c => idsAlineadas.push(String(c.jugadoraSaliendoId)));
+
+        const bancaDisponibles = todoRoster.filter(j => !idsAlineadas.includes(String(j.id)));
+        const selector = document.getElementById('selectBenchedPlayer');
+        selector.innerHTML = '';
+
+        if(bancaDisponibles.length === 0) {
+            selector.innerHTML = '<option value="">-- No hay jugadoras en la banca --</option>';
+        } else {
+            bancaDisponibles.forEach(j => {
+                selector.add(new Option(j.name, j.id));
+            });
+        }
+
+        document.getElementById('substituteModal').style.display = 'flex';
+    }
+
+    function cerrarModalSub() { document.getElementById('substituteModal').style.display = 'none'; }
+
+    function aplicarSustitucionRoster() {
+        const playerIdx = parseInt(document.getElementById('hdnSubPlayerIdx').value);
+        const subId = document.getElementById('selectBenchedPlayer').value;
+        const subText = document.getElementById('selectBenchedPlayer').options[document.getElementById('selectBenchedPlayer').selectedIndex]?.text;
+
+        if(!subId) {
+            return alert("Selecciona una sustituta válida.");
+        }
+
+        const saliente = equipoData.lineup[playerIdx];
+
+        equipoData.historialCambios.push({
+            jugadoraSaliendoId: saliente.id,
+            entradasAnotadas: {...saliente.entradas}
+        });
+
+        equipoData.lineup[playerIdx].id = subId;
+        equipoData.lineup[playerIdx].name = subText;
+        equipoData.lineup[playerIdx].entradas = {};
+
+        cerrarModalSub();
+        renderScorecard();
+    }
+
+    function abrirAsistenteTurno(playerIdx, inning) {
+        if(inning !== currentInning) {
+            if(!confirm(`Estás anotando en la entrada ${inning}, pero la pizarra marca la entrada ${currentInning}. ¿Deseas continuar?`)) return;
+        }
+
+        celdaActiva = { playerIdx, inning };
+        const player = equipoData.lineup[playerIdx];
+
+        document.getElementById('hdnPlayerIdx').value = playerIdx;
+        document.getElementById('hdnInning').value = inning;
+        document.getElementById('modalTitle').textContent = `Inning ${inning} - ${player.name}`;
+        
+        document.getElementById('itemRunner1B').style.display = gameState.corredoras.b1 !== null ? 'block' : 'none';
+        document.getElementById('itemRunner2B').style.display = gameState.corredoras.b2 !== null ? 'block' : 'none';
+        document.getElementById('itemRunner3B').style.display = gameState.corredoras.b3 !== null ? 'block' : 'none';
+
+        document.getElementById('selectPlayType').value = 'H1';
+        document.getElementById('inputRuta').value = '';
+        validarEstructuraJugada('H1');
+
+        document.getElementById('ballscoreModal').style.display = 'flex';
+    }
+
+    function validarEstructuraJugada(val) {
+        document.getElementById('boxRutaDefensiva').style.display = (val === 'OUT' || val === 'FC') ? 'block' : 'none';
+
+        if (val === 'BB') {
+            if (gameState.corredoras.b1 !== null) document.getElementById('moveRunner1B').value = '2B';
+            if (gameState.corredoras.b1 !== null && gameState.corredoras.b2 !== null) document.getElementById('moveRunner2B').value = '3B';
+            if (gameState.corredoras.b1 !== null && gameState.corredoras.b2 !== null && gameState.corredoras.b3 !== null) document.getElementById('moveRunner3B').value = '4B';
+        } 
+        else if (val === 'SF') {
+            if (gameState.corredoras.b3 !== null) document.getElementById('moveRunner3B').value = '4B';
+            if (gameState.corredoras.b2 !== null) document.getElementById('moveRunner2B').value = '2B';
+            if (gameState.corredoras.b1 !== null) document.getElementById('moveRunner1B').value = '1B';
+        } 
+        else if (val === 'H2') {
+            if (gameState.corredoras.b3 !== null) document.getElementById('moveRunner3B').value = '4B';
+            if (gameState.corredoras.b2 !== null) document.getElementById('moveRunner2B').value = '4B';
+            if (gameState.corredoras.b1 !== null) document.getElementById('moveRunner1B').value = '3B';
+        }
+        else if (val === 'H3' || val === 'HR') {
+            if (gameState.corredoras.b3 !== null) document.getElementById('moveRunner3B').value = '4B';
+            if (gameState.corredoras.b2 !== null) document.getElementById('moveRunner2B').value = '4B';
+            if (gameState.corredoras.b1 !== null) document.getElementById('moveRunner1B').value = '4B';
+        }
+        else if (val === 'FC') {
+            if (gameState.corredoras.b1 !== null) document.getElementById('moveRunner1B').value = '2B';
+        }
+    }
+
+    function cerrarModal() { document.getElementById('ballscoreModal').style.display = 'none'; }
+
+    function procesarJugadaAutomatica() {
+        const playerIdx = parseInt(document.getElementById('hdnPlayerIdx').value);
+        const inning = parseInt(document.getElementById('hdnInning').value);
+
+        const playType = document.getElementById('selectPlayType').value;
+        const rutaDefensiva = document.getElementById('inputRuta').value.trim();
+
+        let cellResult = { play: '', outNum: '', ruta: '', b1: false, b2: false, b3: false, b4: false };
+        let esOutElBateador = false;
+
+        if (playType === 'H1') { cellResult.play = 'H'; cellResult.b1 = true; }
+        else if (playType === 'H2') { cellResult.play = '2B'; cellResult.b1 = true; cellResult.b2 = true; }
+        else if (playType === 'H3') { cellResult.play = '3B'; cellResult.b1 = true; cellResult.b2 = true; cellResult.b3 = true; }
+        else if (playType === 'HR') { cellResult.play = 'HR'; cellResult.b1 = true; cellResult.b2 = true; cellResult.b3 = true; cellResult.b4 = true; }
+        else if (playType === 'BB') { cellResult.play = 'BB'; cellResult.b1 = true; }
+        else if (playType === 'SF') { cellResult.play = 'SF'; esOutElBateador = true; }
+        else if (playType === 'SO') { cellResult.play = 'SO'; esOutElBateador = true; }
+        else if (playType === 'FC') { cellResult.play = 'FC'; cellResult.ruta = rutaDefensiva || 'FC'; cellResult.b1 = true; }
+        else if (playType === 'OUT') { cellResult.play = 'OUT'; cellResult.ruta = rutaDefensiva || 'Out'; esOutElBateador = true; }
+
+        if(esOutElBateador) {
+            currentOuts++;
+            cellResult.outNum = currentOuts;
+        }
+
+        let nuevasBases = { b1: null, b2: null, b3: null };
+
+        if (gameState.corredoras.b3 !== null && document.getElementById('itemRunner3B').style.display !== 'none') {
+            const accion = document.getElementById('moveRunner3B').value;
+            const idxCorredora = gameState.corredoras.b3;
+            if(accion === '4B') {
+                equipoData.lineup[idxCorredora].entradas[inning].b4 = true; 
+            } else if(accion === 'OUT') {
+                currentOuts++;
+                equipoData.lineup[idxCorredora].entradas[inning].outNum = currentOuts;
+            } else { nuevasBases.b3 = idxCorredora; }
+        }
+
+        if (gameState.corredoras.b2 !== null && document.getElementById('itemRunner2B').style.display !== 'none') {
+            const accion = document.getElementById('moveRunner2B').value;
+            const idxCorredora = gameState.corredoras.b2;
+            if(accion === '4B') {
+                equipoData.lineup[idxCorredora].entradas[inning].b3 = true;
+                equipoData.lineup[idxCorredora].entradas[inning].b4 = true;
+            } else if(accion === '3B') {
+                equipoData.lineup[idxCorredora].entradas[inning].b3 = true;
+                nuevasBases.b3 = idxCorredora;
+            } else if(accion === 'OUT') {
+                currentOuts++;
+                equipoData.lineup[idxCorredora].entradas[inning].outNum = currentOuts;
+            } else { nuevasBases.b2 = idxCorredora; }
+        }
+
+        if (gameState.corredoras.b1 !== null && document.getElementById('itemRunner1B').style.display !== 'none') {
+            const accion = document.getElementById('moveRunner1B').value;
+            const idxCorredora = gameState.corredoras.b1;
+            if(accion === '4B') {
+                equipoData.lineup[idxCorredora].entradas[inning].b2 = true;
+                equipoData.lineup[idxCorredora].entradas[inning].b3 = true;
+                equipoData.lineup[idxCorredora].entradas[inning].b4 = true;
+            } else if(accion === '3B') {
+                equipoData.lineup[idxCorredora].entradas[inning].b2 = true;
+                equipoData.lineup[idxCorredora].entradas[inning].b3 = true;
+                nuevasBases.b3 = idxCorredora;
+            } else if(accion === '2B') {
+                equipoData.lineup[idxCorredora].entradas[inning].b2 = true;
+                nuevasBases.b2 = idxCorredora;
+            } else if(accion === 'OUT') {
+                currentOuts++;
+                equipoData.lineup[idxCorredora].entradas[inning].outNum = currentOuts;
+            } else { nuevasBases.b1 = idxCorredora; }
+        }
+
+        if (!esOutElBateador) {
+            if(playType === 'H1' || playType === 'BB' || playType === 'FC') nuevasBases.b1 = playerIdx;
+            if(playType === 'H2') nuevasBases.b2 = playerIdx;
+            if(playType === 'H3') nuevasBases.b3 = playerIdx;
+        }
+
+        equipoData.lineup[playerIdx].entradas[inning] = cellResult;
+        gameState.corredoras = nuevasBases;
+        
+        equipoData.indiceBateador = (equipoData.indiceBateador + 1) % maxLineupSize;
+
+        cerrarModal();
+
+        if (currentOuts >= 3) {
+            alert(`🚨 ¡3 Outs completados! Fin del Inning.`);
+            avanzarEntradaManualmente();
+        } else {
+            actualizarBarraEstadoEntradas();
+            renderScorecard();
+        }
+    }
+
+    function avanzarEntradaManualmente() {
+        currentOuts = 0;
+        gameState.corredoras = { b1: null, b2: null, b3: null };
+        currentInning++;
+        if(currentInning > 7) currentInning = 7;
+        
+        actualizarBarraEstadoEntradas();
+        renderScorecard();
+    }
+
+    function actualizarBarraEstadoEntradas() {
+        document.getElementById('txtCurrentInning').textContent = `Inning ${currentInning}`;
+        document.getElementById('txtCurrentOuts').textContent = `${currentOuts} OUT`;
+    }
+
+    function finalizarCargaEquipoCompleto() {
+        if(!confirm("¿Deseas guardar el vaciado? Se sumarán los números individuales directos a la nube.")) return;
+
+        fetch(firebaseURL)
+        .then(res => res.json())
+        .then(data => {
+            if(data) dbMaster = data;
+            if(!dbMaster.jugadoras) dbMaster.jugadoras = [];
+            dbMaster.jugadoras = dbMaster.jugadoras.filter(j => j !== null);
+
+            equipoData.lineup.forEach(p => {
+                inyectarEstadisticaMatriz(p.id, p.entradas);
+            });
+
+            equipoData.historialCambios.forEach(pSaliente => {
+                inyectarEstadisticaMatriz(pSaliente.jugadoraSaliendoId, pSaliente.entradasAnotadas);
+            });
+
+            return fetch(firebaseURL, { method: 'PUT', body: JSON.stringify(dbMaster) });
+        })
+        .then(() => {
+            alert("🎉 ¡ESTADÍSTICAS INDIVIDUALES ACUMULADAS CON ÉXITO!");
+            window.location.href = "index.html";
+        }).catch(err => alert("Error: " + err));
+    }
+
+    function inyectarEstadisticaMatriz(idJugadora, mapaEntradas) {
+        let ab = 0, h = 0, r = 0, bb = 0, so = 0, sf = 0;
+
+        Object.values(mapaEntradas).forEach(ent => {
+            if (ent.play === 'H' || ent.play === '2B' || ent.play === '3B' || ent.play === 'HR') { h++; ab++; }
+            if (ent.play === 'BB') bb++;
+            if (ent.play === 'SF') sf++;
+            if (ent.play === 'SO') { so++; ab++; }
+            if (ent.play === 'OUT' || ent.play === 'FC') ab++;
+            if (ent.b4) r++;
+        });
+
+        let jugoPartido = (ab > 0 || bb > 0 || sf > 0 || r > 0) ? 1 : 0;
+
+        let idx = dbMaster.jugadoras.findIndex(j => j && j.id == idJugadora);
+        if (idx > -1) {
+            dbMaster.jugadoras[idx].jj = (dbMaster.jugadoras[idx].jj || 0) + jugoPartido;
+            dbMaster.jugadoras[idx].ab = (dbMaster.jugadoras[idx].ab || 0) + ab;
+            dbMaster.jugadoras[idx].h = (dbMaster.jugadoras[idx].h || 0) + h;
+            dbMaster.jugadoras[idx].r = (dbMaster.jugadoras[idx].r || 0) + r;
+            dbMaster.jugadoras[idx].bb = (dbMaster.jugadoras[idx].bb || 0) + bb;
+            dbMaster.jugadoras[idx].so = (dbMaster.jugadoras[idx].so || 0) + so;
+            dbMaster.jugadoras[idx].sf = (dbMaster.jugadoras[idx].sf || 0) + sf;
+
+            let pa = dbMaster.jugadoras[idx].ab + dbMaster.jugadoras[idx].bb + dbMaster.jugadoras[idx].sf;
+            dbMaster.jugadoras[idx].avg = dbMaster.jugadoras[idx].ab > 0 ? (dbMaster.jugadoras[idx].h / dbMaster.jugadoras[idx].ab).toFixed(3) : ".000";
+            dbMaster.jugadoras[idx].obp = pa > 0 ? ((dbMaster.jugadoras[idx].h + dbMaster.jugadoras[idx].bb) / pa).toFixed(3) : ".000";
+        }
+    }
+
+    descargarDatosIniciales();
+</script>
+</body>
+</html>

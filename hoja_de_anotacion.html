@@ -105,15 +105,12 @@
         .player-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; background: #f8f9fa; padding: 8px 12px; border-radius: 6px; border: 1px solid #eee; }
         .innings-row { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 5px; }
 
-        /* DISEÑO DE CONTENEDOR REDISEÑADO CON DIAMANTE INTERNO */
         .ballscore-diamond-wrapper {
             min-width: 90px; width: 90px; height: 90px; position: relative; background: #fff; border: 1px solid #ccd4ce; border-radius: 6px; box-sizing: border-box; cursor: pointer; transition: all 0.2s; overflow: hidden;
         }
         .ballscore-diamond-wrapper:hover { border-color: var(--primary-color); background: #f0faf2; }
-        
         .inning-tag { position: absolute; top: 3px; left: 5px; font-size: 9px; color: #888; font-weight: bold; z-index: 10; }
         
-        /* EL AUTÉNTICO DIAMANTE DE BÉISBOL/SOFTBOL */
         .diamond-field {
             position: absolute;
             width: 44px;
@@ -127,7 +124,6 @@
             transition: all 0.2s;
         }
         
-        /* Pintar las bases alcanzadas sobre el diamante */
         .diamond-field.active-1b { border-right-color: var(--primary-color); border-right-style: solid; }
         .diamond-field.active-2b { border-top-color: var(--primary-color); border-top-style: solid; }
         .diamond-field.active-3b { border-left-color: var(--primary-color); border-left-style: solid; }
@@ -159,6 +155,8 @@
         .btn-warning:hover { background-color: #0649aa; }
         .btn-danger { background-color: var(--error-color); }
         .btn-danger:hover { background-color: #931414; }
+        .btn-sub { background-color: #6c757d; font-size: 11px; padding: 4px 8px; border-radius: 4px; font-weight: bold; text-transform: none; width: auto; }
+        .btn-sub:hover { background-color: #495057; }
 
         .roster-select-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 15px; }
     </style>
@@ -180,27 +178,14 @@
     </div>
 
     <div class="card" id="cardConfiguracion">
-        <h2>Paso 1: Configurar Partido y Line-ups oficiales</h2>
+        <h2>Paso 1: Seleccionar Encuentro Programado</h2>
         <div class="form-group" style="margin-bottom:20px;">
-            <label for="selectGameCloud">Selecciona el Juego Programado desde la Nube:</label>
-            <select id="selectGameCloud" onchange="seleccionarJuegoProgramado()">
+            <label for="selectGameCloud">Selecciona el Juego desde la Nube:</label>
+            <select id="selectGameCloud" onchange="activarBotonLineup()">
                 <option value="">-- Buscando partidos agendados... --</option>
             </select>
         </div>
-
-        <div id="boxLineupSetup" style="display:none;">
-            <div class="row">
-                <div class="col">
-                    <h3 id="lblLocalSetupTitle" style="color:var(--local-color); font-size:16px; margin-bottom:10px;">Line-up Local</h3>
-                    <div id="containerRosterLocal" class="roster-select-grid"></div>
-                </div>
-                <div class="col">
-                    <h3 id="lblVisitanteSetupTitle" style="color:var(--visitante-color); font-size:16px; margin-bottom:10px;">Line-up Visitante</h3>
-                    <div id="containerRosterVisitante" class="roster-select-grid"></div>
-                </div>
-            </div>
-            <button onclick="confirmarEIniciarPartido()" style="background: var(--primary-color); width: 100%; margin-top: 20px; height: 48px; font-size: 16px;">Activar Hoja y Comenzar Arbitraje</button>
-        </div>
+        <button id="btnOpenLineupModal" onclick="abrirModalLineupInicial()" style="width:100%; display:none; background-color:var(--accent-blue);">📋 Configurar Line-ups Oficiales</button>
     </div>
 
     <div id="cardScorecardPrincipal" style="display:none;">
@@ -242,6 +227,28 @@
     </div>
 </div>
 
+<div id="lineupSetupModal" class="modal">
+    <div class="modal-content" style="max-width:900px; width:95%;">
+        <h3 style="margin-top:0; color:var(--primary-color); border-bottom:2px solid #eee; padding-bottom:10px;">Alistar Alineaciones Oficiales del Encuentro</h3>
+        <p style="font-size:13px; color:#555; margin-bottom:15px;">Selecciona el orden al bat oficial de las 12 jugadoras para cada equipo para este juego.</p>
+        
+        <div class="row">
+            <div class="col">
+                <h4 id="lblLocalSetupTitle" style="color:var(--local-color); font-size:14px; margin:0 0 10px 0;">Line-up Local</h4>
+                <div id="containerRosterLocal" style="max-height:55vh; overflow-y:auto; padding-right:5px;"></div>
+            </div>
+            <div class="col">
+                <h4 id="lblVisitanteSetupTitle" style="color:var(--visitante-color); font-size:14px; margin:0 0 10px 0;">Line-up Visitante</h4>
+                <div id="containerRosterVisitante" style="max-height:55vh; overflow-y:auto; padding-right:5px;"></div>
+            </div>
+        </div>
+
+        <div class="modal-actions" style="grid-template-columns:1fr;">
+            <button onclick="confirmarEIniciarPartido()" style="background-color:var(--primary-color); height:45px;">Confirmar y Activar Hoja de Anotación Digital</button>
+        </div>
+    </div>
+</div>
+
 <div id="ballscoreModal" class="modal">
     <div class="modal-content">
         <h3 id="modalTitle" style="margin-top:0; color: var(--primary-color);">Registrar Turno</h3>
@@ -260,17 +267,18 @@
                 <option value="BB">Base por Bolas (BB)</option>
                 <option value="SO">Ponche (SO)</option>
                 <option value="SF">Sacrificio Fly (SF)</option>
+                <option value="FC">Bola Ocupada / Fielder's Choice (FC)</option>
                 <option value="OUT">Out de Ruta / Línea / Rola</option>
             </select>
         </div>
 
         <div id="boxRutaDefensiva" style="margin-top:12px; display:none;">
-            <label for="inputRuta">Ruta o Asistencia del Out (Ej: 43, 63, 5u, 8):</label>
+            <label for="inputRuta">Ruta o Asistencia de la jugada (Ej: 43, 63, 5-4):</label>
             <input type="text" id="inputRuta" placeholder="Escribe los números de las posiciones">
         </div>
 
         <div id="boxControlCorredoras" style="margin-top:15px;">
-            <h4 style="margin:0 0 8px 0; font-size:13px; text-transform:uppercase; color:#333;">2. Destino de las Corredoras en Base:</h4>
+            <h4 style="margin:0 0 8px 0; font-size:13px; text-transform:uppercase; color:#333;">2. Destino de las Corredoras en Base (Sugerencia Inteligente):</h4>
             
             <div id="itemRunner3B" class="runner-control-box" style="display:none;">
                 <label>Corredora en 3ra Base:</label>
@@ -310,6 +318,26 @@
     </div>
 </div>
 
+<div id="substituteModal" class="modal">
+    <div class="modal-content">
+        <h3 style="margin-top:0; color:var(--primary-color);">Realizar Cambio / Sustitución</h3>
+        <p style="font-size:13px; color:#555; margin-bottom:15px;">Selecciona la jugadora de la banca para entrar al encuentro en esta posición del line-up.</p>
+        <input type="hidden" id="hdnSubPlayerIdx">
+        
+        <div class="form-group">
+            <label for="selectBenchedPlayer">Sustituta Disponible de la Banca:</label>
+            <select id="selectBenchedPlayer">
+                <option value="">-- No hay jugadoras en la banca --</option>
+            </select>
+        </div>
+
+        <div class="modal-actions">
+            <button onclick="aplicarSustitucionRoster()">Confirmar Cambio</button>
+            <button onclick="cerrarModalSub()" class="btn-secondary">Cancelar</button>
+        </div>
+    </div>
+</div>
+
 <script>
     const firebaseURL = 'https://vidagrandslam-default-rtdb.firebaseio.com/torneo.json';
     const partidosURL = 'https://vidagrandslam-default-rtdb.firebaseio.com/partidos.json';
@@ -331,8 +359,8 @@
     let celdaActiva = { equipo: '', playerIdx: 0, inning: 1 };
     
     let juegoData = {
-        local: { equipoName: '', lineup: [], carrerasPorInning: [0,0,0,0,0,0,0], totalCarreras: 0, indiceBateador: 0 },
-        visitante: { equipoName: '', lineup: [], carrerasPorInning: [0,0,0,0,0,0,0], totalCarreras: 0, indiceBateador: 0 }
+        local: { equipoName: '', lineup: [], carrerasPorInning: [0,0,0,0,0,0,0], totalCarreras: 0, indiceBateador: 0, historialCambios: [] },
+        visitante: { equipoName: '', lineup: [], carrerasPorInning: [0,0,0,0,0,0,0], totalCarreras: 0, indiceBateador: 0, historialCambios: [] }
     };
 
     function descargarDatosIniciales() {
@@ -369,6 +397,10 @@
                     }
                 });
             }
+            
+            const selectElement = document.getElementById('selectGameCloud');
+            selectElement.id = "selectGameCloud";
+            
             llenarSelectorPartidos();
         }).catch(err => console.error("Error cargando el ecosistema:", err));
     }
@@ -384,28 +416,32 @@
         });
     }
 
-    function seleccionarJuegoProgramado() {
+    function activarBotonLineup() {
         const idGame = document.getElementById('selectGameCloud').value;
         juegoSeleccionadoRef = listaPartidosProgramados.find(p => p.idCloud === idGame);
 
         if(!juegoSeleccionadoRef) {
-            document.getElementById('boxLineupSetup').style.display = 'none';
+            document.getElementById('btnOpenLineupModal').style.display = 'none';
             return;
         }
 
+        document.getElementById('btnOpenLineupModal').style.display = 'block';
+    }
+
+    function abrirModalLineupInicial() {
         juegoData.local.equipoName = juegoSeleccionadoRef.teamHome;
         juegoData.visitante.equipoName = juegoSeleccionadoRef.teamAway;
 
-        document.getElementById('lblLocalSetupTitle').textContent = `Line-up Oficial: ${juegoData.local.equipoName} (LOCAL)`;
-        document.getElementById('lblVisitanteSetupTitle').textContent = `Line-up Oficial: ${juegoData.visitante.equipoName} (VISITANTE)`;
+        document.getElementById('lblLocalSetupTitle').textContent = `Line-up Local: ${juegoData.local.equipoName}`;
+        document.getElementById('lblVisitanteSetupTitle').textContent = `Line-up Visitante: ${juegoData.visitante.equipoName}`;
 
-        desplegarSelectoresRoster('local', juegoData.local.equipoName);
-        desplegarSelectoresRoster('visitante', juegoData.visitante.equipoName);
+        desplegarSelectoresModal('local', juegoData.local.equipoName);
+        desplegarSelectoresModal('visitante', juegoData.visitante.equipoName);
 
-        document.getElementById('boxLineupSetup').style.display = 'block';
+        document.getElementById('lineupSetupModal').style.display = 'flex';
     }
 
-    function desplegarSelectoresRoster(lado, equipoName) {
+    function desplegarSelectoresModal(lado, equipoName) {
         const container = document.getElementById(lado === 'local' ? 'containerRosterLocal' : 'containerRosterVisitante');
         container.innerHTML = '';
 
@@ -446,6 +482,8 @@
 
         ['local', 'visitante'].forEach(side => {
             juegoData[side].lineup = [];
+            juegoData[side].historialCambios = []; 
+            juegoData[side].indiceBateador = 0; 
             for (let i = 0; i < 12; i++) {
                 const valId = document.getElementById(`sel_${side}_${i}`).value;
                 const selectElement = document.getElementById(`sel_${side}_${i}`);
@@ -470,6 +508,8 @@
                 return;
             }
         }
+
+        document.getElementById('lineupSetupModal').style.display = 'none';
 
         document.getElementById('pizarraLocName').textContent = juegoData.local.equipoName;
         document.getElementById('pizarraVisName').textContent = juegoData.visitante.equipoName;
@@ -509,7 +549,6 @@
             for(let i = 1; i <= 7; i++) {
                 let c = player.entradas[i] || { play: '', outNum: '', ruta: '', b1: false, b2: false, b3: false, b4: false };
                 
-                // Mapeo seguro de clases de bordes activos para dibujar el diamante rotado
                 let cls1b = c.b1 ? 'active-1b' : '';
                 let cls2b = c.b2 ? 'active-2b' : '';
                 let cls3b = c.b3 ? 'active-3b' : '';
@@ -517,7 +556,7 @@
                 let scoredClass = c.b4 ? 'scored' : '';
                 
                 let outDisplay = c.outNum ? `O${c.outNum}` : '';
-                let textToShow = c.play === 'OUT' ? c.ruta : c.play;
+                let textToShow = c.play === 'OUT' ? c.ruta : (c.play === 'FC' ? 'FC' : c.play);
 
                 cellsHtml += `
                     <div class="ballscore-diamond-wrapper" onclick="abrirAsistenteTurno(${idx}, ${i})">
@@ -532,13 +571,74 @@
 
             pBox.innerHTML = `
                 <div class="player-header">
-                    <strong>${idx + 1}. ${player.name}</strong> 
-                    <span>(${player.pos})</span>
+                    <div>
+                        <strong>${idx + 1}. ${player.name}</strong> 
+                        <span>(${player.pos})</span>
+                    </div>
+                    <button class="btn-sub" onclick="abrirSustitucionFlotante(${idx})">🔄 Cambio</button>
                 </div>
                 <div class="innings-row">${cellsHtml}</div>
             `;
             container.appendChild(pBox);
         });
+    }
+
+    function abrirSustitucionFlotante(playerIdx) {
+        document.getElementById('hdnSubPlayerIdx').value = playerIdx;
+        const equipoName = juegoData[equipoEnFoco].equipoName;
+        
+        const todoRoster = dbMaster.jugadoras.filter(j => j && j.team === equipoName);
+        
+        let idsAlineadas = juegoData[equipoEnFoco].lineup.map(p => String(p.id));
+        juegoData[equipoEnFoco].historialCambios.forEach(c => idsAlineadas.push(String(c.jugadoraSaliendoId)));
+
+        const bancaDisponibles = todoRoster.filter(j => !idsAlineadas.includes(String(j.id)));
+
+        const selector = document.getElementById('selectBenchedPlayer');
+        selector.innerHTML = '';
+
+        if(bancaDisponibles.length === 0) {
+            selector.innerHTML = '<option value="">-- No hay jugadoras en la banca --</option>';
+        } else {
+            bancaDisponibles.forEach(j => {
+                let opt = document.createElement('option');
+                opt.value = j.id;
+                opt.textContent = j.name;
+                selector.appendChild(opt);
+            });
+        }
+
+        document.getElementById('substituteModal').style.display = 'flex';
+    }
+
+    function cerrarModalSub() {
+        document.getElementById('substituteModal').style.display = 'none';
+    }
+
+    function aplicarSustitucionRoster() {
+        const playerIdx = parseInt(document.getElementById('hdnSubPlayerIdx').value);
+        const subId = document.getElementById('selectBenchedPlayer').value;
+        const subText = document.getElementById('selectBenchedPlayer').options[document.getElementById('selectBenchedPlayer').selectedIndex]?.text;
+
+        if(!subId) {
+            alert("Selecciona una jugadora válida de la banca.");
+            return;
+        }
+
+        const jugadoraSaliendo = juegoData[equipoEnFoco].lineup[playerIdx];
+
+        juegoData[equipoEnFoco].historialCambios.push({
+            jugadoraSaliendoId: jugadoraSaliendo.id,
+            entradasAnotadas: {...jugadoraSaliendo.entradas}
+        });
+
+        juegoData[equipoEnFoco].lineup[playerIdx].id = subId;
+        juegoData[equipoEnFoco].lineup[playerIdx].name = subText;
+        juegoData[equipoEnFoco].lineup[playerIdx].entradas = {};
+
+        cerrarModalSub();
+        renderScorecard();
+        alert(`Sustitución exitosa. Entra al partido: ${subText}`);
     }
 
     function abrirAsistenteTurno(playerIdx, inning) {
@@ -568,7 +668,34 @@
     }
 
     function validarEstructuraJugada(val) {
-        document.getElementById('boxRutaDefensiva').style.display = (val === 'OUT') ? 'block' : 'none';
+        // Habilitar la casilla de ruta defensiva para Out y Fielder's Choice
+        document.getElementById('boxRutaDefensiva').style.display = (val === 'OUT' || val === 'FC') ? 'block' : 'none';
+
+        // PREDICCIONES AUTOMÁTICAS SUGERIDAS (CONFIRMABLES POR EL USUARIO)
+        if (val === 'BB') {
+            if (gameState.corredoras.b1 !== null) document.getElementById('moveRunner1B').value = '2B';
+            if (gameState.corredoras.b1 !== null && gameState.corredoras.b2 !== null) document.getElementById('moveRunner2B').value = '3B';
+            if (gameState.corredoras.b1 !== null && gameState.corredoras.b2 !== null && gameState.corredoras.b3 !== null) document.getElementById('moveRunner3B').value = '4B';
+        } 
+        else if (val === 'SF') {
+            if (gameState.corredoras.b3 !== null) document.getElementById('moveRunner3B').value = '4B';
+            if (gameState.corredoras.b2 !== null) document.getElementById('moveRunner2B').value = '2B';
+            if (gameState.corredoras.b1 !== null) document.getElementById('moveRunner1B').value = '1B';
+        } 
+        else if (val === 'H2') {
+            if (gameState.corredoras.b3 !== null) document.getElementById('moveRunner3B').value = '4B';
+            if (gameState.corredoras.b2 !== null) document.getElementById('moveRunner2B').value = '4B';
+            if (gameState.corredoras.b1 !== null) document.getElementById('moveRunner1B').value = '3B';
+        }
+        else if (val === 'H3' || val === 'HR') {
+            if (gameState.corredoras.b3 !== null) document.getElementById('moveRunner3B').value = '4B';
+            if (gameState.corredoras.b2 !== null) document.getElementById('moveRunner2B').value = '4B';
+            if (gameState.corredoras.b1 !== null) document.getElementById('moveRunner1B').value = '4B';
+        }
+        else if (val === 'FC') {
+            // Fielder's choice: La bateadora ocupa primera base de forma inicial
+            if (gameState.corredoras.b1 !== null) document.getElementById('moveRunner1B').value = '2B';
+        }
     }
 
     function cerrarModal() { document.getElementById('ballscoreModal').style.display = 'none'; }
@@ -593,6 +720,7 @@
         else if (playType === 'BB') { cellResult.play = 'BB'; cellResult.b1 = true; }
         else if (playType === 'SF') { cellResult.play = 'SF'; esOutElBateador = true; }
         else if (playType === 'SO') { cellResult.play = 'SO'; esOutElBateador = true; }
+        else if (playType === 'FC') { cellResult.play = 'FC'; cellResult.ruta = rutaDefensiva || 'FC'; cellResult.b1 = true; }
         else if (playType === 'OUT') { cellResult.play = 'OUT'; cellResult.ruta = rutaDefensiva || 'Out'; esOutElBateador = true; }
 
         if(esOutElBateador) {
@@ -649,20 +777,21 @@
         }
 
         if (!esOutElBateador) {
-            if(playType === 'H1' || playType === 'BB') nuevasBases.b1 = playerIdx;
+            if(playType === 'H1' || playType === 'BB' || playType === 'FC') nuevasBases.b1 = playerIdx;
             if(playType === 'H2') nuevasBases.b2 = playerIdx;
             if(playType === 'H3') nuevasBases.b3 = playerIdx;
         }
 
         juegoData[lado].lineup[playerIdx].entradas[inning] = cellResult;
         gameState.corredoras = nuevasBases;
+        
         juegoData[lado].indiceBateador = (juegoData[lado].indiceBateador + 1) % 12;
 
         cerrarModal();
         recalcularPizarraLineScore();
 
         if (gameState.outs >= 3) {
-            alert("🚨 ¡3 OUTS completados! Cambio de media entrada automática.");
+            alert(`🚨 ¡3 OUTS completados! Fin de la media entrada. El orden al bat se queda guardado para la siguiente entrada.`);
             ejecutarCambioDeMediaEntrada();
         } else if (gameState.bateadorasEnInning >= 10 && gameState.inningActual < 7) {
             alert("💥 ¡Llegó la 10ma Bateadora Obligatoria! Cierre forzado de entrada.");
@@ -683,6 +812,10 @@
                 juegoData[side].lineup.forEach(p => {
                     if(p.entradas[i] && p.entradas[i].b4) runsInInning++;
                 });
+                juegoData[side].historialCambios.forEach(pSaliente => {
+                    if(pSaliente.entradasAnotadas[i] && pSaliente.entradasAnotadas[i].b4) runsInInning++;
+                });
+
                 const element = document.getElementById(`${prefix}${i}`);
                 if(element) element.textContent = runsInInning;
                 totalAcumulado += runsInInning;
@@ -748,33 +881,10 @@
 
             ['local', 'visitante'].forEach(side => {
                 juegoData[side].lineup.forEach(pScore => {
-                    let ab = 0, h = 0, r = 0, bb = 0, so = 0, sf = 0;
-
-                    Object.values(pScore.entradas).forEach(ent => {
-                        if (ent.play === 'H' || ent.play === '2B' || ent.play === '3B' || ent.play === 'HR') { h++; ab++; }
-                        if (ent.play === 'BB') bb++;
-                        if (ent.play === 'SF') sf++;
-                        if (ent.play === 'SO') { so++; ab++; }
-                        if (ent.play === 'OUT') ab++;
-                        if (ent.b4) r++;
-                    });
-
-                    let jugoPartido = (ab > 0 || bb > 0 || sf > 0 || r > 0) ? 1 : 0;
-
-                    let masterIdx = dbMaster.jugadoras.findIndex(jm => jm && jm.id == pScore.id);
-                    if (masterIdx > -1) {
-                        dbMaster.jugadoras[masterIdx].jj = (dbMaster.jugadoras[masterIdx].jj || 0) + jugoPartido;
-                        dbMaster.jugadoras[masterIdx].ab = (dbMaster.jugadoras[masterIdx].ab || 0) + ab;
-                        dbMaster.jugadoras[masterIdx].h = (dbMaster.jugadoras[masterIdx].h || 0) + h;
-                        dbMaster.jugadoras[masterIdx].r = (dbMaster.jugadoras[masterIdx].r || 0) + r;
-                        dbMaster.jugadoras[masterIdx].bb = (dbMaster.jugadoras[masterIdx].bb || 0) + bb;
-                        dbMaster.jugadoras[masterIdx].so = (dbMaster.jugadoras[masterIdx].so || 0) + so;
-                        dbMaster.jugadoras[masterIdx].sf = (dbMaster.jugadoras[masterIdx].sf || 0) + sf;
-
-                        let pa = dbMaster.jugadoras[masterIdx].ab + dbMaster.jugadoras[masterIdx].bb + dbMaster.jugadoras[masterIdx].sf;
-                        dbMaster.jugadoras[masterIdx].avg = dbMaster.jugadoras[masterIdx].ab > 0 ? (dbMaster.jugadoras[masterIdx].h / dbMaster.jugadoras[masterIdx].ab).toFixed(3) : ".000";
-                        dbMaster.jugadoras[masterIdx].obp = pa > 0 ? ((dbMaster.jugadoras[masterIdx].h + dbMaster.jugadoras[masterIdx].bb) / pa).toFixed(3) : ".000";
-                    }
+                    sumarEstadisticaIndividualAFirebase(pScore.id, pScore.entradas);
+                });
+                juegoData[side].historialCambios.forEach(pSaliente => {
+                    sumarEstadisticaIndividualAFirebase(pSaliente.jugadoraSaliendoId, pSaliente.entradasAnotadas);
                 });
             });
 
@@ -799,7 +909,38 @@
         }).catch(err => alert("Error al sincronizar: " + err));
     }
 
-    descargarDatosIniciales();
+    function sumarEstadisticaIndividualAFirebase(idJugadora, mapaEntradas) {
+        let ab = 0, h = 0, r = 0, bb = 0, so = 0, sf = 0;
+
+        Object.values(mapaEntradas).forEach(ent => {
+            // El Fielder's Choice (FC) cuenta como turno oficial (AB) pero NO como hit (H)
+            if (ent.play === 'H' || ent.play === '2B' || ent.play === '3B' || ent.play === 'HR') { h++; ab++; }
+            if (ent.play === 'BB') bb++;
+            if (ent.play === 'SF') sf++;
+            if (ent.play === 'SO') { so++; ab++; }
+            if (ent.play === 'OUT' || ent.play === 'FC') ab++;
+            if (ent.b4) r++;
+        });
+
+        let jugoPartido = (ab > 0 || bb > 0 || sf > 0 || r > 0) ? 1 : 0;
+
+        let masterIdx = dbMaster.jugadoras.findIndex(jm => jm && jm.id == idJugadora);
+        if (masterIdx > -1) {
+            dbMaster.jugadoras[masterIdx].jj = (dbMaster.jugadoras[masterIdx].jj || 0) + jugoPartido;
+            dbMaster.jugadoras[masterIdx].ab = (dbMaster.jugadoras[masterIdx].ab || 0) + ab;
+            dbMaster.jugadoras[masterIdx].h = (dbMaster.jugadoras[masterIdx].h || 0) + h;
+            dbMaster.jugadoras[masterIdx].r = (dbMaster.jugadoras[masterIdx].r || 0) + r;
+            dbMaster.jugadoras[masterIdx].bb = (dbMaster.jugadoras[masterIdx].bb || 0) + bb;
+            dbMaster.jugadoras[masterIdx].so = (dbMaster.jugadoras[masterIdx].so || 0) + so;
+            dbMaster.jugadoras[masterIdx].sf = (dbMaster.jugadoras[masterIdx].sf || 0) + sf;
+
+            let pa = dbMaster.jugadoras[masterIdx].ab + dbMaster.jugadoras[masterIdx].bb + dbMaster.jugadoras[masterIdx].sf;
+            dbMaster.jugadoras[masterIdx].avg = dbMaster.jugadoras[masterIdx].ab > 0 ? (dbMaster.jugadoras[masterIdx].h / dbMaster.jugadoras[masterIdx].ab).toFixed(3) : ".000";
+            dbMaster.jugadoras[masterIdx].obp = pa > 0 ? ((dbMaster.jugadoras[masterIdx].h + dbMaster.jugadoras[masterIdx].bb) / pa).toFixed(3) : ".000";
+        }
+    }
+
+    descargarDatosInitiales();
 </script>
 </body>
 </html>
