@@ -7,50 +7,120 @@
     <link rel="icon" type="image/jfif" href="IMAGEN LOGO VIDA GRAN SALM.jfif">
     <style>
         :root {
-            --primary-color: #1a472a;
-            --secondary-color: #d4af37;
-            --dark-color: #2b2b2b;
-            --light-color: #f4f6f4;
+            --bg-dark: #0f172a;
+            --card-bg: #1e293b;
+            --primary-neon: #10b981;
+            --secondary-gold: #f59e0b;
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
         }
+
         body {
             font-family: 'Segoe UI', sans-serif;
-            background-color: var(--light-color);
-            color: var(--dark-color);
+            background-color: var(--bg-dark);
+            color: var(--text-light);
             padding: 15px;
             margin: 0;
+            background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 70%);
+            min-height: 100vh;
         }
+
         header {
             text-align: center;
-            background-color: var(--primary-color);
+            background: linear-gradient(135deg, #064e3b 0%, #022c22 100%);
             color: white;
-            padding: 20px;
-            border-radius: 6px;
+            padding: 25px 15px;
+            border-radius: 12px;
             margin-bottom: 25px;
-            border-bottom: 5px solid var(--secondary-color);
+            border-bottom: 4px solid var(--secondary-gold);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
         }
-        header h1 { margin: 0; font-size: 26px; text-transform: uppercase; letter-spacing: 1px; }
-        header p { margin: 6px 0 0 0; font-style: italic; color: #e2ebd5; }
-        header a { display: inline-block; margin-top: 10px; color: var(--secondary-color); font-weight: bold; text-decoration: none; font-size: 14px; }
-        header a:hover { text-decoration: underline; }
-        .container { max-width: 900px; margin: 0 auto; }
-        .standings-container { display: flex; flex-direction: column; gap: 10px; }
+
+        header h1 { 
+            margin: 0; 
+            font-size: 28px; 
+            text-transform: uppercase; 
+            letter-spacing: 2px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        header p { margin: 8px 0 0 0; font-style: italic; color: #a7f3d0; font-size: 14px; }
+        
+        header a { 
+            display: inline-block; 
+            margin-top: 15px; 
+            color: var(--secondary-gold); 
+            font-weight: bold; 
+            text-decoration: none; 
+            font-size: 13px; 
+            text-transform: uppercase;
+            border: 1px solid var(--secondary-gold);
+            padding: 6px 16px;
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+        header a:hover { 
+            background: var(--secondary-gold);
+            color: #000;
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+        }
+
+        .container { max-width: 950px; margin: 0 auto; }
+        
+        .standings-container { display: flex; flex-direction: column; gap: 12px; }
+
+        /* Estilos de Tarjeta Premium */
         .team-card {
             display: flex;
             flex-direction: column;
-            background: white;
-            border: 1px solid #e0e0e0;
-            border-radius: 6px;
-            padding: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-            transition: transform 0.2s;
+            background: var(--card-bg);
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 16px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
         }
-        .team-card.leader { border-left: 6px solid var(--secondary-color); background: #fffdf2; }
-        @media(min-width: 768px) { .team-card { flex-direction: row; align-items: center; justify-content: space-between; } }
+        
+        .team-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary-neon);
+            box-shadow: 0 6px 15px rgba(16, 185, 129, 0.2);
+        }
+
+        .team-card.leader { 
+            border-left: 6px solid var(--secondary-gold); 
+            background: linear-gradient(90deg, #1e293b 0%, #1e2630 100%); 
+        }
+        
+        .team-card.leader:hover {
+            border-color: var(--secondary-gold);
+            box-shadow: 0 6px 15px rgba(245, 158, 11, 0.2);
+        }
+
+        .main-row {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+        }
+
+        @media(min-width: 768px) { 
+            .main-row { 
+                flex-direction: row; 
+                align-items: center; 
+                justify-content: space-between; 
+            } 
+        }
+
         .team-info { display: flex; align-items: center; gap: 15px; }
+        
         .rank-badge {
-            width: 30px;
-            height: 30px;
-            background: #666;
+            width: 32px;
+            height: 32px;
+            background: #475569;
             color: white;
             border-radius: 50%;
             display: flex;
@@ -58,25 +128,92 @@
             justify-content: center;
             font-weight: bold;
             font-size: 14px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
         }
-        .leader .rank-badge { background: var(--secondary-color); color: black; }
-        .team-name { font-size: 18px; font-weight: bold; color: var(--primary-color); }
+        
+        .leader .rank-badge { background: var(--secondary-gold); color: black; }
+        
+        /* Contenedor de Logotipo Dinámico */
+        .team-logo {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.05);
+            padding: 2px;
+        }
+
+        .team-name { 
+            font-size: 19px; 
+            font-weight: bold; 
+            color: var(--text-light); 
+        }
+
         .stats-display {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px;
-            background: var(--light-color);
-            padding: 8px 16px;
-            border-radius: 4px;
-            margin-top: 12px;
+            gap: 10px;
+            background: rgba(15, 23, 42, 0.6);
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: 1px solid #334155;
         }
-        @media(min-width: 768px) { .stats-display { margin-top: 0; } }
-        .stat-box { text-align: center; min-width: 42px; }
-        .stat-box .label { font-size: 9px; color: #666; display: block; font-weight: bold; text-transform: uppercase; }
+
+        .stat-box { text-align: center; min-width: 45px; flex: 1; }
+        .stat-box .label { font-size: 10px; color: var(--text-muted); display: block; font-weight: bold; text-transform: uppercase; margin-bottom: 2px; }
         .stat-box .value { font-size: 15px; font-weight: bold; }
-        .important-stat { color: #000; font-size: 16px; }
-        .text-diff { color: #2a6b42; }
-        .text-diff.negativo { color: #b52a2a; }
+        
+        .important-stat { color: var(--secondary-gold); font-size: 16px; }
+        .leader .important-stat { color: var(--secondary-gold); }
+        
+        .text-diff { color: #34d399; }
+        .text-diff.negativo { color: #f87171; }
+
+        /* Panel Desplegable de Rosters */
+        .roster-panel {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed #475569;
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .roster-title {
+            font-size: 13px;
+            text-transform: uppercase;
+            color: var(--primary-neon);
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .roster-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 8px;
+        }
+
+        .player-item {
+            background: rgba(15, 23, 42, 0.4);
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+
+        .player-item span.avg {
+            font-weight: bold;
+            color: var(--secondary-gold);
+            font-size: 12px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
@@ -89,12 +226,26 @@
     </header>
 
     <div id="publicStandings" class="standings-container">
-        <div style="text-align:center; padding:30px; color:#777; font-style:italic;">Conectando con la pizarra de la nube...</div>
+        <div style="text-align:center; padding:30px; color:var(--text-muted); font-style:italic;">Conectando con la pizarra de la nube...</div>
     </div>
 </div>
 
 <script>
     const firebaseStandingsURL = 'https://vidagrandslam-default-rtdb.firebaseio.com/posiciones.json';
+    const firebasePlayersURL = 'https://vidagrandslam-default-rtdb.firebaseio.com/jugadoras.json';
+    
+    let baseJugadoras = [];
+
+    // Carga inicial de jugadoras de la liga para armar rosters
+    function cargarJugadorasMaestras() {
+        return fetch(firebasePlayersURL)
+            .then(res => res.json())
+            .then(data => {
+                if (data) {
+                    baseJugadoras = Array.isArray(data) ? data.filter(Boolean) : Object.values(data);
+                }
+            }).catch(e => console.error("Error cargando jugadoras:", e));
+    }
 
     function cargarTablaPublica() {
         const container = document.getElementById('publicStandings');
@@ -103,7 +254,7 @@
         .then(res => res.json())
         .then(posicionesData => {
             if (!posicionesData) {
-                container.innerHTML = '<div style="text-align:center; padding:30px; color:#777; font-style:italic;">Esperando actualización del administrador...</div>';
+                container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-muted); font-style:italic;">Esperando actualización del administrador...</div>';
                 return;
             }
 
@@ -125,35 +276,96 @@
                 let diffClass = dif > 0 ? 'text-diff' : (dif < 0 ? 'text-diff negativo' : '');
                 let diffSign = dif > 0 ? '+' : '';
 
+                // Autodetectar logotipo: Si el equipo se llama "Amazonas", busca "Amazonas.png"
+                // Si la imagen no existe, el navegador activa el switch 'onerror' para ocultarlo limpiamente
+                const logoFileName = `${team.name.trim()}.png`;
+
                 const card = document.createElement('div');
                 card.className = `team-card ${index === 0 ? 'leader' : ''}`;
+                
+                // Al hacer clic, abre o cierra el Roster de este equipo de forma interactiva
+                card.onclick = () => toggleRoster(team.name, index);
 
                 card.innerHTML = `
-                    <div class="team-info">
-                        <div class="rank-badge">${index + 1}</div>
-                        <div class="team-name">${team.name}</div>
+                    <div class="main-row">
+                        <div class="team-info">
+                            <div class="rank-badge">${index + 1}</div>
+                            <img class="team-logo" src="${logoFileName}" onerror="this.style.display='none';" alt="">
+                            <div class="team-name">${team.name}</div>
+                        </div>
+                        <div class="stats-display">
+                            <div class="stat-box"><span class="label">JJ</span><span class="value">${jj}</span></div>
+                            <div class="stat-box"><span class="label">G</span><span class="value">${w}</span></div>
+                            <div class="stat-box"><span class="label">P</span><span class="value">${l}</span></div>
+                            <div class="stat-box"><span class="label">PCT</span><span class="value important-stat">${pct.toFixed(3)}</span></div>
+                            <div class="stat-box"><span class="label">CA</span><span class="value">${ca}</span></div>
+                            <div class="stat-box"><span class="label">CR</span><span class="value">${cr}</span></div>
+                            <div class="stat-box"><span class="label">DIF</span><span class="value important-stat ${diffClass}">${diffSign}${dif}</span></div>
+                        </div>
                     </div>
-                    <div class="stats-display">
-                        <div class="stat-box"><span class="label">JJ</span><span class="value">${jj}</span></div>
-                        <div class="stat-box"><span class="label">G</span><span class="value">${w}</span></div>
-                        <div class="stat-box"><span class="label">P</span><span class="value">${l}</span></div>
-                        <div class="stat-box"><span class="label">PCT</span><span class="value important-stat" style="color:var(--primary-color);">${pct.toFixed(3)}</span></div>
-                        <div class="stat-box"><span class="label">CA</span><span class="value">${ca}</span></div>
-                        <div class="stat-box"><span class="label">CR</span><span class="value">${cr}</span></div>
-                        <div class="stat-box"><span class="label">DIF</span><span class="value important-stat ${diffClass}">${diffSign}${dif}</span></div>
+                    <div id="roster-${index}" class="roster-panel" onclick="event.stopPropagation();">
+                        <div class="roster-title">📋 Roster Oficial del Equipo</div>
+                        <div id="players-grid-${index}" class="roster-grid">
+                            <div style="color:var(--text-muted); font-style:italic; font-size:12px;">Cargando roster en vivo...</div>
+                        </div>
                     </div>
                 `;
                 container.appendChild(card);
             });
         })
         .catch(err => {
-            container.innerHTML = '<div style="text-align:center; padding:30px; color:red;">Error al recibir los datos desde internet.</div>';
+            container.innerHTML = '<div style="text-align:center; padding:30px; color:#f87171;">Error al recibir los datos desde internet.</div>';
             console.error(err);
         });
     }
 
-    setInterval(cargarTablaPublica, 15000);
-    cargarTablaPublica();
+    // Abre/Cierra el panel del roster y filtra las jugadoras por escuadra
+    function toggleRoster(teamName, index) {
+        const panel = document.getElementById(`roster-${index}`);
+        const grid = document.getElementById(`players-grid-${index}`);
+        
+        if (panel.style.display === 'block') {
+            panel.style.display = 'none';
+            return;
+        }
+        
+        panel.style.display = 'block';
+        grid.innerHTML = '';
+
+        // Filtrar jugadoras pertenecientes a este equipo
+        let filtradas = baseJugadoras.filter(jug => jug && jug.team && jug.team.trim().toLowerCase() === teamName.trim().toLowerCase());
+        
+        if(filtradas.length === 0) {
+            grid.innerHTML = '<div style="color:var(--text-muted); font-size:12px; font-style:italic; grid-column: 1/-1;">No hay jugadoras asignadas a esta escuadra en el sistema todavía.</div>';
+            return;
+        }
+
+        // Ordenar alfabéticamente
+        filtradas.sort((a,b) => a.name.localeCompare(b.name));
+
+        filtradas.forEach(j => {
+            const ab = parseInt(j.ab || 0);
+            const h = parseInt(j.h || 0);
+            const avg = ab > 0 ? (h / ab).toFixed(3) : '.000';
+            
+            const item = document.createElement('div');
+            item.className = 'player-item';
+            item.innerHTML = `
+                <div>${j.name}</div>
+                <span class="avg">AVG ${avg}</span>
+            `;
+            grid.appendChild(item);
+        });
+    }
+
+    // Inicialización del sistema
+    cargarJugadorasMaestras().then(() => {
+        cargarTablaPublica();
+        // Sincronización en vivo cada 15 segundos
+        setInterval(() => {
+            cargarJugadorasMaestras().then(cargarTablaPublica);
+        }, 15000);
+    });
 </script>
 </body>
 </html>
