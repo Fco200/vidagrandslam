@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opiniones y Sugerencias - VIDA GRAND SLAM</title>
+<link rel="icon" type="image/jfif" href="IMAGEN LOGO VIDA GRAN SLAM.jfif">    <style>
+        :root {
+            --primary-color: #1a472a;
+            --secondary-color: #d4af37;
+            --dark-bg: #0a0a0a;
+            --card-bg: #141414;
+            --lime-neon: #7fff00;
+            --text-light: #ffffff;
+            --card-shadow: 0 8px 25px rgba(0,0,0,0.6);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            margin: 0;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            background: linear-gradient(135deg, var(--primary-color) 0%, #0d2415 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border-bottom: 5px solid var(--secondary-color);
+            box-shadow: var(--card-shadow);
+        }
+
+        header h1 { margin: 0; font-size: 26px; text-transform: uppercase; letter-spacing: 0.5px; }
+        header p { margin: 6px 0 0 0; font-style: italic; color: #e2ebd5; }
+
+        .container { max-width: 700px; margin: 0 auto; }
+
+        .card {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 25px;
+            border: 1px solid #222;
+        }
+
+        .card h2 { 
+            margin-top: 0; 
+            color: #ffffff; 
+            border-bottom: 2px solid #222; 
+            padding-bottom: 10px; 
+            text-transform: uppercase; 
+            font-size: 18px; 
+            letter-spacing: 0.5px;
+        }
+
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 8px; font-size: 14px; text-transform: uppercase; color: #aaa; }
+        
+        input[type="text"], select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            background-color: #0d0d0d;
+            border: 2px solid #333;
+            border-radius: 6px;
+            font-size: 15px;
+            box-sizing: border-box;
+            color: white;
+            transition: all 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--lime-neon);
+            outline: none;
+            box-shadow: 0 0 10px rgba(127, 255, 0, 0.2);
+        }
+
+        /* Estilos de las Estrellas de Calificación */
+        .rating-stars-box {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .rating-stars-box input { display: none; }
+
+        .rating-stars-box label {
+            font-size: 35px;
+            color: #333;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .rating-stars-box input:checked ~ label,
+        .rating-stars-box label:hover,
+        .rating-stars-box label:hover ~ label {
+            color: var(--secondary-color);
+            text-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
+        }
+
+        /* Checkbox Anónimo */
+        .anonymous-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            user-select: none;
+            font-size: 14px;
+            color: #ccc;
+        }
+        .anonymous-wrapper input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--lime-neon);
+        }
+
+        button[type="submit"] {
+            background: linear-gradient(180deg, var(--lime-neon) 0%, #4db800 100%);
+            color: #000;
+            border: none;
+            padding: 14px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.25s ease;
+            text-transform: uppercase;
+            box-shadow: 0 0 12px rgba(127, 255, 0, 0.1);
+        }
+
+        button[type="submit"]:hover {
+            box-shadow: 0 0 15px var(--lime-neon);
+            transform: translateY(-1px);
+        }
+
+        .btn-back {
+            display: block;
+            text-align: center;
+            color: #aaa;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 20px;
+            transition: color 0.2s;
+        }
+        .btn-back:hover { color: white; }
+
+        /* SECCIÓN DE MARCA Y CRÉDITOS: FV DIGITAL */
+        .developer-credits-box {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            border-top: 1px solid #222;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .fv-logo-placeholder {
+            width: 50px;
+            height: 50px;
+            background-color: #1a1a1a;
+            border: 2px dashed #444;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #666;
+            font-weight: bold;
+            text-transform: uppercase;
+            overflow: hidden;
+        }
+
+        .fv-logo-placeholder img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .developer-text {
+            font-size: 12px;
+            color: #666;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        .developer-text span {
+            color: var(--lime-neon);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Buzón de Opiniones y Calificaciones</h1>
+        <p>Tu voz hace más grande a la liga • Torneo VIDA GRAND SLAM</p>
+    </header>
+
+    <a href="index.html" class="btn-back">← Volver al Inicio</a>
+
+    <div class="card">
+        <h2>Déjanos tu Comentario</h2>
+        <form id="feedbackForm" onsubmit="enviarOpinionNube(event)">
+            
+            <div class="form-group">
+                <label for="feedbackType">Tipo de Mensaje</label>
+                <select id="feedbackType" required>
+                    <option value="Sugerencia">💡 Sugerencia para la liga o la web</option>
+                    <option value="Felicitación">🎉 Felicitación / Comentario positivo</option>
+                    <option value="Queja">⚠️ Queja o reporte de incidencia</option>
+                    <option value="Otro">💬 Otro motivo</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="nameInputGroup">
+                <label for="userName">Tu Nombre / Equipo</label>
+                <input type="text" id="userName" placeholder="Ej. Mánager Sofía - Las Amazonas">
+            </div>
+
+            <div class="form-group">
+                <label class="anonymous-wrapper">
+                    <input type="checkbox" id="isAnonymous" onchange="alternarAnonimo()">
+                    Enviar de forma 100% anónima (Ocultar mi nombre)
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label>¿Cómo calificas nuestra página web?</label>
+                <div class="rating-stars-box">
+                    <input type="radio" id="star5" name="pageRating" value="5" required><label for="star5">★</label>
+                    <input type="radio" id="star4" name="pageRating" value="4"><label for="star4">★</label>
+                    <input type="radio" id="star3" name="pageRating" value="3"><label for="star3">★</label>
+                    <input type="radio" id="star2" name="pageRating" value="2"><label for="star2">★</label>
+                    <input type="radio" id="star1" name="pageRating" value="1"><label for="star1">★</label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="feedbackComment">Mensaje o Sugerencia</label>
+                <textarea id="feedbackComment" rows="5" placeholder="Escribe aquí detalladamente tu opinión sobre los roles, estadísticas o funcionamiento de la liga..." required></textarea>
+            </div>
+
+            <button type="submit">Enviar mi Opinión</button>
+        </form>
+    </div>
+
+    <div class="developer-credits-box">
+        <div class="fv-logo-placeholder">
+            <img src="fv_digital_logo.png.webp" alt="FV" onerror="this.style.display='none'">
+            FV
+        </div>
+        <div class="developer-text">Desarrollado de forma oficial por <span>FV DIGITAL</span></div>
+    </div>
+</div>
+
+<script>
+    // URL de tu Firebase Realtime Database para almacenar opiniones
+    const firebaseOpinionesURL = 'https://vidagrandslam-default-rtdb.firebaseio.com/torneo/opiniones.json';
+
+    function alternarAnonimo() {
+        const isAnonymous = document.getElementById('isAnonymous').checked;
+        const nameInput = document.getElementById('userName');
+        const nameGroup = document.getElementById('nameInputGroup');
+        
+        if (isAnonymous) {
+            nameInput.value = '';
+            nameInput.required = false;
+            nameGroup.style.opacity = '0.4';
+            nameInput.disabled = true;
+            nameInput.placeholder = "Mensaje configurado como Anónimo";
+        } else {
+            nameGroup.style.opacity = '1';
+            nameInput.disabled = false;
+            nameInput.placeholder = "Ej. Mánager Sofía - Las Amazonas";
+        }
+    }
+
+    function enviarOpinionNube(e) {
+        e.preventDefault();
+
+        const tipo = document.getElementById('feedbackType').value;
+        const esAnonimo = document.getElementById('isAnonymous').checked;
+        const nombreInput = document.getElementById('userName').value.trim();
+        const comentario = document.getElementById('feedbackComment').value.trim();
+        
+        // Obtener el valor de la estrella seleccionada
+        const estrellasSeleccionadas = document.querySelector('input[name="pageRating"]:checked');
+        const calificacion = estrellasSeleccionadas ? parseInt(estrellasSeleccionadas.value) : 0;
+
+        // Definir el nombre según la elección de privacidad
+        const nombreFinal = esAnonimo ? "Anónimo" : (nombreInput === "" ? "Usuario General" : nombreInput);
+
+        // Estructura del paquete de datos que viaja completo a Firebase
+        const nuevaOpinion = {
+            id: Date.now(),
+            fecha: new Date().toLocaleString('es-MX'),
+            tipo: tipo,
+            nombre: nombreFinal,
+            calificacionStars: calificacion,
+            mensaje: comentario
+        };
+
+        // Subir los datos en formato POST (agrega registros uno tras otro de forma limpia)
+        fetch(firebaseOpinionesURL, {
+            method: 'POST',
+            body: JSON.stringify(nuevaOpinion)
+        })
+        .then(res => {
+            if(res.ok) {
+                alert("¡Muchas gracias! Tu opinión y calificación han sido enviadas correctamente a la administración de la liga.");
+                document.getElementById('feedbackForm').reset();
+                alternarAnonimo(); // Restablece el estado de los inputs
+            } else {
+                alert("Hubo un detalle al enviar el formulario. Inténtalo de nuevo.");
+            }
+        })
+        .catch(err => {
+            console.error("Error enviando opinión:", err);
+            alert("Error de conexión. Verifica tu internet.");
+        });
+    }
+</script>
+</body>
+</html>
