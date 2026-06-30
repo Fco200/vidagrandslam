@@ -160,6 +160,23 @@
         </div>
 
         <div class="leader-card">
+            <h2><span>Las Dobleteras Imparables 🚀</span> <span style="font-size:12px; color:#aaa;">(2B)</span></h2>
+            <table class="leader-table" id="tableDobles"></table>
+        </div>
+
+        <div class="leader-card">
+            <h2><span>Las Correcaminos de 3 Bases ⚡</span> <span style="font-size:12px; color:#aaa;">(3B)</span></h2>
+            <table class="leader-table" id="tableTriples"></table>
+        </div>
+
+        <div class="leader-card" style="border-color: rgba(212, 175, 55, 0.4);">
+            <h2 style="background: linear-gradient(90deg, #3d300b 0%, #1c221d 100%);">
+                <span style="color: #ffcc00;">Las Reinas del Cuadrangular 👑</span> <span style="font-size:12px; color:#aaa;">(HR)</span>
+            </h2>
+            <table class="leader-table" id="tableJonrones"></table>
+        </div>
+
+        <div class="leader-card">
             <h2><span>Las Correcaminos</span> <span style="font-size:12px; color:#aaa;">(CARRERAS)</span></h2>
             <table class="leader-table" id="tableCarreras"></table>
         </div>
@@ -208,7 +225,7 @@
         let activas = listaJugadoras.filter(j => (j.jj || 0) > 0 || (j.ab || 0) > 0 || (j.bb || 0) > 0);
 
         if(activas.length === 0) {
-            let tablas = ['tableHits', 'tableCarreras', 'tableBases', 'tableTurnos', 'tableJuegos', 'tablePonches'];
+            let tablas = ['tableHits', 'tableDobles', 'tableTriples', 'tableJonrones', 'tableCarreras', 'tableBases', 'tableTurnos', 'tableJuegos', 'tablePonches'];
             tablas.forEach(id => {
                 document.getElementById(id).innerHTML = '<tr><td class="empty-msg">Aún no hay récords registrados esta jornada.</td></tr>';
             });
@@ -217,6 +234,9 @@
 
         // Ordenar cada lista de mayor a menor según su estadística correspondiente
         renderizarTablaEspecitica('tableHits', [...activas].sort((a,b) => (b.h || 0) - (a.h || 0)), 'h');
+        renderizarTablaEspecitica('tableDobles', [...activas].sort((a,b) => (b.d2 || 0) - (a.d2 || 0)), 'd2');
+        renderizarTablaEspecitica('tableTriples', [...activas].sort((a,b) => (b.t3 || 0) - (a.t3 || 0)), 't3');
+        renderizarTablaEspecitica('tableJonrones', [...activas].sort((a,b) => (b.hr || 0) - (a.hr || 0)), 'hr');
         renderizarTablaEspecitica('tableCarreras', [...activas].sort((a,b) => (b.r || 0) - (a.r || 0)), 'r');
         renderizarTablaEspecitica('tableBases', [...activas].sort((a,b) => (b.bb || 0) - (a.bb || 0)), 'bb');
         renderizarTablaEspecitica('tableTurnos', [...activas].sort((a,b) => (b.ab || 0) - (a.ab || 0)), 'ab');
@@ -226,6 +246,7 @@
 
     function renderizarTablaEspecitica(idTabla, listaOrdenada, propiedad) {
         const tabla = document.getElementById(idTabla);
+        if (!tabla) return;
         tabla.innerHTML = '';
 
         // Extraer únicamente al Top 5 de líderes
