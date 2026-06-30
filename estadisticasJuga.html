@@ -39,7 +39,7 @@
         header h1 { margin: 0; font-size: 26px; text-transform: uppercase; letter-spacing: 1px; }
         header p { margin: 6px 0 0 0; font-style: italic; color: #e2ebd5; }
 
-        .container { max-width: 1050px; margin: 0 auto; }
+        .container { max-width: 1150px; margin: 0 auto; }
 
         .card {
             background: white;
@@ -89,7 +89,7 @@
 
         .grid-inputs {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
             gap: 12px;
             margin-bottom: 15px;
         }
@@ -148,32 +148,34 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.04);
         }
 
-        @media(min-width: 768px) {
+        @media(min-width: 992px) {
             .player-row { flex-direction: row; justify-content: space-between; align-items: center; gap: 20px; }
         }
 
-        .player-info { flex: 1.5; min-width: 180px; }
+        .player-info { flex: 1.2; min-width: 165px; }
         .player-info .name { font-size: 18px; font-weight: bold; color: var(--primary-color); }
         .player-info .meta { font-size: 12px; color: #666; margin-top: 2px; }
 
         .player-stats {
-            flex: 4;
+            flex: 5;
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
             background: var(--light-color);
             padding: 12px;
             border-radius: 6px;
             align-items: center;
         }
 
-        .stat-box { text-align: center; min-width: 42px; flex: 1; }
+        .stat-box { text-align: center; min-width: 38px; flex: 1; }
         .stat-box .label { font-size: 10px; color: #555; display: block; text-transform: uppercase; font-weight: bold; margin-bottom: 2px; }
         .stat-box .val { font-size: 15px; font-weight: bold; color: #222; }
         .stat-box.highlight { background: rgba(212, 175, 55, 0.15); padding: 4px 6px; border-radius: 4px; }
         .stat-box.highlight .val { color: #8a6d0f; }
         .stat-box.highlight-primary { background: rgba(26, 71, 42, 0.08); padding: 4px 6px; border-radius: 4px; }
         .stat-box.highlight-primary .val { color: var(--primary-color); }
+        .stat-box.highlight-extra { background: rgba(11, 94, 215, 0.08); padding: 4px 6px; border-radius: 4px; }
+        .stat-box.highlight-extra .val { color: var(--accent-blue); }
 
         /* Estilos de Modales */
         .modal {
@@ -191,7 +193,7 @@
             background: white; 
             padding: 30px; 
             border-radius: 12px; 
-            max-width: 480px; 
+            max-width: 520px; 
             width: 90%; 
             box-shadow: 0 8px 25px rgba(0,0,0,0.25); 
             animation: animatemodal 0.3s;
@@ -271,6 +273,18 @@
                 <div>
                     <label for="statH">Hits (H)</label>
                     <input type="number" id="statH" value="0" min="0" required>
+                </div>
+                <div>
+                    <label for="statD2">Dobles (2B)</label>
+                    <input type="number" id="statD2" value="0" min="0" required>
+                </div>
+                <div>
+                    <label for="statT3">Triples (3B)</label>
+                    <input type="number" id="statT3" value="0" min="0" required>
+                </div>
+                <div>
+                    <label for="statHR">HR</label>
+                    <input type="number" id="statHR" value="0" min="0" required>
                 </div>
                 <div>
                     <label for="statR">Carreras (R)</label>
@@ -356,6 +370,18 @@
                 <input type="number" id="sumH" value="0" min="0">
             </div>
             <div class="form-group">
+                <label for="sumD2">2B (Dobles)</label>
+                <input type="number" id="sumD2" value="0" min="0">
+            </div>
+            <div class="form-group">
+                <label for="sumT3">3B (Triples)</label>
+                <input type="number" id="sumT3" value="0" min="0">
+            </div>
+            <div class="form-group">
+                <label for="sumHR">HR (Jonrones)</label>
+                <input type="number" id="sumHR" value="0" min="0">
+            </div>
+            <div class="form-group">
                 <label for="sumR">R (Carreras)</label>
                 <input type="number" id="sumR" value="0" min="0">
             </div>
@@ -367,8 +393,8 @@
                 <label for="sumSO">SO (Ponches)</label>
                 <input type="number" id="sumSO" value="0" min="0">
             </div>
-            <div class="form-group">
-                <label for="sumSF">SF (Sacrif.)</label>
+            <div class="form-group" style="grid-column: span 3;">
+                <label for="sumSF">SF (Sacrificio Fly)</label>
                 <input type="number" id="sumSF" value="0" min="0">
             </div>
         </div>
@@ -474,7 +500,7 @@
         }
 
         btnSubmitStats.disabled = false;
-        btnSumarStatsTop.disabled = false; // Activamos el botón azul superior
+        btnSumarStatsTop.disabled = false;
         const jugadora = masterDatabase.jugadoras.find(j => j && j.id == idJugadora);
         if (jugadora) {
             playerActionId.value = jugadora.id;
@@ -482,6 +508,9 @@
             document.getElementById('statJJ').value = jugadora.jj || 0;
             document.getElementById('statAB').value = jugadora.ab || 0;
             document.getElementById('statH').value = jugadora.h || 0;
+            document.getElementById('statD2').value = jugadora.d2 || 0;
+            document.getElementById('statT3').value = jugadora.t3 || 0;
+            document.getElementById('statHR').value = jugadora.hr || 0;
             document.getElementById('statR').value = jugadora.r || 0;
             document.getElementById('statBB').value = jugadora.bb || 0;
             document.getElementById('statSO').value = jugadora.so || 0;
@@ -525,7 +554,7 @@
         const nueva = {
             id: Date.now(),
             team: equipo,
-            name: nombre, jj:0, ab:0, h:0, r:0, bb:0, so:0, sf:0, avg:".000", obp:".000"
+            name: nombre, jj:0, ab:0, h:0, d2:0, t3:0, hr:0, r:0, bb:0, so:0, sf:0, avg:".000", obp:".000"
         };
 
         masterDatabase.jugadoras.push(nueva);
@@ -548,7 +577,7 @@
                 masterDatabase.jugadoras.push({
                     id: Date.now() + contador, 
                     team: equipo,
-                    name: limpio, jj:0, ab:0, h:0, r:0, bb:0, so:0, sf:0, avg:".000", obp:".000"
+                    name: limpio, jj:0, ab:0, h:0, d2:0, t3:0, hr:0, r:0, bb:0, so:0, sf:0, avg:".000", obp:".000"
                 });
                 contador++;
             }
@@ -567,6 +596,9 @@
         const jj = parseInt(document.getElementById('statJJ').value) || 0;
         const ab = parseInt(document.getElementById('statAB').value) || 0;
         const h = parseInt(document.getElementById('statH').value) || 0;
+        const d2 = parseInt(document.getElementById('statD2').value) || 0;
+        const t3 = parseInt(document.getElementById('statT3').value) || 0;
+        const hr = parseInt(document.getElementById('statHR').value) || 0;
         const r = parseInt(document.getElementById('statR').value) || 0;
         const bb = parseInt(document.getElementById('statBB').value) || 0;
         const so = parseInt(document.getElementById('statSO').value) || 0;
@@ -581,6 +613,9 @@
             masterDatabase.jugadoras[idx].jj = jj;
             masterDatabase.jugadoras[idx].ab = ab;
             masterDatabase.jugadoras[idx].h = h;
+            masterDatabase.jugadoras[idx].d2 = d2;
+            masterDatabase.jugadoras[idx].t3 = t3;
+            masterDatabase.jugadoras[idx].hr = hr;
             masterDatabase.jugadoras[idx].r = r;
             masterDatabase.jugadoras[idx].bb = bb;
             masterDatabase.jugadoras[idx].so = so;
@@ -595,7 +630,6 @@
         playerActionId.value = '';
     }
 
-    // --- FUNCIONES DEL MODAL DE SUMATORIA RÁPIDA DESDE LA SECCIÓN SUPERIOR ---
     function abrirModalSumarStatsDesdeTop() {
         const id = playerActionId.value;
         if(!id) return;
@@ -606,10 +640,12 @@
         document.getElementById('sumarPlayerId').value = jugadora.id;
         document.getElementById('sumarModalTitle').textContent = `Sumar Juego: ${jugadora.name}`;
         
-        // Valores base para el nuevo partido
         document.getElementById('sumJJ').value = 1;
         document.getElementById('sumAB').value = 0;
         document.getElementById('sumH').value = 0;
+        document.getElementById('sumD2').value = 0;
+        document.getElementById('sumT3').value = 0;
+        document.getElementById('sumHR').value = 0;
         document.getElementById('sumR').value = 0;
         document.getElementById('sumBB').value = 0;
         document.getElementById('sumSO').value = 0;
@@ -631,6 +667,9 @@
         const addJJ = parseInt(document.getElementById('sumJJ').value) || 0;
         const addAB = parseInt(document.getElementById('sumAB').value) || 0;
         const addH = parseInt(document.getElementById('sumH').value) || 0;
+        const addD2 = parseInt(document.getElementById('sumD2').value) || 0;
+        const addT3 = parseInt(document.getElementById('sumT3').value) || 0;
+        const addHR = parseInt(document.getElementById('sumHR').value) || 0;
         const addR = parseInt(document.getElementById('sumR').value) || 0;
         const addBB = parseInt(document.getElementById('sumBB').value) || 0;
         const addSO = parseInt(document.getElementById('sumSO').value) || 0;
@@ -640,12 +679,14 @@
         player.jj = (player.jj || 0) + addJJ;
         player.ab = (player.ab || 0) + addAB;
         player.h = (player.h || 0) + addH;
+        player.d2 = (player.d2 || 0) + addD2;
+        player.t3 = (player.t3 || 0) + addT3;
+        player.hr = (player.hr || 0) + addHR;
         player.r = (player.r || 0) + addR;
         player.bb = (player.bb || 0) + addBB;
         player.so = (player.so || 0) + addSO;
         player.sf = (player.sf || 0) + addSF;
 
-        // Recalcular promedios oficiales Ballscore
         const pa = player.ab + player.bb + player.sf;
         player.avg = player.ab > 0 ? (player.h / player.ab).toFixed(3) : ".000";
         player.obp = pa > 0 ? ((player.h + player.bb) / pa).toFixed(3) : ".000";
@@ -653,7 +694,6 @@
         cerrarModalSumar();
         guardarEnNube(`Estadísticas sumadas correctamente a "${player.name}".`);
         
-        // Limpiamos los formularios para la siguiente acción
         document.getElementById('statForm').reset();
         playerNameDisplay.value = '';
         playerActionId.value = '';
@@ -711,6 +751,9 @@
                     <div class="stat-box"><span class="label">JJ</span><span class="val">${player.jj || 0}</span></div>
                     <div class="stat-box"><span class="label">AB</span><span class="val">${player.ab || 0}</span></div>
                     <div class="stat-box"><span class="label">H</span><span class="val">${player.h || 0}</span></div>
+                    <div class="stat-box highlight-extra"><span class="label">2B</span><span class="val">${player.d2 || 0}</span></div>
+                    <div class="stat-box highlight-extra"><span class="label">3B</span><span class="val">${player.t3 || 0}</span></div>
+                    <div class="stat-box highlight-extra"><span class="label">HR</span><span class="val">${player.hr || 0}</span></div>
                     <div class="stat-box"><span class="label">R</span><span class="val">${player.r || 0}</span></div>
                     <div class="stat-box"><span class="label">BB</span><span class="val">${player.bb || 0}</span></div>
                     <div class="stat-box"><span class="label">SO</span><span class="val">${player.so || 0}</span></div>
