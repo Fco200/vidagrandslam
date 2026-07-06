@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Posiciones - Administrador</title>
-    <link rel="icon" type="image/jfif" href="IMAGEN LOGO VIDA GRAN SALM.jfif">
-    <style>
+    <link rel="icon" type="image/jfif" href="IMAGEN LOGO VIDA GRAN SLAM.jfif">
+
+<style>
         :root {
             --primary-color: #1a472a;
             --secondary-color: #d4af37;
@@ -89,6 +90,18 @@
         }
         .team-identity { display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 16px; min-width: 180px; }
         .rank { background: var(--primary-color); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        
+        /* Estilo para el logotipo en la vista previa del admin */
+        .admin-team-logo {
+            width: 35px;
+            height: 35px;
+            object-fit: contain;
+            border-radius: 4px;
+            background: rgba(0,0,0,0.05);
+            padding: 2px;
+            border: 1px solid #ddd;
+        }
+
         .team-stats {
             display: flex;
             flex-wrap: wrap;
@@ -169,7 +182,6 @@
 <script>
     const firebasePosicionesURL = 'https://vidagrandslam-default-rtdb.firebaseio.com/posiciones.json';
     const firebaseTorneoURL = 'https://vidagrandslam-default-rtdb.firebaseio.com/torneo.json';
-    const firebaseResultadosURL = 'https://vidagrandslam-default-rtdb.firebaseio.com/resultados.json';
 
     const teamForm = document.getElementById('teamForm');
     const teamSelect = document.getElementById('teamSelect');
@@ -177,17 +189,29 @@
     const newTeamName = document.getElementById('newTeamName');
     const standingsContainer = document.getElementById('standingsContainer');
 
+    // ===================================================
+    // 🗺️ TU DICCIONARIO MANUAL DE LOGOTIPOS CORREGIDO
+    // ===================================================
+    const misLogotiposOficiales = {
+        "Yaquesitas": "imgYaquesitas.jfif",
+        "Papas del Memo": "imgPapas.jfif",
+        "Wild Angels": "imgWildAngels.jfif",
+        "Nobas": "imgNobas.jfif",
+        "Alborotadas": "imgAlborotadas.jfif",
+        "Klan Siqueiros": "imgKlan.jfif",
+        "Coquetas": "imgCoquetas.jfif",
+        "Cowgirls": "imgCow.jfif"
+    };
+
     let standingsDatabase = [];
     let masterTeamsList = [];
-    let contraQuienGano = {};
 
     function descargarDatosNube() {
         Promise.all([
             fetch(firebasePosicionesURL).then(res => res.json()),
-            fetch(firebaseTorneoURL).then(res => res.json()),
-            fetch(firebaseResultadosURL).then(res => res.json())
+            fetch(firebaseTorneoURL).then(res => res.json())
         ])
-        .then(([posData, torneoData, resultadosData]) => {
+        .then(([posData, torneoData]) => {
             if (posData) {
                 standingsDatabase = Array.isArray(posData) ? posData.filter(Boolean) : Object.values(posData);
             } else {
@@ -199,24 +223,6 @@
             standingsDatabase.forEach(t => {
                 if(t && t.name && !masterTeamsList.includes(t.name)) masterTeamsList.push(t.name);
             });
-
-            // Reconstruir dominio directo desde resultados.json
-            contraQuienGano = {};
-            if (resultadosData) {
-                Object.values(resultadosData).forEach(juego => {
-                    if (juego && juego.teamHome && juego.teamAway) {
-                        const sh = parseInt(juego.scoreHome || 0);
-                        const sa = parseInt(juego.scoreAway || 0);
-                        if (sh > sa) {
-                            if (!contraQuienGano[juego.teamHome]) contraQuienGano[juego.teamHome] = [];
-                            contraQuienGano[juego.teamHome].push(juego.teamAway);
-                        } else if (sa > sh) {
-                            if (!contraQuienGano[juego.teamAway]) contraQuienGano[juego.teamAway] = [];
-                            contraQuienGano[juego.teamAway].push(juego.teamHome);
-                        }
-                    }
-                });
-            }
 
             actualizarSelectorEquipos();
             renderStandings();
@@ -296,17 +302,42 @@
             }
         });
 
-        // Aplicamos criterios de desempate idénticos antes de subir
-        standingsDatabase.sort((A, B) => {
-            if (B.w !== A.w) return B.w - A.w; // 1° Más Ganados
-            if (A.l !== B.l) return A.l - B.l; // 2° Menos Perdidos
-            if (B.ca !== A.ca) return B.ca - A.ca; // 3° Más CA
-            if (A.cr !== B.cr) return A.cr - B.cr; // 4° Menos CR
-            if (B.dif !== A.dif) return B.dif - A.dif; // 5° Diferencia
-            const cqA = contraQuienGano[A.name] || [], cqB = contraQuienGano[B.name] || [];
-            if (cqA.includes(B.name)) return -1; // 6° Dominio Directo
-            if (cqB.includes(A.name)) return 1;
-            return 0;
+        // ===================================================
+        // ⚡ CORREGIDO: LÓGICA DE DESEMPATE IGUAL A LA DEL PÚBLICO ⚡
+        // ===================================================
+        standingsDatabase.sort((a, b) => {
+            const wA = parseInt(a.w || 0);
+            const wB = parseInt(b.w || 0);
+            const lA = parseInt(a.l || 0);
+            const lB = parseInt(b.l || 0);
+            
+            const caA = parseInt(a.ca || 0);
+            const caB = parseInt(b.ca || 0);
+            const crA = parseInt(a.cr || 0);
+            const crB = parseInt(b.cr || 0);
+            
+            const difA = caA - crA;
+            const difB = caB - crB;
+
+            // 1. Juegos Ganados (G) - Mayor a menor
+            if (wB !== wA) return wB - wA; 
+
+            // 2. Menos Juegos Perdidos (P) - Menor a mayor
+            if (lA !== lB) return lA - lB;
+
+            // 3. Menor Diferencia Absoluta de Carreras (DIF) - Más cercano a cero (+6 va arriba de +34)
+            if (Math.abs(difA) !== Math.abs(difB)) {
+                return Math.abs(difA) - Math.abs(difB); 
+            }
+
+            // 4. Más Carreras Anotadas (CA) - Mayor a menor
+            if (caB !== caA) return caB - caA;
+
+            // 5. Menos Carreras Recibidas (CR) - Menor a mayor
+            if (crA !== crB) return crA - crB;
+
+            // 6. Alfabético por nombre
+            return a.name.trim().localeCompare(b.name.trim());
         });
 
         fetch(firebasePosicionesURL, { method: 'PUT', body: JSON.stringify(standingsDatabase) })
@@ -317,7 +348,26 @@
         });
     }
 
+    // ===================================================
+    // ⚡ CORREGIDO: SE RENDERIZAN LOS LOGOS DE FORMA SEGURA ⚡
+    // ===================================================
     function renderStandings() {
+        // Volvemos a ordenar aquí de forma preventiva para la vista previa
+        standingsDatabase.sort((a, b) => {
+            const wA = parseInt(a.w || 0); const wB = parseInt(b.w || 0);
+            const lA = parseInt(a.l || 0); const lB = parseInt(b.l || 0);
+            const caA = parseInt(a.ca || 0); const caB = parseInt(b.ca || 0);
+            const crA = parseInt(a.cr || 0); const crB = parseInt(b.cr || 0);
+            const difA = caA - crA; const difB = caB - crB;
+
+            if (wB !== wA) return wB - wA; 
+            if (lA !== lB) return lA - lB;
+            if (Math.abs(difA) !== Math.abs(difB)) return Math.abs(difA) - Math.abs(difB); 
+            if (caB !== caA) return caB - caA;
+            if (crA !== crB) return crA - crB;
+            return a.name.trim().localeCompare(b.name.trim());
+        });
+
         const filtrados = standingsDatabase.filter(Boolean);
         if (filtrados.length === 0) {
             standingsContainer.innerHTML = '<p style="color: #777; font-style: italic;">No hay récords.</p>';
@@ -330,10 +380,19 @@
         filtrados.forEach((team, index) => {
             const jj = team.w + team.l;
             let jd = index === 0 ? '-' : ((leaderW - team.w) + (team.l - leaderL)) / 2;
+            
+            // Forzar lectura correcta de las imágenes usando el nombre limpio del equipo
+            const nombreLimpio = team.name.trim();
+            const srcLogo = misLogotiposOficiales[nombreLimpio] || "";
+
             const row = document.createElement('div');
             row.className = 'team-row';
             row.innerHTML = `
-                <div class="team-identity"><div class="rank">${index + 1}</div><div>${team.name}</div></div>
+                <div class="team-identity">
+                    <div class="rank">${index + 1}</div>
+                    ${srcLogo ? `<img class="admin-team-logo" src="${srcLogo}" alt="${nombreLimpio}">` : ''}
+                    <div>${team.name}</div>
+                </div>
                 <div class="team-stats">
                     <div class="stat-item"><span class="lbl">JJ</span><span class="val">${jj}</span></div>
                     <div class="stat-item"><span class="lbl">G</span><span class="val">${team.w}</span></div>

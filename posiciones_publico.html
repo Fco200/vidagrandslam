@@ -69,7 +69,7 @@
         
         .standings-container { display: flex; flex-direction: column; gap: 12px; }
 
-        /* Estilos de Tarjeta Premium */
+        /* Tarjeta Premium */
         .team-card {
             display: flex;
             flex-direction: column;
@@ -133,14 +133,15 @@
         
         .leader .rank-badge { background: var(--secondary-gold); color: black; }
         
-        /* Contenedor de Logotipo Dinámico */
+        /* Estilo del Logotipo */
         .team-logo {
-            width: 40px;
-            height: 40px;
+            width: 45px;
+            height: 45px;
             object-fit: contain;
-            border-radius: 4px;
-            background: rgba(255,255,255,0.05);
-            padding: 2px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.08);
+            padding: 3px;
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
         .team-name { 
@@ -164,12 +165,11 @@
         .stat-box .value { font-size: 15px; font-weight: bold; }
         
         .important-stat { color: var(--secondary-gold); font-size: 16px; }
-        .leader .important-stat { color: var(--secondary-gold); }
         
         .text-diff { color: #34d399; }
         .text-diff.negativo { color: #f87171; }
 
-        /* Panel Desplegable de Rosters */
+        /* Rosters */
         .roster-panel {
             margin-top: 15px;
             padding-top: 15px;
@@ -234,9 +234,22 @@
     const firebaseStandingsURL = 'https://vidagrandslam-default-rtdb.firebaseio.com/posiciones.json';
     const firebasePlayersURL = 'https://vidagrandslam-default-rtdb.firebaseio.com/jugadoras.json';
     
+    // ===================================================
+    // 🗺️ TU DICCIONARIO MANUAL DE LOGOTIPOS
+    // ===================================================
+    const misLogotiposOficiales = {
+        "YAQUESITAS": "imgYaquesitas.jfif",
+        "PAPAS DEL MEMO": "imgPapas.jfif",
+        "WILD ANGELS": "imgWildAngels.jfif",
+        "NOBAS": "imgNobas.jfif",
+        "ALBOROTADAS": "imgAlborotadas.jfif",
+        "KLAN SIQUEIROS": "imgKlan.jfif",
+        "COQUETAS": "imgCoquetas.jfif",
+        "COWGIRLS": "imgCow.jfif"
+    };
+
     let baseJugadoras = [];
 
-    // Carga inicial de jugadoras de la liga para armar rosters
     function cargarJugadorasMaestras() {
         return fetch(firebasePlayersURL)
             .then(res => res.json())
@@ -262,6 +275,44 @@
                 ? posicionesData.filter(Boolean) 
                 : Object.values(posicionesData);
 
+            // ===================================================
+            // LÓGICA DE ORDENAMIENTO OFICIAL (CRITERIOS REQUERIDOS)
+            // ===================================================
+            listaEquipos.sort((a, b) => {
+                const wA = parseInt(a.w || 0);
+                const wB = parseInt(b.w || 0);
+                const lA = parseInt(a.l || 0);
+                const lB = parseInt(b.l || 0);
+                
+                const caA = parseInt(a.ca || 0);
+                const caB = parseInt(b.ca || 0);
+                const crA = parseInt(a.cr || 0);
+                const crB = parseInt(b.cr || 0);
+                
+                const difA = caA - crA;
+                const difB = caB - crB;
+
+                // 1. Juegos Ganados (Mayor a menor)
+                if (wB !== wA) return wB - wA; 
+
+                // 2. Menos Juegos Perdidos (Menor a mayor)
+                if (lA !== lB) return lA - lB;
+
+                // 3. Menor Diferencia Absoluta de Carreras (Más cercano a cero)
+                if (Math.abs(difA) !== Math.abs(difB)) {
+                    return Math.abs(difA) - Math.abs(difB); 
+                }
+
+                // 4. Más Carreras Anotadas (Mayor a menor)
+                if (caB !== caA) return caB - caA;
+
+                // 5. Menos Carreras Recibidas (Menor a mayor)
+                if (crA !== crB) return crA - crB;
+
+                // 6. Último recurso / Dominio (Alfabético)
+                return a.name.trim().localeCompare(b.name.trim());
+            });
+
             container.innerHTML = '';
             
             listaEquipos.forEach((team, index) => {
@@ -276,21 +327,20 @@
                 let diffClass = dif > 0 ? 'text-diff' : (dif < 0 ? 'text-diff negativo' : '');
                 let diffSign = dif > 0 ? '+' : '';
 
-                // Autodetectar logotipo: Si el equipo se llama "Amazonas", busca "Amazonas.png"
-                // Si la imagen no existe, el navegador activa el switch 'onerror' para ocultarlo limpiamente
-                const logoFileName = `${team.name.trim()}.png`;
+                // Forzar lectura del mapa local de imágenes usando el nombre exacto
+                const nombreLimpio = team.name.trim();
+                const srcLogo = misLogotiposOficiales[nombreLimpio] || "";
 
                 const card = document.createElement('div');
                 card.className = `team-card ${index === 0 ? 'leader' : ''}`;
                 
-                // Al hacer clic, abre o cierra el Roster de este equipo de forma interactiva
                 card.onclick = () => toggleRoster(team.name, index);
 
                 card.innerHTML = `
                     <div class="main-row">
                         <div class="team-info">
                             <div class="rank-badge">${index + 1}</div>
-                            <img class="team-logo" src="${logoFileName}" onerror="this.style.display='none';" alt="">
+                            ${srcLogo ? `<img class="team-logo" src="${srcLogo}" alt="${nombreLimpio}">` : `<div class="team-logo" style="display:none;"></div>`}
                             <div class="team-name">${team.name}</div>
                         </div>
                         <div class="stats-display">
@@ -319,7 +369,6 @@
         });
     }
 
-    // Abre/Cierra el panel del roster y filtra las jugadoras por escuadra
     function toggleRoster(teamName, index) {
         const panel = document.getElementById(`roster-${index}`);
         const grid = document.getElementById(`players-grid-${index}`);
@@ -332,16 +381,18 @@
         panel.style.display = 'block';
         grid.innerHTML = '';
 
-        // Filtrar jugadoras pertenecientes a este equipo
-        let filtradas = baseJugadoras.filter(jug => jug && jug.team && jug.team.trim().toLowerCase() === teamName.trim().toLowerCase());
+        let filtradas = baseJugadoras.filter(jug => {
+            if (!jug) return false;
+            const nombreEquipoJugadora = jug.team || jug.equipo || "";
+            return nombreEquipoJugadora.trim().toLowerCase() === teamName.trim().toLowerCase();
+        });
         
         if(filtradas.length === 0) {
             grid.innerHTML = '<div style="color:var(--text-muted); font-size:12px; font-style:italic; grid-column: 1/-1;">No hay jugadoras asignadas a esta escuadra en el sistema todavía.</div>';
             return;
         }
 
-        // Ordenar alfabéticamente
-        filtradas.sort((a,b) => a.name.localeCompare(b.name));
+        filtradas.sort((a,b) => (a.name || "").localeCompare(b.name || ""));
 
         filtradas.forEach(j => {
             const ab = parseInt(j.ab || 0);
@@ -351,17 +402,15 @@
             const item = document.createElement('div');
             item.className = 'player-item';
             item.innerHTML = `
-                <div>${j.name}</div>
+                <div>${j.name || "Jugadora sin nombre"}</div>
                 <span class="avg">AVG ${avg}</span>
             `;
             grid.appendChild(item);
         });
     }
 
-    // Inicialización del sistema
     cargarJugadorasMaestras().then(() => {
         cargarTablaPublica();
-        // Sincronización en vivo cada 15 segundos
         setInterval(() => {
             cargarJugadorasMaestras().then(cargarTablaPublica);
         }, 15000);
