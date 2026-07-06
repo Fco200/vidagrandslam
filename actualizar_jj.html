@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Actualización Masiva - TORNEO VIDA GRAN SALM</title>
+    <link rel="icon" type="image/jfif" href="IMAGEN LOGO VIDA GRAN SALM.jfif">
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #0d0d0d; color: #fff; padding: 30px; text-align: center; }
+        .control-panel { max-width: 500px; margin: 0 auto; background: #1a1a1a; padding: 25px; border-radius: 8px; border: 1px solid #333; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        label { display: block; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; color: #aaa; font-size: 14px; text-align: left; }
+        select { width: 100%; padding: 12px; background: #000; border: 1px solid #444; color: #fff; border-radius: 5px; font-size: 16px; margin-bottom: 20px; outline: none; box-sizing: border-box; }
+        select:focus { border-color: #00ff66; }
+        .btn-masivo { background: linear-gradient(180deg, #00ff66 0%, #009933 100%); color: #000; font-weight: bold; padding: 15px 30px; border: none; border-radius: 5px; cursor: pointer; font-size: 15px; text-transform: uppercase; width: 100%; display: block; margin-top: 10px; }
+        .btn-masivo:hover { transform: scale(1.01); box-shadow: 0 0 15px #00ff66; }
+        #status { margin-top: 20px; font-weight: bold; font-size: 16px; min-height: 24px; }
+    </style>
+</head>
+<body>
+
+    <h1>Asistente Control de Asistencia e Inserción</h1>
+    <p>Selecciona un equipo y la estadística que deseas incrementar de forma masiva (+1) a sus integrantes.</p>
+    
+    <div class="control-panel">
+        <label for="selectTeam">1. Selecciona el Equipo</label>
+        <select id="selectTeam">
+            <option value="">-- Elige un Equipo --</option>
+            <option value="YAQUESITAS">YAQUESITAS</option>
+            <option value="NOBAS">NOBAS</option>
+            <option value="WIL ANGELS">WIL ANGELS</option>
+            <option value="KLAN SIQUEIROS">KLAN SIQUEIROS</option>
+            <option value="COWGIRLS">COWGIRLS</option>
+            <option value="COQUETAS">COQUETAS</option>
+            <option value="ALBOROTADAS">ALBOROTADAS</option>
+            <option value="PAPAS DEL MEMO">PAPAS DEL MEMO</option>
+        </select>
+
+        <label for="selectStat">2. Selecciona la Estadística a Sumar (+1)</label>
+        <select id="selectStat">
+            <option value="">-- Elige qué vas a sumar --</option>
+            <option value="jj">Juegos Jugados (jj)</option>
+            <option value="ab">Turnos Oficiales al Bat (ab)</option>
+            <option value="h">Hits Totales (h)</option>
+            <option value="r">Carreras Anotadas (r)</option>
+            <option value="bb">Bases por Bolas (bb)</option>
+            <option value="so">Ponches (so)</option>
+            <option value="d2">Dobles (d2)</option>
+            <option value="t3">Triples (t3)</option>
+            <option value="hr">Home Runs (hr)</option>
+            <option value="sf">Sacrificios (sf)</option>
+        </select>
+
+        <button class="btn-masivo" id="btnEjecutar">🚀 Aplicar Inserción Masiva</button>
+        <div id="status"></div>
+    </div>
+
+    <script>
+        // Tu URL de Firebase apuntando directamente a torneo/jugadoras.json
+        const FIREBASE_JUGADORAS_URL = "https://vidagrandslam-default-rtdb.firebaseio.com/torneo/jugadoras.json";
+
+        document.getElementById("btnEjecutar").addEventListener("click", async () => {
+            const statusDiv = document.getElementById("status");
+            const equipoSeleccionado = document.getElementById("selectTeam").value;
+            const estadisticaSeleccionada = document.getElementById("selectStat").value;
+            const textoEstadistica = document.getElementById("selectStat").options[document.getElementById("selectStat").selectedIndex].text;
+
+            if (!equipoSeleccionado) {
+                statusDiv.innerHTML = "⚠️ Por favor, selecciona primero un equipo de la lista.";
+                statusDiv.style.color = "#ffcc00";
+                return;
+            }
+
+            if (!estadisticaSeleccionada) {
+                statusDiv.innerHTML = "⚠️ Por favor, selecciona la estadística que deseas modificar.";
+                statusDiv.style.color = "#ffcc00";
+                return;
+            }
+
+            if (!confirm(`¿Estás segura de que quieres sumarle +1 en "${textoEstadistica}" EXCLUSIVAMENTE al equipo: ${equipoSeleccionado}?`)) return;
+
+            statusDiv.innerHTML = "⏳ Descargando roster general de la nube...";
+            statusDiv.style.color = "#ffcc00";
+
+            try {
+                const response = await fetch(FIREBASE_JUGADORAS_URL);
+                const jugadoras = await response.json();
+
+                if (!jugadoras) {
+                    statusDiv.innerHTML = "❌ No se encontraron registros en el nodo /jugadoras.";
+                    statusDiv.style.color = "#ff3333";
+                    return;
+                }
+
+                statusDiv.innerHTML = `🔄 Procesando estadísticas de ${equipoSeleccionado}...`;
+                let contadorModificadas = 0;
+                
+                // Recorremos la base de datos
+                for (let id in jugadoras) {
+                    if (jugadoras[id] !== null) {
+                        let equipoJugadora = jugadoras[id].team || "";
+
+                        // Validación exacta respetando mayúsculas/minúsculas
+                        if (equipoJugadora.trim().toUpperCase() === equipoSeleccionado.trim().toUpperCase()) {
+                            
+                            // 1. Sumar +1 a la estadística seleccionada (llave exacta en minúscula)
+                            let valorActual = parseInt(jugadoras[id][estadisticaSeleccionada]) || 0;
+                            jugadoras[id][estadisticaSeleccionada] = valorActual + 1;
+
+                            // 2. RECALCULAR OBP AUTOMÁTICAMENTE
+                            // Extraemos los valores actuales ya actualizados
+                            let h = parseInt(jugadoras[id].h) || 0;
+                            let bb = parseInt(jugadoras[id].bb) || 0;
+                            let ab = parseInt(jugadoras[id].ab) || 0;
+                            let sf = parseInt(jugadoras[id].sf) || 0;
+
+                            let denominador = ab + bb + sf;
+                            if (denominador > 0) {
+                                let obpCalculado = (h + bb) / denominador;
+                                // Guardar con formato de tres decimales string ("0.333") como le gusta a tu Firebase
+                                jugadoras[id].obp = obpCalculado.toFixed(3);
+                            } else {
+                                jugadoras[id].obp = "0.000";
+                            }
+
+                            contadorModificadas++;
+                        }
+                    }
+                }
+
+                if (contadorModificadas === 0) {
+                    statusDiv.innerHTML = `⚠️ No se encontraron jugadoras para el equipo "${equipoSeleccionado}".`;
+                    statusDiv.style.color = "#ffcc00";
+                    return;
+                }
+
+                statusDiv.innerHTML = `📤 Guardando cambios de ${contadorModificadas} jugadoras en Firebase...`;
+
+                const updateResponse = await fetch(FIREBASE_JUGADORAS_URL, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(jugadoras)
+                });
+
+                if (updateResponse.ok) {
+                    statusDiv.innerHTML = `✅ ¡Modificación exitosa! Se sumó +1 a "${textoEstadistica}" (y se recalculó el OBP) para las ${contadorModificadas} integrantes de ${equipoSeleccionado}.`;
+                    statusDiv.style.color = "#00ff66";
+                } else {
+                    throw new Error("Error en la respuesta del servidor.");
+                }
+
+            } catch (error) {
+                console.error(error);
+                statusDiv.innerHTML = "❌ Hubo un error de conexión con Firebase. Revisa la consola.";
+                statusDiv.style.color = "#ff3333";
+            }
+        });
+    </script>
+</body>
+</html>
