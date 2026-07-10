@@ -5,57 +5,233 @@
     <title>Actualización Masiva - TORNEO VIDA GRAN SALM</title>
     <link rel="icon" type="image/jfif" href="IMAGEN LOGO VIDA GRAN SALM.jfif">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #0d0d0d; color: #fff; padding: 30px; text-align: center; }
-        .control-panel { max-width: 500px; margin: 0 auto; background: #1a1a1a; padding: 25px; border-radius: 8px; border: 1px solid #333; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        label { display: block; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; color: #aaa; font-size: 14px; text-align: left; }
-        select { width: 100%; padding: 12px; background: #000; border: 1px solid #444; color: #fff; border-radius: 5px; font-size: 16px; margin-bottom: 20px; outline: none; box-sizing: border-box; }
-        select:focus { border-color: #00ff66; }
-        .btn-masivo { background: linear-gradient(180deg, #00ff66 0%, #009933 100%); color: #000; font-weight: bold; padding: 15px 30px; border: none; border-radius: 5px; cursor: pointer; font-size: 15px; text-transform: uppercase; width: 100%; display: block; margin-top: 10px; }
-        .btn-masivo:hover { transform: scale(1.01); box-shadow: 0 0 15px #00ff66; }
-        #status { margin-top: 20px; font-weight: bold; font-size: 16px; min-height: 24px; }
+        /* Variables de Diseño */
+        :root {
+            --bg-principal: #0d0d0d;
+            --bg-panel: #161616;
+            --verde-neon: #00ff66;
+            --verde-hover: #00cc52;
+            --texto-blanco: #ffffff;
+            --texto-gris: #aaaaaa;
+            --borde: #262626;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: var(--bg-principal); 
+            color: var(--texto-blanco); 
+            margin: 0;
+            padding: 0; 
+            text-align: center; 
+        }
+
+        /* Header / Barra de Navegación */
+        header {
+            background-color: #000000;
+            border-bottom: 2px solid var(--verde-neon);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0, 255, 102, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo-header {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: var(--texto-blanco);
+            text-transform: uppercase;
+        }
+
+        .logo-header span {
+            color: var(--verde-neon);
+        }
+
+        nav {
+            display: flex;
+            gap: 20px;
+        }
+
+        nav a {
+            color: var(--texto-gris);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: 1px solid transparent;
+        }
+
+        nav a:hover {
+            color: var(--verde-neon);
+            border-color: rgba(0, 255, 102, 0.3);
+            background-color: rgba(0, 255, 102, 0.05);
+        }
+
+        nav a.active {
+            color: #000000;
+            background-color: var(--verde-neon);
+            font-weight: 700;
+        }
+
+        /* Contenedor Principal */
+        .container {
+            padding: 40px 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            color: var(--texto-gris);
+            font-size: 16px;
+            margin-bottom: 40px;
+        }
+
+        /* Panel de Control */
+        .control-panel { 
+            max-width: 500px; 
+            margin: 0 auto; 
+            background: var(--bg-panel); 
+            padding: 35px; 
+            border-radius: 12px; 
+            border: 1px solid var(--borde); 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7); 
+        }
+
+        label { 
+            display: block; 
+            font-weight: 700; 
+            margin-bottom: 8px; 
+            text-transform: uppercase; 
+            color: var(--texto-gris); 
+            font-size: 13px; 
+            text-align: left; 
+            letter-spacing: 0.5px;
+        }
+
+        select { 
+            width: 100%; 
+            padding: 14px; 
+            background: #050505; 
+            border: 1px solid var(--borde); 
+            color: var(--texto-blanco); 
+            border-radius: 6px; 
+            font-size: 15px; 
+            margin-bottom: 25px; 
+            outline: none; 
+            box-sizing: border-box; 
+            transition: border-color 0.3s ease;
+        }
+
+        select:focus { 
+            border-color: var(--verde-neon); 
+            box-shadow: 0 0 10px rgba(0, 255, 102, 0.2);
+        }
+
+        .btn-masivo { 
+            background: linear-gradient(180deg, var(--verde-neon) 0%, #009933 100%); 
+            color: #000; 
+            font-weight: 700; 
+            padding: 16px 30px; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 15px; 
+            text-transform: uppercase; 
+            width: 100%; 
+            display: block; 
+            margin-top: 10px; 
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-masivo:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 5px 20px rgba(0, 255, 102, 0.4); 
+        }
+
+        .btn-masivo:active {
+            transform: translateY(0);
+        }
+
+        /* Estado del Proceso */
+        #status { 
+            margin-top: 25px; 
+            font-weight: 600; 
+            font-size: 15px; 
+            min-height: 24px; 
+            line-height: 1.5;
+            padding: 10px;
+            border-radius: 6px;
+        }
     </style>
 </head>
 <body>
 
-    <h1>Asistente Control de Asistencia e Inserción</h1>
-    <p>Selecciona un equipo y la estadística que deseas incrementar de forma masiva (+1) a sus integrantes.</p>
-    
-    <div class="control-panel">
-        <label for="selectTeam">1. Selecciona el Equipo</label>
-        <select id="selectTeam">
-            <option value="">-- Elige un Equipo --</option>
-            <option value="YAQUESITAS">YAQUESITAS</option>
-            <option value="NOBAS">NOBAS</option>
-            <option value="WILD ANGELS">WILD ANGELS</option>
-            <option value="KLAN SIQUEIROS">KLAN SIQUEIROS</option>
-            <option value="COWGIRLS">COWGIRLS</option>
-            <option value="COQUETAS">COQUETAS</option>
-            <option value="ALBOROTADAS">ALBOROTADAS</option>
-            <option value="PAPAS DEL MEMO">PAPAS DEL MEMO</option>
-        </select>
+    <header>
+        <div class="logo-header">Vida <span>Grand Slam</span></div>
+        <nav>
+            <a href="index.html">Inicio</a>
+            <a href="estadisticas_publico.html">Estadísticas Público</a>
+            <a href="actualizar_jj.html" class="active">Actualización Masiva</a>
+        </nav>
+    </header>
 
-        <label for="selectStat">2. Selecciona la Estadística a Sumar (+1)</label>
-        <select id="selectStat">
-            <option value="">-- Elige qué vas a sumar --</option>
-            <option value="jj">Juegos Jugados (jj)</option>
-            <option value="ab">Turnos Oficiales al Bat (ab)</option>
-            <option value="h">Hits Totales (h)</option>
-            <option value="r">Carreras Anotadas (r)</option>
-            <option value="bb">Bases por Bolas (bb)</option>
-            <option value="so">Ponches (so)</option>
-            <option value="d2">Dobles (d2)</option>
-            <option value="t3">Triples (t3)</option>
-            <option value="hr">Home Runs (hr)</option>
-            <option value="sf">Sacrificios (sf)</option>
-        </select>
+    <div class="container">
+        <h1>Asistente Control de Asistencia e Inserción</h1>
+        <p class="subtitle">Selecciona un equipo y la estadística que deseas incrementar de forma masiva (+1) a sus integrantes de forma segura.</p>
+        
+        <div class="control-panel">
+            <label for="selectTeam">1. Selecciona el Equipo</label>
+            <select id="selectTeam">
+                <option value="">-- Elige un Equipo --</option>
+                <option value="YAQUESITAS">YAQUESITAS</option>
+                <option value="NOBAS">NOBAS</option>
+                <option value="WILD ANGELS">WILD ANGELS</option>
+                <option value="KLAN SIQUEIROS">KLAN SIQUEIROS</option>
+                <option value="COWGIRLS">COWGIRLS</option>
+                <option value="COQUETAS">COQUETAS</option>
+                <option value="ALBOROTADAS">ALBOROTADAS</option>
+                <option value="PAPAS DEL MEMO">PAPAS DEL MEMO</option>
+            </select>
 
-        <button class="btn-masivo" id="btnEjecutar">🚀 Aplicar Inserción Masiva</button>
-        <div id="status"></div>
+            <label for="selectStat">2. Selecciona la Estadística a Sumar (+1)</label>
+            <select id="selectStat">
+                <option value="">-- Elige qué vas a sumar --</option>
+                <option value="jj">Juegos Jugados (jj)</option>
+                <option value="ab">Turnos Oficiales al Bat (ab)</option>
+                <option value="h">Hits Totales (h)</option>
+                <option value="r">Carreras Anotadas (r)</option>
+                <option value="bb">Bases por Bolas (bb)</option>
+                <option value="so">Ponches (so)</option>
+                <option value="d2">Dobles (d2)</option>
+                <option value="t3">Triples (t3)</option>
+                <option value="hr">Home Runs (hr)</option>
+                <option value="sf">Sacrificios (sf)</option>
+            </select>
+
+            <button class="btn-masivo" id="btnEjecutar">🚀 Aplicar Inserción Masiva</button>
+            <div id="status"></div>
+        </div>
     </div>
 
     <script>
-        // Tu URL de Firebase apuntando directamente a torneo/jugadoras.json
-        const FIREBASE_JUGADORAS_URL = "https://vidagrandslam-default-rtdb.firebaseio.com/torneo/jugadoras.json";
+        // URL base para consultas generales
+        const FIREBASE_BASE_URL = "https://vidagrandslam-default-rtdb.firebaseio.com/torneo/jugadoras";
 
         document.getElementById("btnEjecutar").addEventListener("click", async () => {
             const statusDiv = document.getElementById("status");
@@ -75,82 +251,107 @@
                 return;
             }
 
-            if (!confirm(`¿Estás segura de que quieres sumarle +1 en "${textoEstadistica}" EXCLUSIVAMENTE al equipo: ${equipoSeleccionado}?`)) return;
+            if (!confirm(`¿Estás segura de que quieres sumarle +1 en "${textoEstadistica}" EXCLUSIVAMENTE a las integrantes de: ${equipoSeleccionado}?\n\nEste proceso es seguro y no borrará a los demás equipos.`)) return;
 
+            // Bloquear botón durante el proceso
+            document.getElementById("btnEjecutar").disabled = true;
             statusDiv.innerHTML = "⏳ Descargando roster general de la nube...";
             statusDiv.style.color = "#ffcc00";
 
             try {
-                const response = await fetch(FIREBASE_JUGADORAS_URL);
+                // 1. Descargamos el snapshot de la base de datos
+                const response = await fetch(`${FIREBASE_BASE_URL}.json`);
                 const jugadoras = await response.json();
 
                 if (!jugadoras) {
-                    statusDiv.innerHTML = "❌ No se encontraron registros en el nodo /jugadoras.";
+                    statusDiv.innerHTML = "❌ No se encontraron registros en la base de datos.";
                     statusDiv.style.color = "#ff3333";
+                    document.getElementById("btnEjecutar").disabled = false;
                     return;
                 }
 
-                statusDiv.innerHTML = `🔄 Procesando estadísticas de ${equipoSeleccionado}...`;
+                statusDiv.innerHTML = `🔄 Buscando jugadoras de ${equipoSeleccionado}...`;
+                
+                let promesasDeActualizacion = [];
                 let contadorModificadas = 0;
                 
-                // Recorremos la base de datos
+                // 2. Filtramos e identificamos de forma individual
                 for (let id in jugadoras) {
                     if (jugadoras[id] !== null) {
                         let equipoJugadora = jugadoras[id].team || "";
 
-                        // Validación exacta respetando mayúsculas/minúsculas
                         if (equipoJugadora.trim().toUpperCase() === equipoSeleccionado.trim().toUpperCase()) {
                             
-                            // 1. Sumar +1 a la estadística seleccionada (llave exacta en minúscula)
-                            let valorActual = parseInt(jugadoras[id][estadisticaSeleccionada]) || 0;
-                            jugadoras[id][estadisticaSeleccionada] = valorActual + 1;
+                            // Preparar objeto de actualización limpia
+                            let actualizacionCampos = {};
 
-                            // 2. RECALCULAR OBP AUTOMÁTICAMENTE
-                            // Extraemos los valores actuales ya actualizados
+                            // Sumar +1 al valor actual
+                            let valorActual = parseInt(jugadoras[id][estadisticaSeleccionada]) || 0;
+                            actualizacionCampos[estadisticaSeleccionada] = valorActual + 1;
+
+                            // Recalcular OBP de forma segura simulando el cambio
                             let h = parseInt(jugadoras[id].h) || 0;
                             let bb = parseInt(jugadoras[id].bb) || 0;
                             let ab = parseInt(jugadoras[id].ab) || 0;
                             let sf = parseInt(jugadoras[id].sf) || 0;
 
+                            // Si la estadística que se modificó es una de estas, alteramos su valor local antes de la fórmula
+                            if (estadisticaSeleccionada === 'h') h += 1;
+                            if (estadisticaSeleccionada === 'bb') bb += 1;
+                            if (estadisticaSeleccionada === 'ab') ab += 1;
+                            if (estadisticaSeleccionada === 'sf') sf += 1;
+
                             let denominador = ab + bb + sf;
                             if (denominador > 0) {
                                 let obpCalculado = (h + bb) / denominador;
-                                // Guardar con formato de tres decimales string ("0.333") como le gusta a tu Firebase
-                                jugadoras[id].obp = obpCalculado.toFixed(3);
+                                actualizacionCampos["obp"] = obpCalculado.toFixed(3);
                             } else {
-                                jugadoras[id].obp = "0.000";
+                                actualizacionCampos["obp"] = "0.000";
                             }
 
+                            // 3. EN LUGAR DE UN PUT GENERAL, CREAMOS UN PATCH INDIVIDUAL POR JUGADORA
+                            // Esto guarda los datos de una en una sin tocar a nadie más en toda la base de datos.
+                            const peticionPatch = fetch(`${FIREBASE_BASE_URL}/${id}.json`, {
+                                method: "PATCH",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify(actualizacionCampos)
+                            });
+
+                            promesasDeActualizacion.push(peticionPatch);
                             contadorModificadas++;
                         }
                     }
                 }
 
                 if (contadorModificadas === 0) {
-                    statusDiv.innerHTML = `⚠️ No se encontraron jugadoras para el equipo "${equipoSeleccionado}".`;
+                    statusDiv.innerHTML = `⚠️ No se encontraron jugadoras registradas para el equipo "${equipoSeleccionado}".`;
                     statusDiv.style.color = "#ffcc00";
+                    document.getElementById("btnEjecutar").disabled = false;
                     return;
                 }
 
-                statusDiv.innerHTML = `📤 Guardando cambios de ${contadorModificadas} jugadoras en Firebase...`;
+                statusDiv.innerHTML = `📤 Subiendo cambios de ${contadorModificadas} jugadoras de forma segura a Firebase...`;
 
-                const updateResponse = await fetch(FIREBASE_JUGADORAS_URL, {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(jugadoras)
-                });
+                // Ejecutamos todos los PATCH en paralelo de forma eficiente
+                const resultados = await Promise.all(promesasDeActualizacion);
+                
+                // Verificamos si todos los PATCH salieron bien
+                const todoOk = resultados.every(res => res.ok);
 
-                if (updateResponse.ok) {
-                    statusDiv.innerHTML = `✅ ¡Modificación exitosa! Se sumó +1 a "${textoEstadistica}" (y se recalculó el OBP) para las ${contadorModificadas} integrantes de ${equipoSeleccionado}.`;
+                if (todoOk) {
+                    statusDiv.innerHTML = `✅ ¡Modificación segura completada! Se sumó +1 a "${textoEstadistica}" (y se actualizó OBP) a las ${contadorModificadas} integrantes de ${equipoSeleccionado} sin afectar al resto del torneo.`;
                     statusDiv.style.color = "#00ff66";
                 } else {
-                    throw new Error("Error en la respuesta del servidor.");
+                    throw new Error("Una o más actualizaciones fallaron.");
                 }
 
             } catch (error) {
                 console.error(error);
-                statusDiv.innerHTML = "❌ Hubo un error de conexión con Firebase. Revisa la consola.";
+                statusDiv.innerHTML = "❌ Hubo un problema al conectar con Firebase. Verifica en la consola de desarrollador.";
                 statusDiv.style.color = "#ff3333";
+            } finally {
+                // Reactivar el botón al terminar
+                document.getElementById("btnEjecutar").disabled = false;
             }
         });
     </script>
