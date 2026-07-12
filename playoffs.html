@@ -14,6 +14,7 @@
             --text-light: #f4f6f4;
             --accent-green: #2ecc71;
             --border-color: #223e2b;
+            
         }
 
         body {
@@ -186,12 +187,15 @@
     <div class="bracket-container" id="bracketDisplay" style="display: none;">
         
         <div class="round">
-            <div class="round-title">Cuartos de Final</div>
-            
-            <div class="matchup">
-                <div class="team-row"><div class="team-info"><span class="seed">#1</span><span id="q1-t1">Esperando...</span></div></div>
-                <div class="team-row"><div class="team-info"><span class="seed">#8</span><span id="q1-t2">Esperando...</span></div></div>
-                <div class="series-format">Eliminación Directa</div>
+            <div class="round-title">Wildcard (8vos)</div>
+            <div class="matchup" style="border: 1px solid var(--secondary-color); margin-bottom: 20px;">
+                <div class="team-row">
+                    <div class="team-info" style="width:100%; justify-content: center;">
+                        <span class="seed" style="background-color: var(--secondary-color); color: black;">#1 Semifinal Directo</span>
+                        <span id="bye1-t1" style="font-weight:bold; font-size: 16px;">Esperando...</span>
+                    </div>
+                </div>
+                <div class="series-format" style="background-color: var(--secondary-color); color: black;">Bye Week - Avance Automático</div>
             </div>
 
             <div class="matchup">
@@ -217,15 +221,15 @@
             <div class="round-title">Semifinales</div>
             
             <div class="matchup">
-                <div class="team-row"><div class="team-info"><span class="seed">Ganador 1vs8</span><span>Por definir</span></div></div>
-                <div class="team-row"><div class="team-info"><span class="seed">Ganador 4vs5</span><span>Por definir</span></div></div>
-                <div class="series-format">Serie 2 de 3</div>
+                <div class="team-row"><div class="team-info"><span class="seed">BYE #1</span><span id="s1-t1">Por definir</span></div></div>
+                <div class="team-row"><div class="team-info"><span class="seed">Ganador 4vs5</span><span id="s1-t2">Por definir</span></div></div>
+                <div class="series-format">Serie al mejor de 3</div>
             </div>
 
             <div class="matchup">
-                <div class="team-row"><div class="team-info"><span class="seed">Ganador 2vs7</span><span>Por definir</span></div></div>
-                <div class="team-row"><div class="team-info"><span class="seed">Ganador 3vs6</span><span>Por definir</span></div></div>
-                <div class="series-format">Serie 2 de 3</div>
+                <div class="team-row"><div class="team-info"><span class="seed">Ganador 2vs7</span><span id="s2-t1">Por definir</span></div></div>
+                <div class="team-row"><div class="team-info"><span class="seed">Ganador 3vs6</span><span id="s2-t2">Por definir</span></div></div>
+                <div class="series-format">Serie al mejor de 3</div>
             </div>
         </div>
 
@@ -258,9 +262,8 @@
             document.getElementById('loadingMessage').style.display = 'none';
             document.getElementById('bracketDisplay').style.display = 'flex';
 
-            // 1. Renderizar Cuartos de Final (Muestra los marcadores a la derecha)
-            document.getElementById('q1-t1').innerHTML = `${pData.q1_t1 || 'Por definir'} <span style="float:right; color:var(--secondary-color); font-weight:bold;">${pData.q1_s1}</span>`;
-            document.getElementById('q1-t2').innerHTML = `${pData.q1_t2 || 'Por definir'} <span style="float:right; color:var(--secondary-color); font-weight:bold;">${pData.q1_s2}</span>`;
+            // 1. Renderizar Wildcard
+            document.getElementById('bye1-t1').innerText = pData.bye1_t1 || 'Por definir';
 
             document.getElementById('q2-t1').innerHTML = `${pData.q2_t1 || 'Por definir'} <span style="float:right; color:var(--secondary-color); font-weight:bold;">${pData.q2_s1}</span>`;
             document.getElementById('q2-t2').innerHTML = `${pData.q2_t2 || 'Por definir'} <span style="float:right; color:var(--secondary-color); font-weight:bold;">${pData.q2_s2}</span>`;
@@ -271,13 +274,12 @@
             document.getElementById('q4-t1').innerHTML = `${pData.q4_t1 || 'Por definir'} <span style="float:right; color:var(--secondary-color); font-weight:bold;">${pData.q4_s1}</span>`;
             document.getElementById('q4-t2').innerHTML = `${pData.q4_t2 || 'Por definir'} <span style="float:right; color:var(--secondary-color); font-weight:bold;">${pData.q4_s2}</span>`;
 
-            // 2. Renderizar Semifinales (Serie 2 de 3)
+            // 2. Renderizar Semifinales (Serie al mejor de 3)
             const roundS = document.querySelectorAll('.round')[1].querySelectorAll('.matchup');
-            roundS[0].querySelectorAll('.team-row')[0].innerHTML = `<div class="team-info"><span class="seed">Ganador A</span><span>${pData.s1_t1 || 'Por definir'}</span></div><span style="color:var(--secondary-color); font-weight:bold;">${pData.s1_s1}</span>`;
-            roundS[0].querySelectorAll('.team-row')[1].innerHTML = `<div class="team-info"><span class="seed">Ganador B</span><span>${pData.s1_t2 || 'Por definir'}</span></div><span style="color:var(--secondary-color); font-weight:bold;">${pData.s1_s2}</span>`;
-
-            roundS[1].querySelectorAll('.team-row')[0].innerHTML = `<div class="team-info"><span class="seed">Ganador C</span><span>${pData.s2_t1 || 'Por definir'}</span></div><span style="color:var(--secondary-color); font-weight:bold;">${pData.s2_s1}</span>`;
-            roundS[1].querySelectorAll('.team-row')[1].innerHTML = `<div class="team-info"><span class="seed">Ganador D</span><span>${pData.s2_t2 || 'Por definir'}</span></div><span style="color:var(--secondary-color); font-weight:bold;">${pData.s2_s2}</span>`;
+            document.getElementById('s1-t1').innerHTML = `${pData.s1_t1 || 'Por definir'} <span style="color:var(--secondary-color); font-weight:bold; float:right;">${pData.s1_s1 || 0}</span>`;
+            document.getElementById('s1-t2').innerHTML = `${pData.s1_t2 || 'Por definir'} <span style="color:var(--secondary-color); font-weight:bold; float:right;">${pData.s1_s2 || 0}</span>`;
+            document.getElementById('s2-t1').innerHTML = `${pData.s2_t1 || 'Por definir'} <span style="color:var(--secondary-color); font-weight:bold; float:right;">${pData.s2_s1 || 0}</span>`;
+            document.getElementById('s2-t2').innerHTML = `${pData.s2_t2 || 'Por definir'} <span style="color:var(--secondary-color); font-weight:bold; float:right;">${pData.s2_s2 || 0}</span>`;
 
             // 3. Renderizar Gran Final
             const roundF = document.querySelectorAll('.round')[2].querySelector('.matchup');
@@ -298,10 +300,10 @@
         .then(posionesData => {
             if(posionesData) {
                 let lista = Array.isArray(posionesData) ? posionesData.filter(Boolean) : Object.values(posionesData);
-                if(lista.length >= 8) {
+                if(lista.length >= 7) {
                     document.getElementById('loadingMessage').style.display = 'none';
                     document.getElementById('bracketDisplay').style.display = 'flex';
-                    document.getElementById('q1-t1').innerText = lista[0].name; document.getElementById('q1-t2').innerText = lista[7].name;
+                    document.getElementById('bye1-t1').innerText = lista[0].name;
                     document.getElementById('q2-t1').innerText = lista[3].name; document.getElementById('q2-t2').innerText = lista[4].name;
                     document.getElementById('q3-t1').innerText = lista[1].name; document.getElementById('q3-t2').innerText = lista[6].name;
                     document.getElementById('q4-t1').innerText = lista[2].name; document.getElementById('q4-t2').innerText = lista[5].name;

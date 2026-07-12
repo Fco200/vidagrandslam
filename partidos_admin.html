@@ -22,6 +22,7 @@
             color: var(--text-light);
             margin: 0;
             padding: 20px;
+            
         }
 
         .container { max-width: 800px; margin: 0 auto; }
@@ -167,6 +168,18 @@
                     </select>
                     <input type="text" id="otroCampoInput" placeholder="Escribe el nombre del otro campo" style="display:none; margin-top:10px;">
                 </div>
+                <div class="form-group full-width">
+                    <label for="gameDescription">Tipo / Descripción del Partido</label>
+                    <select id="gameDescription" onchange="verificarOtroTipo(this)" required>
+                        <option value="Jornada Regular">Jornada Regular</option>
+                        <option value="Wildcard (Eliminación Directa)">Wildcard (Eliminación Directa)</option>
+                        <option value="Semifinal (Mejor de 3)">Semifinal (Mejor de 3)</option>
+                        <option value="Gran Final (Campeonato)">Gran Final (Campeonato)</option>
+                        <option value="Partido Amistoso">Partido Amistoso</option>
+                        <option value="OTRO">Otra descripción...</option>
+                    </select>
+                    <input type="text" id="otroTipoInput" placeholder="Escribe la descripción del partido" style="display:none; margin-top:10px;">
+                </div>
             </div>
             <button type="submit">Publicar Juego</button>
         </form>
@@ -220,6 +233,18 @@
         }
     }
 
+    function verificarOtroTipo(selectElement) {
+        const otroInput = document.getElementById('otroTipoInput');
+        if (selectElement.value === 'OTRO') {
+            otroInput.style.display = 'block';
+            otroInput.required = true;
+        } else {
+            otroInput.style.display = 'none';
+            otroInput.required = false;
+            otroInput.value = '';
+        }
+    }
+
     // Descargar juegos existentes
     function cargarJuegos() {
         fetch(firebasePartidosURL)
@@ -252,12 +277,18 @@
             campoFinal = document.getElementById('otroCampoInput').value.trim();
         }
 
+        let tipoFinal = document.getElementById('gameDescription').value;
+        if (tipoFinal === 'OTRO') {
+            tipoFinal = document.getElementById('otroTipoInput').value.trim();
+        }
+
         const nuevoJuego = {
             home: homeTeam,
             away: awayTeam,
             date: document.getElementById('gameDate').value,
             time: document.getElementById('gameTime').value,
-            field: campoFinal
+            field: campoFinal,
+            description: tipoFinal
         };
 
         fetch(firebasePartidosURL, {
@@ -267,6 +298,7 @@
         .then(() => {
             gameForm.reset();
             document.getElementById('otroCampoInput').style.display = 'none';
+            document.getElementById('otroTipoInput').style.display = 'none';
             cargarJuegos();
         });
     });
@@ -289,6 +321,7 @@
                 <div class="match-details">
                     <div class="match-teams">${juego.home} <span style="color:var(--primary-neon)">VS</span> ${juego.away}</div>
                     <div class="match-info">🗓️ <span>${fechaFormateada}</span> | ⏰ <span>${juego.time} Hrs</span> | 📍 <span>${juego.field}</span></div>
+                    ${juego.description ? `<div class="match-info" style="margin-top:4px;">🏷️ <span>${juego.description}</span></div>` : ''}
                 </div>
                 <button onclick="eliminarJuego('${juego.id}')" class="btn-delete">Eliminar</button>
             `;
